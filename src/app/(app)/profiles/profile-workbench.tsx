@@ -1,6 +1,6 @@
 'use client';
 
-import { ProposalTone } from '@prisma/client';
+import { ProposalTone } from '@/domain/enums';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';

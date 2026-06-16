@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { LeadStatus } from '@prisma/client';
+import { LeadStatus } from '@/domain/enums';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { leadStatusLabelMap } from '@/domain/leads/types';

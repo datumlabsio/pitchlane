@@ -1,4 +1,4 @@
-import { ProposalTone } from '@prisma/client';
+import { ProposalTone } from '@/domain/enums';
 import { z } from 'zod';
 
 const stringListField = z.array(z.string().trim().min(1)).max(100);

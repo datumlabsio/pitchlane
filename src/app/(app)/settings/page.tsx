@@ -156,7 +156,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             { label: 'Supabase', ok: !!env.NEXT_PUBLIC_SUPABASE_URL },
             { label: 'OpenAI', ok: !!env.OPENAI_API_KEY },
             { label: 'Google OAuth', ok: !!env.GOOGLE_CLIENT_ID },
-            { label: 'Trigger.dev', ok: !!env.TRIGGER_SECRET_KEY },
+            { label: 'Vercel Cron', ok: !!env.CRON_SECRET },
             { label: 'Slack', ok: !!env.SLACK_WEBHOOK_URL },
           ].map(({ label, ok }) => (
             <span

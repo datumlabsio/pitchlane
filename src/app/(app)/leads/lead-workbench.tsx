@@ -32,6 +32,7 @@ import {
   leadLifecycleStatuses,
   leadStatusLabelMap,
   type LeadDetail,
+  type LeadEnrichment,
   type LeadSummary,
 } from '@/domain/leads/types';
 import { cn } from '@/lib/utils';
@@ -87,6 +88,47 @@ function relativeTime(value: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Upwork enrichment panel
+// ---------------------------------------------------------------------------
+
+function EnrichmentPanel({ enrichment }: { enrichment: LeadEnrichment }) {
+  const c = enrichment.client;
+  const rows: Array<{ label: string; value: string; strong?: boolean }> = [];
+  if (c.paymentVerified !== null)
+    rows.push({ label: 'Payment', value: c.paymentVerified ? 'Verified ✓' : 'Unverified', strong: c.paymentVerified });
+  if (c.totalSpent) rows.push({ label: 'Client spent', value: c.totalSpent });
+  if (c.totalHires !== null) rows.push({ label: 'Total hires', value: String(c.totalHires) });
+  if (c.rating !== null) rows.push({ label: 'Client rating', value: `${c.rating.toFixed(2)} / 5` });
+  if (c.location) rows.push({ label: 'Location', value: c.location });
+  if (enrichment.proposalsCount !== null) rows.push({ label: 'Proposals', value: String(enrichment.proposalsCount) });
+  if (enrichment.paymentType) rows.push({ label: 'Job type', value: enrichment.paymentType });
+  if (c.memberSince) rows.push({ label: 'Member since', value: c.memberSince });
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5">
+        <Sparkles className="size-3.5 text-emerald-500" />
+        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Upwork client &amp; job</p>
+      </div>
+      {rows.length > 0 ? (
+        <div className="grid grid-cols-2 gap-2">
+          {rows.map((r) => (
+            <div key={r.label} className="rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+              <p className="text-[10px] uppercase tracking-widest text-stone-400">{r.label}</p>
+              <p className={cn('mt-0.5 text-sm font-medium', r.strong ? 'text-emerald-700' : 'text-stone-800')}>
+                {r.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-stone-400">Enriched, but the actor returned no client details.</p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Activity timeline
 // ---------------------------------------------------------------------------
 
@@ -115,6 +157,8 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
         return { icon: Mail, title: 'Captured from email', tint: 'bg-sky-100 text-sky-700' };
       case 'lead.status_updated':
         return { icon: ArrowRight, title: 'Status changed', tint: 'bg-amber-100 text-amber-700' };
+      case 'lead.enriched':
+        return { icon: Sparkles, title: 'Enriched from Upwork', tint: 'bg-emerald-100 text-emerald-700' };
       case 'proposal.regenerated':
         return { icon: RefreshCw, title: 'Proposal regenerated', tint: 'bg-violet-100 text-violet-700' };
       case 'proposal.edited':
@@ -153,6 +197,11 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
             </p>
           ) : (event.type === 'proposal.regenerated' || event.type === 'proposal.edited') && payload.versionCount ? (
             <p className="text-xs text-stone-500">Now on version {String(payload.versionCount)}</p>
+          ) : event.type === 'lead.enriched' ? (
+            <p className="text-xs text-stone-500">
+              {payload.score != null ? <>Re-scored to <span className="text-stone-700">{String(payload.score)}%</span></> : 'Full job + client details fetched'}
+              {payload.proposalsCount != null ? <> · {String(payload.proposalsCount)} proposals on the job</> : null}
+            </p>
           ) : null}
         </div>
       </div>
@@ -614,6 +663,15 @@ export function LeadWorkbench({
     );
   }
 
+  function enrichLead() {
+    if (!selectedLead) return;
+    void runRequest(
+      `/api/leads/${selectedLead.id}/enrich`,
+      { method: 'POST' },
+      'Enriched from Upwork — score updated.',
+    );
+  }
+
   function saveProposal(mode: 'edit' | 'regenerate') {
     if (!selectedLead) return;
     if (mode === 'edit' && proposalDraft.trim().length === 0) {
@@ -781,21 +839,40 @@ export function LeadWorkbench({
                     {selectedLead.profileName}
                   </Badge>
                   <span className="text-xs text-stone-500">{selectedLead.budget}</span>
-                  {selectedLead.sourceUrl ? (
-                    <a
-                      href={selectedLead.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                    >
-                      View job on Upwork
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  ) : (
-                    <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-dashed border-stone-300 px-3 py-1 text-xs font-medium text-stone-400">
-                      No job link captured
+                  {selectedLead.enrichedAt && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                      <Sparkles className="size-3" /> Enriched
                     </span>
                   )}
+                  <div className="ml-auto flex items-center gap-2">
+                    {selectedLead.sourceUrl && (
+                      <button
+                        type="button"
+                        onClick={enrichLead}
+                        disabled={isPending}
+                        title="Fetch full job + client details from Upwork"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
+                      >
+                        <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
+                        {selectedLead.enrichedAt ? 'Re-enrich' : 'Enrich'}
+                      </button>
+                    )}
+                    {selectedLead.sourceUrl ? (
+                      <a
+                        href={selectedLead.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                      >
+                        View job on Upwork
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-stone-300 px-3 py-1 text-xs font-medium text-stone-400">
+                        No job link captured
+                      </span>
+                    )}
+                  </div>
                 </div>
               </SheetHeader>
 
@@ -834,6 +911,11 @@ export function LeadWorkbench({
                         </div>
                       </div>
 
+                      {/* Upwork enrichment */}
+                      {selectedLead.enrichment && (
+                        <EnrichmentPanel enrichment={selectedLead.enrichment} />
+                      )}
+
                       {/* Notes */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-1.5">
@@ -852,9 +934,16 @@ export function LeadWorkbench({
                       </div>
 
                       <div className="space-y-2">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Lead brief</p>
-                        <p className="text-sm leading-6 text-stone-700">
-                          {(selectedLead.emailSnippet || selectedLead.rawEmailBody || '').slice(0, 800) ||
+                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                          {selectedLead.enrichment?.description ? 'Job description' : 'Lead brief'}
+                        </p>
+                        <p className="whitespace-pre-wrap text-sm leading-6 text-stone-700">
+                          {(
+                            selectedLead.enrichment?.description ||
+                            selectedLead.emailSnippet ||
+                            selectedLead.rawEmailBody ||
+                            ''
+                          ).slice(0, selectedLead.enrichment?.description ? 4000 : 800) ||
                             'No lead copy captured.'}
                         </p>
                       </div>

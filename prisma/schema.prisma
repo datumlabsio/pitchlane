@@ -108,6 +108,8 @@ model Lead {
   extractedBudget      String?
   extractedSkills      String[]
   sourceCompleteness   SourceCompleteness   @default(PARTIAL)
+  enrichment           Json?
+  enrichedAt           DateTime?
   confidence           Int                  @default(50)
   dedupeKey            String               @unique
   status               LeadStatus           @default(NEW)

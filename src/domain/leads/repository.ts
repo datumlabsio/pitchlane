@@ -2,7 +2,29 @@ import type { LeadStatus } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 
-import { leadStatusLabelMap, type LeadDetail, type LeadSummary } from '@/domain/leads/types';
+import { leadStatusLabelMap, type LeadDetail, type LeadEnrichment, type LeadSummary } from '@/domain/leads/types';
+
+function mapEnrichment(value: unknown): LeadEnrichment | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const e = value as Record<string, unknown>;
+  const client = (e.client && typeof e.client === 'object' ? e.client : {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  return {
+    description: str(e.description),
+    budget: str(e.budget),
+    paymentType: str(e.paymentType),
+    proposalsCount: num(e.proposalsCount),
+    client: {
+      location: str(client.location),
+      totalSpent: str(client.totalSpent),
+      totalHires: num(client.totalHires),
+      rating: num(client.rating),
+      paymentVerified: typeof client.paymentVerified === 'boolean' ? client.paymentVerified : null,
+      memberSince: str(client.memberSince),
+    },
+  };
+}
 
 function formatRelative(date: Date) {
   const diffMs = Date.now() - date.getTime();
@@ -146,6 +168,8 @@ export async function getLeadDetail(leadId: string) {
     createdAt: formatDateTime(lead.createdAt),
     createdAtIso: lead.createdAt.toISOString(),
     sourceUrl: lead.sourceUrl,
+    enrichment: mapEnrichment(lead.enrichment),
+    enrichedAt: lead.enrichedAt ? formatDateTime(lead.enrichedAt) : null,
     sender: lead.sender,
     emailSubject: lead.emailSubject,
     emailSnippet: lead.emailSnippet,

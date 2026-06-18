@@ -3,6 +3,10 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { syncGmailInbox } from '@/domain/integrations/gmail-sync';
 import { shouldRunGmailSync } from '@/domain/integrations/repository';
 
+// Each new lead may trigger an Apify enrichment call (up to ~60s); allow the
+// batch room to finish. Vercel caps this to the plan limit (300s on Pro).
+export const maxDuration = 300;
+
 function isAuthorized(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) return true;

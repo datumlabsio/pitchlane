@@ -1,8 +1,9 @@
-import { LeadSource, LeadStatus, SourceCompleteness } from '@prisma/client';
+import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/client';
 
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { prisma } from '@/lib/prisma';
+import { fetchUpworkJob, isApifyConfigured, type JobEnrichment } from '@/lib/apify/client';
 import { generateProposalDraft } from '@/lib/openai/client';
 import { notifySlackNewLead } from '@/lib/slack';
 
@@ -45,9 +46,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     return { lead: existingLead, duplicate: true };
   }
 
-  const evaluation = evaluateEmail({
-    subject: input.subject,
-    body: input.body,
+  const evalConfig = {
     requiredSkills: profileConfig.requiredSkills,
     niceToHaveSkills: profileConfig.niceToHaveSkills,
     rejectRules: profileConfig.rejectRules,
@@ -55,7 +54,30 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     targetRoles: profileConfig.targetRoles,
     budgetPreference: profileConfig.budgetPreference ?? undefined,
     scoringWeights: profileConfig.scoringWeights as { skillMatch?: number; roleFit?: number; keywordMatch?: number; budgetFit?: number; confidence?: number } | null,
-  });
+  };
+
+  // Cheap email-only evaluation first — also gates Apify spend: don't enrich
+  // jobs that already hit a hard reject rule.
+  const emailEval = evaluateEmail({ subject: input.subject, body: input.body, ...evalConfig });
+
+  // Enrich from the full Upwork job page when possible. Any failure (no token,
+  // timeout, network error, empty result) leaves enrichment null and we fall
+  // back to email-only data below.
+  let enrichment: JobEnrichment | null = null;
+  if (input.sourceUrl && isApifyConfigured() && emailEval.rejectionReasons.length === 0) {
+    enrichment = await fetchUpworkJob(input.sourceUrl);
+  }
+
+  const enrichedDescription = enrichment?.description?.trim();
+  // Re-score on the richer text when enrichment succeeded.
+  const evaluation = enrichedDescription
+    ? evaluateEmail({ subject: input.subject, body: `${input.body}\n\n${enrichedDescription}`, ...evalConfig })
+    : emailEval;
+
+  const proposalBody = enrichedDescription || input.body;
+  const finalBudget = enrichment?.budget || input.extractedBudget;
+  const finalSkills = enrichment?.skills?.length ? enrichment.skills : (input.extractedSkills ?? []);
+  const completeness = enrichment ? SourceCompleteness.FULL : (input.sourceCompleteness ?? SourceCompleteness.PARTIAL);
 
   const proposal = await generateProposalDraft({
     profileName: account.personName,
@@ -65,12 +87,25 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     reusableSnippets: profileConfig.reusableSnippets,
     title: input.subject,
     emailSubject: input.subject,
-    emailBody: input.body,
+    emailBody: proposalBody,
   });
 
   const status = evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
     ? LeadStatus.QUALIFIED
     : LeadStatus.NEW;
+
+  const events: Prisma.LeadEventCreateWithoutLeadInput[] = [
+    {
+      type: 'lead.ingested_from_email',
+      payload: { gmailLabel: input.gmailLabel, from: input.from ?? null },
+    },
+  ];
+  if (enrichment) {
+    events.push({
+      type: 'lead.enriched',
+      payload: { source: 'apify', proposalsCount: enrichment.proposalsCount ?? null },
+    });
+  }
 
   const lead = await prisma.lead.create({
     data: {
@@ -84,9 +119,11 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
       emailSubject: input.subject,
       emailSnippet: input.body.slice(0, 500),
       rawEmailBody: input.body,
-      extractedBudget: input.extractedBudget,
-      extractedSkills: input.extractedSkills ?? [],
-      sourceCompleteness: input.sourceCompleteness ?? SourceCompleteness.PARTIAL,
+      extractedBudget: finalBudget,
+      extractedSkills: finalSkills,
+      sourceCompleteness: completeness,
+      enrichment: enrichment ? (enrichment as unknown as Prisma.InputJsonValue) : undefined,
+      enrichedAt: enrichment ? new Date() : undefined,
       confidence: evaluation.confidence,
       dedupeKey,
       status,
@@ -109,15 +146,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
           isAiGenerated: true,
         },
       },
-      events: {
-        create: {
-          type: 'lead.ingested_from_email',
-          payload: {
-            gmailLabel: input.gmailLabel,
-            from: input.from,
-          },
-        },
-      },
+      events: { create: events },
     },
     include: {
       evaluations: true,
@@ -130,7 +159,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
       profileName: account.personName,
       title: input.subject,
       score: evaluation.score,
-      budget: input.extractedBudget ?? 'Unknown',
+      budget: finalBudget ?? 'Unknown',
       leadId: lead.id,
     });
   }

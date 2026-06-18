@@ -52,6 +52,21 @@ export type LeadSummary = {
   sourceUrl: string | null;
 };
 
+export type LeadEnrichment = {
+  description: string | null;
+  budget: string | null;
+  paymentType: string | null;
+  proposalsCount: number | null;
+  client: {
+    location: string | null;
+    totalSpent: string | null;
+    totalHires: number | null;
+    rating: number | null;
+    paymentVerified: boolean | null;
+    memberSince: string | null;
+  };
+};
+
 export type LeadDetail = {
   id: string;
   title: string;
@@ -66,6 +81,8 @@ export type LeadDetail = {
   createdAt: string;
   createdAtIso: string;
   sourceUrl: string | null;
+  enrichment: LeadEnrichment | null;
+  enrichedAt: string | null;
   sender: string | null;
   emailSubject: string | null;
   emailSnippet: string | null;

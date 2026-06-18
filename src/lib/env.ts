@@ -13,6 +13,9 @@ const envSchema = z.object({
   GOOGLE_REDIRECT_URI: z.string().optional(),
   SLACK_WEBHOOK_URL: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  APIFY_TOKEN: z.string().optional(),
+  APIFY_UPWORK_ACTOR: z.string().default("arlusm/upwork-post-details-scraper"),
+  APIFY_PROXY_COUNTRY: z.string().default("US"),
   DEFAULT_FORWARDING_INBOX: z.string().email().default("humayun.jawad@datumlabs.io"),
   DEFAULT_NOTIFICATION_EMAIL: z.string().email().default("humayun.jawad@datumlabs.io"),
 });
@@ -30,6 +33,9 @@ export const env = envSchema.parse({
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
   SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL,
   CRON_SECRET: process.env.CRON_SECRET,
+  APIFY_TOKEN: process.env.APIFY_TOKEN,
+  APIFY_UPWORK_ACTOR: process.env.APIFY_UPWORK_ACTOR,
+  APIFY_PROXY_COUNTRY: process.env.APIFY_PROXY_COUNTRY,
   DEFAULT_FORWARDING_INBOX: process.env.DEFAULT_FORWARDING_INBOX,
   DEFAULT_NOTIFICATION_EMAIL: process.env.DEFAULT_NOTIFICATION_EMAIL,
 });

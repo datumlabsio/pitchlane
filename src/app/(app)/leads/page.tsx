@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Topbar } from '@/components/layout/topbar';
 import { getLeadDetail, listLeadSummaries } from '@/domain/leads/repository';
 import { listActiveAccounts } from '@/domain/accounts/repository';
+import { env } from '@/lib/env';
 import { LeadWorkbench } from './lead-workbench';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -44,6 +45,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
         labels={labels}
         accounts={accounts.map((a) => ({ id: a.id, personName: a.personName, gmailLabel: a.gmailLabel }))}
         currentFilters={{ accountId, status, search }}
+        enrichmentEnabled={env.LEAD_ENRICHMENT_ENABLED === 'true'}
       />
     </div>
   );

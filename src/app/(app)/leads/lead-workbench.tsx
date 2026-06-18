@@ -93,15 +93,20 @@ function relativeTime(value: string): string {
 
 function EnrichmentPanel({ enrichment }: { enrichment: LeadEnrichment }) {
   const c = enrichment.client;
+  const location = [c.location, c.country].filter(Boolean).join(', ');
   const rows: Array<{ label: string; value: string; strong?: boolean }> = [];
   if (c.paymentVerified !== null)
     rows.push({ label: 'Payment', value: c.paymentVerified ? 'Verified ✓' : 'Unverified', strong: c.paymentVerified });
   if (c.totalSpent) rows.push({ label: 'Client spent', value: c.totalSpent });
-  if (c.totalHires !== null) rows.push({ label: 'Total hires', value: String(c.totalHires) });
+  if (c.totalHires !== null)
+    rows.push({ label: 'Total hires', value: c.activeHires !== null ? `${c.totalHires} (${c.activeHires} active)` : String(c.totalHires) });
+  if (c.hours !== null) rows.push({ label: 'Hours billed', value: `${c.hours} hrs` });
   if (c.rating !== null) rows.push({ label: 'Client rating', value: `${c.rating.toFixed(2)} / 5` });
-  if (c.location) rows.push({ label: 'Location', value: c.location });
+  if (location) rows.push({ label: 'Location', value: location });
   if (enrichment.proposalsCount !== null) rows.push({ label: 'Proposals', value: String(enrichment.proposalsCount) });
   if (enrichment.paymentType) rows.push({ label: 'Job type', value: enrichment.paymentType });
+  if (c.industry) rows.push({ label: 'Industry', value: c.industry });
+  if (c.companySize) rows.push({ label: 'Company', value: c.companySize });
   if (c.memberSince) rows.push({ label: 'Member since', value: c.memberSince });
 
   return (
@@ -576,6 +581,7 @@ export function LeadWorkbench({
   labels,
   accounts,
   currentFilters,
+  enrichmentEnabled = false,
 }: {
   leads: LeadSummary[];
   total: number;
@@ -586,6 +592,7 @@ export function LeadWorkbench({
   labels: string[];
   accounts: FilterAccount[];
   currentFilters: CurrentFilters;
+  enrichmentEnabled?: boolean;
 }) {
   const router = useRouter();
   const [statusMessage, setStatusMessage] = useState('');
@@ -845,7 +852,7 @@ export function LeadWorkbench({
                     </span>
                   )}
                   <div className="ml-auto flex items-center gap-2">
-                    {selectedLead.sourceUrl && (
+                    {enrichmentEnabled && selectedLead.sourceUrl && (
                       <button
                         type="button"
                         onClick={enrichLead}
@@ -940,10 +947,9 @@ export function LeadWorkbench({
                         <p className="whitespace-pre-wrap text-sm leading-6 text-stone-700">
                           {(
                             selectedLead.enrichment?.description ||
-                            selectedLead.emailSnippet ||
-                            selectedLead.rawEmailBody ||
+                            selectedLead.brief ||
                             ''
-                          ).slice(0, selectedLead.enrichment?.description ? 4000 : 800) ||
+                          ).slice(0, selectedLead.enrichment?.description ? 4000 : 1500) ||
                             'No lead copy captured.'}
                         </p>
                       </div>

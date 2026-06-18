@@ -2,20 +2,20 @@ import { LeadStatus, Prisma, SourceCompleteness } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
-import { fetchUpworkJob, isApifyConfigured } from '@/lib/apify/client';
+import { fetchUpworkJob, isScrapeConfigured } from '@/lib/scrape/upwork';
 
 export type EnrichLeadResult =
   | { ok: true; score: number; status: LeadStatus }
   | { ok: false; reason: string };
 
 /**
- * Manually (re-)enrich a lead from its Upwork job URL via Apify, re-score on the
- * full description, and record a fresh evaluation. Used by the "Re-enrich" button
- * and for leads created while Apify was unavailable.
+ * Manually (re-)enrich a lead from its Upwork job URL via the scraper, re-score on
+ * the full description, and record a fresh evaluation. Used by the "Re-enrich" button
+ * and for leads created while the scraper was unavailable.
  */
 export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
-  if (!isApifyConfigured()) {
-    return { ok: false, reason: 'Apify is not configured (APIFY_TOKEN missing).' };
+  if (!isScrapeConfigured()) {
+    return { ok: false, reason: 'Scraper is not configured (ZENROWS_API_KEY missing).' };
   }
 
   const lead = await prisma.lead.findUnique({
@@ -33,7 +33,7 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
 
   const enrichment = await fetchUpworkJob(lead.sourceUrl);
   if (!enrichment) {
-    return { ok: false, reason: 'Apify returned no data for this job (it may be closed or blocked).' };
+    return { ok: false, reason: 'The scraper returned no data for this job (it may be closed or blocked).' };
   }
 
   const enrichedDescription = enrichment.description?.trim();
@@ -88,7 +88,7 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
       data: {
         leadId,
         type: 'lead.enriched',
-        payload: { source: 'apify', score: evaluation.score, proposalsCount: enrichment.proposalsCount ?? null },
+        payload: { source: 'scrape', score: evaluation.score, proposalsCount: enrichment.proposalsCount ?? null },
       },
     }),
   ]);

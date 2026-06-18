@@ -3,7 +3,7 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { prisma } from '@/lib/prisma';
-import { fetchUpworkJob, isApifyConfigured, type JobEnrichment } from '@/lib/apify/client';
+import { fetchUpworkJob, isScrapeConfigured, type JobEnrichment } from '@/lib/scrape/upwork';
 import { generateProposalDraft } from '@/lib/openai/client';
 import { notifySlackNewLead } from '@/lib/slack';
 
@@ -56,7 +56,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     scoringWeights: profileConfig.scoringWeights as { skillMatch?: number; roleFit?: number; keywordMatch?: number; budgetFit?: number; confidence?: number } | null,
   };
 
-  // Cheap email-only evaluation first — also gates Apify spend: don't enrich
+  // Cheap email-only evaluation first — also gates scrape spend: don't enrich
   // jobs that already hit a hard reject rule.
   const emailEval = evaluateEmail({ subject: input.subject, body: input.body, ...evalConfig });
 
@@ -64,7 +64,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   // timeout, network error, empty result) leaves enrichment null and we fall
   // back to email-only data below.
   let enrichment: JobEnrichment | null = null;
-  if (input.sourceUrl && isApifyConfigured() && emailEval.rejectionReasons.length === 0) {
+  if (input.sourceUrl && isScrapeConfigured() && emailEval.rejectionReasons.length === 0) {
     enrichment = await fetchUpworkJob(input.sourceUrl);
   }
 
@@ -103,7 +103,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   if (enrichment) {
     events.push({
       type: 'lead.enriched',
-      payload: { source: 'apify', proposalsCount: enrichment.proposalsCount ?? null },
+      payload: { source: 'scrape', proposalsCount: enrichment.proposalsCount ?? null },
     });
   }
 

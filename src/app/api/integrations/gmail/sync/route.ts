@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { syncGmailInbox } from '@/domain/integrations/gmail-sync';
 import { shouldRunGmailSync } from '@/domain/integrations/repository';
 
-// Each new lead may trigger an Apify enrichment call (up to ~60s); allow the
+// Each new lead may trigger a scrape-enrichment call (up to ~70s); allow the
 // batch room to finish. Vercel caps this to the plan limit (300s on Pro).
 export const maxDuration = 300;
 

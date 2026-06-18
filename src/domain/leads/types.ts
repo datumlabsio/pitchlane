@@ -59,11 +59,16 @@ export type LeadEnrichment = {
   proposalsCount: number | null;
   client: {
     location: string | null;
+    country: string | null;
     totalSpent: string | null;
     totalHires: number | null;
+    activeHires: number | null;
+    hours: number | null;
     rating: number | null;
     paymentVerified: boolean | null;
     memberSince: string | null;
+    industry: string | null;
+    companySize: string | null;
   };
 };
 
@@ -87,6 +92,7 @@ export type LeadDetail = {
   emailSubject: string | null;
   emailSnippet: string | null;
   rawEmailBody: string | null;
+  brief: string;
   extractedSkills: string[];
   summary: string[];
   rejectionReasons: string[];

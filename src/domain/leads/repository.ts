@@ -2,6 +2,7 @@ import type { LeadStatus } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 
+import { cleanEmailBrief } from '@/lib/utils';
 import { leadStatusLabelMap, type LeadDetail, type LeadEnrichment, type LeadSummary } from '@/domain/leads/types';
 
 function mapEnrichment(value: unknown): LeadEnrichment | null {
@@ -17,11 +18,16 @@ function mapEnrichment(value: unknown): LeadEnrichment | null {
     proposalsCount: num(e.proposalsCount),
     client: {
       location: str(client.location),
+      country: str(client.country),
       totalSpent: str(client.totalSpent),
       totalHires: num(client.totalHires),
+      activeHires: num(client.activeHires),
+      hours: num(client.hours),
       rating: num(client.rating),
       paymentVerified: typeof client.paymentVerified === 'boolean' ? client.paymentVerified : null,
       memberSince: str(client.memberSince),
+      industry: str(client.industry),
+      companySize: str(client.companySize),
     },
   };
 }
@@ -174,6 +180,7 @@ export async function getLeadDetail(leadId: string) {
     emailSubject: lead.emailSubject,
     emailSnippet: lead.emailSnippet,
     rawEmailBody: lead.rawEmailBody,
+    brief: cleanEmailBrief(lead.rawEmailBody ?? lead.emailSnippet ?? ''),
     extractedSkills: lead.extractedSkills,
     summary: evaluation?.summary ?? [],
     rejectionReasons: evaluation?.rejectionReasons ?? [],

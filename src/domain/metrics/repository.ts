@@ -110,6 +110,7 @@ export async function getProfilePerformanceRows() {
     const connects = account.applications.reduce((sum, a) => sum + (a.connectsSpent ?? 0), 0);
 
     return {
+      accountId: account.id,
       profile: account.personName,
       leads,
       qualified,

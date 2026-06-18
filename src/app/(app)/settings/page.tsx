@@ -57,7 +57,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </h2>
             <p className="mt-1 text-sm text-stone-400">
               {google.connected
-                ? 'Auto-syncs every 5 minutes in production via Vercel Cron.'
+                ? `Auto-syncs every ${google.syncIntervalMinutes} minute${google.syncIntervalMinutes === 1 ? '' : 's'} on the deployed app. Adjust the interval below.`
                 : 'Connect the shared forwarding inbox to enable Gmail sync.'}
             </p>
           </div>
@@ -126,9 +126,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         ) : (
           <div className="space-y-2">
             {accounts.map((account) => (
-              <div
+              <Link
                 key={account.id}
-                className="flex items-center justify-between rounded-2xl border border-stone-900/8 bg-white px-4 py-3 shadow-sm"
+                href={`/leads?accountId=${account.id}`}
+                className="flex items-center justify-between rounded-2xl border border-stone-900/8 bg-white px-4 py-3 shadow-sm transition hover:border-amber-300 hover:shadow-md"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex size-8 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-800">
@@ -142,7 +143,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 <code className="rounded-lg bg-stone-100 px-2 py-1 text-xs text-stone-700">
                   {account.gmailLabel}
                 </code>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -3,7 +3,18 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import { ExternalLink, Plus, Search, X } from 'lucide-react';
+import {
+  ArrowRight,
+  ExternalLink,
+  FileEdit,
+  Mail,
+  Plus,
+  RefreshCw,
+  Search,
+  Sparkles,
+  StickyNote,
+  X,
+} from 'lucide-react';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,7 +34,7 @@ import {
   type LeadDetail,
   type LeadSummary,
 } from '@/domain/leads/types';
-import { cn, formatPercent } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -73,6 +84,80 @@ function relativeTime(value: string): string {
   const diffMonths = Math.floor(diffDays / 30);
   if (diffMonths < 12) return `${diffMonths}mo ago`;
   return `${Math.floor(diffMonths / 12)}y ago`;
+}
+
+// ---------------------------------------------------------------------------
+// Activity timeline
+// ---------------------------------------------------------------------------
+
+type LeadEvent = LeadDetail['events'][number];
+
+function StatusChip({ code }: { code: string }) {
+  const label = leadStatusLabelMap[code as LeadSummary['statusCode']] ?? code;
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium',
+        statusBadgeVariant(code as LeadSummary['statusCode']),
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ActivityItem({ event }: { event: LeadEvent }) {
+  const payload = (event.payload ?? {}) as Record<string, unknown>;
+
+  const meta: { icon: typeof Mail; title: string; tint: string } = (() => {
+    switch (event.type) {
+      case 'lead.ingested_from_email':
+        return { icon: Mail, title: 'Captured from email', tint: 'bg-sky-100 text-sky-700' };
+      case 'lead.status_updated':
+        return { icon: ArrowRight, title: 'Status changed', tint: 'bg-amber-100 text-amber-700' };
+      case 'proposal.regenerated':
+        return { icon: RefreshCw, title: 'Proposal regenerated', tint: 'bg-violet-100 text-violet-700' };
+      case 'proposal.edited':
+        return { icon: FileEdit, title: 'Proposal edited', tint: 'bg-stone-100 text-stone-700' };
+      default:
+        return { icon: Sparkles, title: event.type.replace(/[._]/g, ' '), tint: 'bg-stone-100 text-stone-700' };
+    }
+  })();
+
+  const Icon = meta.icon;
+
+  return (
+    <div className="flex gap-3">
+      <div className="flex flex-col items-center">
+        <div className={cn('flex size-7 shrink-0 items-center justify-center rounded-full', meta.tint)}>
+          <Icon className="size-3.5" />
+        </div>
+        <div className="mt-1 w-px flex-1 bg-stone-200 last:hidden" />
+      </div>
+      <div className="flex-1 pb-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium text-stone-900">{meta.title}</p>
+          <p className="shrink-0 text-xs text-stone-400">{event.createdAt}</p>
+        </div>
+        <div className="mt-1.5 text-sm text-stone-600">
+          {event.type === 'lead.status_updated' && payload.to ? (
+            <div className="flex items-center gap-2">
+              {payload.from ? <StatusChip code={String(payload.from)} /> : <span className="text-xs text-stone-400">New lead</span>}
+              <ArrowRight className="size-3.5 text-stone-400" />
+              <StatusChip code={String(payload.to)} />
+            </div>
+          ) : event.type === 'lead.ingested_from_email' ? (
+            <p className="text-xs text-stone-500">
+              {payload.from ? <>From <span className="text-stone-700">{String(payload.from)}</span></> : 'Forwarded email'}
+              {payload.gmailLabel ? <> · routed via <code className="rounded bg-stone-100 px-1 py-0.5 text-[11px]">{String(payload.gmailLabel)}</code></> : null}
+            </p>
+          ) : (event.type === 'proposal.regenerated' || event.type === 'proposal.edited') && payload.versionCount ? (
+            <p className="text-xs text-stone-500">Now on version {String(payload.versionCount)}</p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -277,6 +362,12 @@ function ManualIngestDialogContent({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (source === 'INVITE' && !sourceUrl.trim()) {
+      setIngestStatus('Upwork job URL is required for invites.');
+      return;
+    }
+
     setIngestPending(true);
     setIngestStatus('');
 
@@ -389,11 +480,15 @@ function ManualIngestDialogContent({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="ingest-source-url">Source URL</Label>
+          <Label htmlFor="ingest-source-url">
+            Upwork job URL{source === 'INVITE' ? ' *' : ''}
+          </Label>
           <Input
             id="ingest-source-url"
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
+            placeholder="https://www.upwork.com/jobs/~..."
+            required={source === 'INVITE'}
           />
         </div>
         <div className="space-y-1.5">
@@ -447,6 +542,7 @@ export function LeadWorkbench({
   const [statusMessage, setStatusMessage] = useState('');
   const [isPending, startTransition] = useTransition();
   const [proposalDraft, setProposalDraft] = useState('');
+  const [proposalFeedback, setProposalFeedback] = useState('');
   const [connectsSpent, setConnectsSpent] = useState('');
   const [appliedAt, setAppliedAt] = useState('');
   const [lastFollowUpAt, setLastFollowUpAt] = useState('');
@@ -455,6 +551,7 @@ export function LeadWorkbench({
 
   useEffect(() => {
     setProposalDraft(selectedLead?.proposals[0]?.content ?? '');
+    setProposalFeedback('');
     setConnectsSpent(selectedLead?.application?.connectsSpent?.toString() ?? '');
     setAppliedAt(formatDateTimeInput(selectedLead?.application?.appliedAt ?? null));
     setLastFollowUpAt(formatDateTimeInput(selectedLead?.application?.lastFollowUpAt ?? null));
@@ -523,15 +620,25 @@ export function LeadWorkbench({
       setStatusMessage('Proposal content is required.');
       return;
     }
+    const feedback = proposalFeedback.trim();
     void runRequest(
       `/api/leads/${selectedLead.id}/proposals`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mode === 'edit' ? { mode, content: proposalDraft } : { mode }),
+        body: JSON.stringify(
+          mode === 'edit'
+            ? { mode, content: proposalDraft }
+            : { mode, ...(feedback ? { feedback } : {}) },
+        ),
       },
-      mode === 'edit' ? 'Proposal version saved.' : 'Proposal regenerated.',
+      mode === 'edit'
+        ? 'Proposal version saved.'
+        : feedback
+          ? 'Proposal regenerated with your feedback.'
+          : 'Proposal regenerated.',
     );
+    if (mode === 'regenerate') setProposalFeedback('');
   }
 
   function buildCloseUrl() {
@@ -625,7 +732,7 @@ export function LeadWorkbench({
                       </span>
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-stone-600">
-                      {formatPercent(lead.matchScore)}
+                      {lead.matchScore}%
                     </TableCell>
                     <TableCell className="text-stone-600">{lead.budget}</TableCell>
                     <TableCell className="text-stone-500 text-xs">{relativeTime(lead.createdAt)}</TableCell>
@@ -652,7 +759,7 @@ export function LeadWorkbench({
           if (!open) router.push(buildCloseUrl());
         }}
       >
-        <SheetContent side="right" className="w-full sm:max-w-[640px] p-0 flex flex-col">
+        <SheetContent side="right" className="data-[side=right]:w-[70vw] data-[side=right]:max-w-[70vw] data-[side=right]:sm:max-w-[70vw] p-0 flex flex-col">
           {selectedLead && (
             <>
               <SheetHeader className="px-6 pt-6 pb-4 shrink-0">
@@ -674,16 +781,20 @@ export function LeadWorkbench({
                     {selectedLead.profileName}
                   </Badge>
                   <span className="text-xs text-stone-500">{selectedLead.budget}</span>
-                  {selectedLead.sourceUrl && (
+                  {selectedLead.sourceUrl ? (
                     <a
                       href={selectedLead.sourceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="ml-auto inline-flex items-center gap-1 rounded-full border border-stone-200 px-3 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-400"
+                      className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
                     >
-                      Open source
-                      <ExternalLink className="h-3 w-3" />
+                      View job on Upwork
+                      <ExternalLink className="h-3.5 w-3.5" />
                     </a>
+                  ) : (
+                    <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-dashed border-stone-300 px-3 py-1 text-xs font-medium text-stone-400">
+                      No job link captured
+                    </span>
                   )}
                 </div>
               </SheetHeader>
@@ -706,7 +817,7 @@ export function LeadWorkbench({
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
                           <p className="text-[10px] uppercase tracking-widest text-stone-400">Match</p>
                           <p className="mt-1.5 text-lg font-semibold text-stone-950">
-                            {formatPercent(selectedLead.matchScore)}
+                            {selectedLead.matchScore}%
                           </p>
                         </div>
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
@@ -721,6 +832,23 @@ export function LeadWorkbench({
                             {selectedLead.sourceCompleteness}
                           </p>
                         </div>
+                      </div>
+
+                      {/* Notes */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5">
+                          <StickyNote className="size-3.5 text-amber-500" />
+                          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Notes</p>
+                        </div>
+                        {selectedLead.application?.notes ? (
+                          <p className="whitespace-pre-wrap rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5 text-sm leading-6 text-stone-700">
+                            {selectedLead.application.notes}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-stone-400">
+                            No notes yet — add them in the Application tab.
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -813,19 +941,44 @@ export function LeadWorkbench({
                       />
                       <div className="flex flex-wrap gap-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isPending}
-                          onClick={() => saveProposal('regenerate')}
-                        >
-                          Regenerate draft
-                        </Button>
-                        <Button
                           size="sm"
                           disabled={isPending}
                           onClick={() => saveProposal('edit')}
                         >
                           Save as new version
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isPending}
+                          onClick={() => saveProposal('regenerate')}
+                        >
+                          <RefreshCw className="mr-1.5 size-3.5" />
+                          Regenerate from scratch
+                        </Button>
+                      </div>
+
+                      {/* Feedback-driven regeneration */}
+                      <div className="rounded-xl border border-stone-200 bg-stone-50/70 p-3 space-y-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <Sparkles className="size-3.5 text-amber-500" />
+                          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                            Improve with feedback
+                          </p>
+                        </div>
+                        <Textarea
+                          rows={3}
+                          value={proposalFeedback}
+                          onChange={(e) => setProposalFeedback(e.target.value)}
+                          placeholder="e.g. Make it shorter, lead with the dbt + Snowflake experience, drop the generic intro, add a question about their current warehouse."
+                          className="resize-none text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={isPending || proposalFeedback.trim().length === 0}
+                          onClick={() => saveProposal('regenerate')}
+                        >
+                          {isPending ? 'Rewriting…' : 'Rewrite with this feedback'}
                         </Button>
                       </div>
                       {statusMessage && (
@@ -916,24 +1069,13 @@ export function LeadWorkbench({
                     </TabsContent>
 
                     {/* ── Activity ── */}
-                    <TabsContent value="activity" className="space-y-3 mt-0">
+                    <TabsContent value="activity" className="mt-0">
                       {selectedLead.events.length > 0 ? (
-                        selectedLead.events.map((event) => (
-                          <div
-                            key={event.id}
-                            className="rounded-xl border border-stone-200 bg-white p-4 space-y-2"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-medium text-stone-900">{event.type}</p>
-                              <p className="text-xs text-stone-500">{event.createdAt}</p>
-                            </div>
-                            {event.payload && (
-                              <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-stone-50 px-3 py-2 text-xs leading-5 text-stone-600">
-                                {JSON.stringify(event.payload, null, 2)}
-                              </pre>
-                            )}
-                          </div>
-                        ))
+                        <div className="pl-0.5">
+                          {selectedLead.events.map((event) => (
+                            <ActivityItem key={event.id} event={event} />
+                          ))}
+                        </div>
                       ) : (
                         <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-sm text-stone-500">
                           No lead events have been recorded yet.

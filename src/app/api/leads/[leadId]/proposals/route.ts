@@ -6,6 +6,7 @@ import { saveProposalVersion } from '@/domain/leads/save-proposal-version';
 const requestSchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal('regenerate'),
+    feedback: z.string().trim().max(2000).optional(),
   }),
   z.object({
     mode: z.literal('edit'),

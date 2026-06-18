@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { LeadStatus } from '@/domain/enums';
 
@@ -104,6 +105,7 @@ export function StatusBreakdown({ data }: { data: StatusCount[] }) {
 // ─── Profile bar chart ────────────────────────────────────────────────────────
 
 type ProfileRow = {
+  accountId: string;
   profile: string;
   leads: number;
   qualified: number;
@@ -122,16 +124,31 @@ const chartConfig = {
 };
 
 export function ProfileBarChart({ data }: { data: ProfileRow[] }) {
+  const router = useRouter();
   const chartData = data.map((r) => ({
+    accountId: r.accountId,
     profile: r.profile.split(' ')[0], // first name for label
     leads: r.leads,
     qualified: r.qualified,
     applied: r.applied,
   }));
 
+  function handleBarClick(state: { activeIndex?: number | string | null }) {
+    const idx = typeof state?.activeIndex === 'number' ? state.activeIndex : Number(state?.activeIndex);
+    if (Number.isInteger(idx) && idx >= 0 && chartData[idx]) {
+      router.push(`/leads?accountId=${chartData[idx].accountId}`);
+    }
+  }
+
   return (
     <ChartContainer config={chartConfig} className="h-52 w-full">
-      <BarChart data={chartData} barGap={2} barCategoryGap="28%">
+      <BarChart
+        data={chartData}
+        barGap={2}
+        barCategoryGap="28%"
+        onClick={handleBarClick}
+        className="cursor-pointer"
+      >
         <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
         <XAxis
           dataKey="profile"

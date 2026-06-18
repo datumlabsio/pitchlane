@@ -76,6 +76,16 @@ export async function getGoogleConnectionStatus() {
   };
 }
 
+/** Lightweight single-query lookup of the last completed Gmail sync time — used by the sidebar. */
+export async function getLastGmailSyncAt(): Promise<Date | null> {
+  const latest = await prisma.syncRun.findFirst({
+    where: { provider: IntegrationProvider.GOOGLE_GMAIL, status: { not: 'running' } },
+    orderBy: { finishedAt: 'desc' },
+    select: { finishedAt: true },
+  });
+  return latest?.finishedAt ?? null;
+}
+
 export async function shouldRunGmailSync(): Promise<{ should: boolean; nextInSeconds: number }> {
   const [connection, latestSync] = await Promise.all([
     getGoogleConnection(),

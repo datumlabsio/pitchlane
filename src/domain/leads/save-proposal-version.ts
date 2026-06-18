@@ -10,6 +10,7 @@ export type SaveProposalVersionInput =
   | {
       leadId: string;
       mode: 'regenerate';
+      feedback?: string;
     };
 
 export async function saveProposalVersion(input: SaveProposalVersionInput) {
@@ -39,6 +40,8 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
     throw new Error('No active profile configuration found for this lead');
   }
 
+  const currentPrimary = lead.proposals.find((p) => p.isPrimary) ?? lead.proposals[0];
+
   const content = input.mode === 'edit'
     ? input.content
     : await generateProposalDraft({
@@ -50,6 +53,8 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
         title: lead.title,
         emailSubject: lead.emailSubject ?? lead.title,
         emailBody: lead.rawEmailBody ?? lead.emailSnippet ?? lead.title,
+        feedback: input.feedback,
+        previousProposal: input.feedback ? currentPrimary?.content : undefined,
       });
 
   return prisma.$transaction(async (tx) => {

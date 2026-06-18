@@ -25,7 +25,19 @@ function initials(name: string | null | undefined, email: string | null | undefi
   return '?';
 }
 
-export function Sidebar() {
+function formatSyncTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'unknown';
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.round(diffMs / 60000);
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins} min ago`;
+  const diffHours = Math.round(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date);
+}
+
+export function Sidebar({ lastSyncAt }: { lastSyncAt: string | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<{ email?: string; name?: string; avatar?: string } | null>(null);
@@ -92,9 +104,19 @@ export function Sidebar() {
       <div className="mt-auto space-y-3">
         {/* Gmail sync card */}
         <div className="rounded-3xl bg-linear-to-br from-amber-300 to-orange-400 p-5 text-stone-950">
-          <p className="text-sm font-medium">Gmail sync active</p>
-          <p className="mt-2 text-sm text-stone-800/75">
-            Leads are scored from forwarded email context. Confidence flags surface low-signal matches.
+          <div className="flex items-center gap-2">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-600/60" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-700" />
+            </span>
+            <p className="text-sm font-medium">Gmail sync active</p>
+          </div>
+          <p className="mt-2 text-sm text-stone-900/80">
+            {lastSyncAt ? (
+              <>Last synced <span className="font-semibold">{formatSyncTime(lastSyncAt)}</span></>
+            ) : (
+              'No sync has run yet. Trigger one from Settings.'
+            )}
           </p>
         </div>
 

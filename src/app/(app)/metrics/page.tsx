@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic';
 
+import Link from 'next/link';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Topbar } from '@/components/layout/topbar';
@@ -127,7 +129,14 @@ export default async function MetricsPage() {
               <TableBody>
                 {profileRows.map((row) => (
                   <TableRow key={row.profile}>
-                    <TableCell className="font-medium">{row.profile}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/leads?accountId=${row.accountId}`}
+                        className="text-stone-900 underline-offset-2 hover:text-amber-700 hover:underline"
+                      >
+                        {row.profile}
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{row.leads}</TableCell>
                     <TableCell className="text-right tabular-nums">{row.qualified}</TableCell>
                     <TableCell className="text-right"><RateCell value={row.qualRate} /></TableCell>

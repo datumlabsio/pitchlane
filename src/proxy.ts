@@ -27,20 +27,37 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // Refresh session if expired
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const { pathname } = request.nextUrl;
 
-  // Routes that don't require auth
+  // Routes that don't require auth — skip the Supabase call entirely for these
+  // so public navigations never pay an auth round-trip.
   const isPublicPath =
     pathname.startsWith('/login') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/api/');
 
-  if (!user && !isPublicPath) {
+  if (isPublicPath) {
+    return supabaseResponse;
+  }
+
+  // getClaims() verifies the JWT locally (cached JWKS) instead of calling the
+  // Supabase Auth server on every navigation like getUser() does — this is the
+  // main routing-latency fix. It still refreshes the session when needed.
+  // Safety net: if it returns nothing or throws, fall back to getUser() so a
+  // valid session is never wrongly bounced to /login.
+  let isAuthenticated = false;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    isAuthenticated = Boolean(data?.claims);
+  } catch {
+    isAuthenticated = false;
+  }
+  if (!isAuthenticated) {
+    const { data: { user } } = await supabase.auth.getUser();
+    isAuthenticated = Boolean(user);
+  }
+
+  if (!isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirectTo', pathname);
     return NextResponse.redirect(loginUrl);

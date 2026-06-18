@@ -686,7 +686,7 @@ export function ProfileWorkbench({ profiles, selectedProfile }: WorkbenchProps) 
         open={selectedProfile !== null}
         onOpenChange={(open) => { if (!open) router.push('/profiles'); }}
       >
-        <SheetContent side="right" className="w-full max-w-[680px] p-0 flex flex-col">
+        <SheetContent side="right" className="data-[side=right]:w-[70vw] data-[side=right]:max-w-[70vw] data-[side=right]:sm:max-w-[70vw] p-0 flex flex-col">
           {selectedProfile && (
             <ProfileSheetContent key={selectedProfile.account.id} entry={selectedProfile} />
           )}

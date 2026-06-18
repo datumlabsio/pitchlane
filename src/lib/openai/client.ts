@@ -9,7 +9,70 @@ export type ProposalGenerationInput = {
   title: string;
   emailSubject: string;
   emailBody: string;
+  /** When regenerating, the current draft the reviewer wants improved. */
+  previousProposal?: string;
+  /** Free-text reviewer feedback to steer the rewrite. */
+  feedback?: string;
 };
+
+function buildSystemPrompt(input: ProposalGenerationInput): string {
+  const rules = input.proposalRules.length
+    ? input.proposalRules.map((r, i) => `${i + 1}. ${r}`).join('\n')
+    : [
+        '1. Never open with "Hi/Hello/I am" — start with a sharp, problem-focused insight.',
+        '2. Mirror 5–8 of the job post\'s key technical/business keywords naturally.',
+        '3. Keep it 150–200 words, confident and consultative — no fluff, no begging.',
+        '4. Close with one specific question and a clear call to action.',
+      ].join('\n');
+
+  const snippets = input.reusableSnippets.length
+    ? `\n\nReusable proof points you MAY weave in when relevant (do not force all of them):\n${input.reusableSnippets.map((s) => `- ${s}`).join('\n')}`
+    : '';
+
+  return [
+    `You are an elite Upwork proposal writer drafting on behalf of ${input.profileName}, a senior freelancer focused on ${input.roleFocus}.`,
+    `Write in a ${input.proposalTone.toLowerCase()} tone.`,
+    '',
+    'Follow these rules exactly:',
+    rules,
+    '',
+    'Hard constraints:',
+    '- Output ONLY the proposal text. No preamble, no "Here is your proposal", no markdown headings, no subject line.',
+    '- Ground every claim in the freelancer\'s focus area and the job post. Never invent specific clients, metrics, or experience that are not implied by the profile.',
+    '- Write as the freelancer (first person), addressed to the client.',
+    snippets,
+  ].join('\n');
+}
+
+function buildUserPrompt(input: ProposalGenerationInput): string {
+  const base = [
+    'JOB POST',
+    `Title: ${input.emailSubject || input.title}`,
+    '',
+    input.emailBody?.trim() || '(No description captured — infer intent from the title.)',
+  ].join('\n');
+
+  if (input.feedback?.trim() && input.previousProposal?.trim()) {
+    return [
+      base,
+      '',
+      '---',
+      'CURRENT DRAFT (revise this):',
+      input.previousProposal.trim(),
+      '',
+      'REVIEWER FEEDBACK (apply precisely, keep what already works):',
+      input.feedback.trim(),
+      '',
+      'Rewrite the proposal incorporating the feedback above.',
+    ].join('\n');
+  }
+
+  if (input.feedback?.trim()) {
+    return [base, '', 'REVIEWER FEEDBACK to honor while drafting:', input.feedback.trim()].join('\n');
+  }
+
+  return base;
+}
 
 export async function generateProposalDraft(input: ProposalGenerationInput) {
   if (!env.OPENAI_API_KEY) {
@@ -27,24 +90,14 @@ export async function generateProposalDraft(input: ProposalGenerationInput) {
       input: [
         {
           role: 'system',
-          content: [
-            {
-              type: 'input_text',
-              text: 'Write a concise Upwork proposal draft. Return plain text only. Keep it professional, specific, and email-context aware.',
-            },
-          ],
+          content: [{ type: 'input_text', text: buildSystemPrompt(input) }],
         },
         {
           role: 'user',
-          content: [
-            {
-              type: 'input_text',
-              text: JSON.stringify(input),
-            },
-          ],
+          content: [{ type: 'input_text', text: buildUserPrompt(input) }],
         },
       ],
-      max_output_tokens: 350,
+      max_output_tokens: 700,
     }),
   });
 

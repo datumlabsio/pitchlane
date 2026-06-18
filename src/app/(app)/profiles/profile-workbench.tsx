@@ -304,7 +304,11 @@ function ProfileSheetContent({ entry }: { entry: EditableProfileView }) {
               <>
                 <div className="flex flex-wrap items-end gap-5">
                   <FieldRow label="Proposal tone">
-                    <Select value={profileForm.proposalTone} onValueChange={(v) => setProfileForm((c) => c ? { ...c, proposalTone: v as ProposalTone } : c)}>
+                    <Select
+                      value={profileForm.proposalTone}
+                      onValueChange={(v) => setProfileForm((c) => c ? { ...c, proposalTone: v as ProposalTone } : c)}
+                      items={Object.fromEntries(proposalToneOptions.map((o) => [o.value, o.label]))}
+                    >
                       <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {proposalToneOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}

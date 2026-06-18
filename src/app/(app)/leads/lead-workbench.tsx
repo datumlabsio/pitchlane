@@ -281,6 +281,7 @@ function FilterBar({
       <Select
         value={currentFilters.accountId ?? 'all'}
         onValueChange={(v: string | null) => router.push(buildUrl({ accountId: !v || v === 'all' ? null : v }))}
+        items={{ all: 'All profiles', ...Object.fromEntries(accounts.map((a) => [a.id, a.personName])) }}
       >
         <SelectTrigger className="h-8 w-44 text-xs">
           <SelectValue placeholder="All profiles" />
@@ -298,6 +299,7 @@ function FilterBar({
       <Select
         value={currentFilters.status ?? 'all'}
         onValueChange={(v: string | null) => router.push(buildUrl({ status: !v || v === 'all' ? null : v }))}
+        items={{ all: 'All statuses', ...leadStatusLabelMap }}
       >
         <SelectTrigger className="h-8 w-44 text-xs">
           <SelectValue placeholder="All statuses" />
@@ -507,7 +509,11 @@ function ManualIngestDialogContent({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="ingest-source">Source</Label>
-          <Select value={source} onValueChange={(v: string | null) => setSource(v ?? 'EMAIL_FORWARD')}>
+          <Select
+            value={source}
+            onValueChange={(v: string | null) => setSource(v ?? 'EMAIL_FORWARD')}
+            items={Object.fromEntries(LEAD_SOURCES.map((s) => [s.value, s.label]))}
+          >
             <SelectTrigger id="ingest-source">
               <SelectValue />
             </SelectTrigger>

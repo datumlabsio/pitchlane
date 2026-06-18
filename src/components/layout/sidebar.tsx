@@ -74,7 +74,7 @@ export function Sidebar({ lastSyncAt }: { lastSyncAt: string | null }) {
   }
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col rounded-[2rem] border border-amber-950/10 bg-[#1f1a17] p-5 text-stone-50 shadow-2xl lg:flex sticky top-4 md:top-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)]">
+    <aside className="hidden w-72 shrink-0 flex-col overflow-y-auto rounded-[2rem] border border-amber-950/10 bg-[#1f1a17] p-5 text-stone-50 shadow-2xl lg:flex sticky top-4 md:top-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)]">
       <div className="mb-10">
         <p className="text-xs uppercase tracking-[0.3em] text-amber-200/70">Pitchlane</p>
         <h1 className="mt-3 text-2xl font-semibold">Lead intelligence for multi-profile Upwork ops.</h1>
@@ -101,7 +101,7 @@ export function Sidebar({ lastSyncAt }: { lastSyncAt: string | null }) {
         })}
       </nav>
 
-      <div className="mt-auto space-y-3">
+      <div className="mt-auto pt-8 space-y-3">
         {/* Gmail sync card */}
         <div className="rounded-3xl bg-linear-to-br from-amber-300 to-orange-400 p-5 text-stone-950">
           <div className="flex items-center gap-2">

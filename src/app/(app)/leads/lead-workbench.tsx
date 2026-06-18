@@ -87,6 +87,30 @@ function relativeTime(value: string): string {
   return `${Math.floor(diffMonths / 12)}y ago`;
 }
 
+// Render text with any URLs turned into clickable links.
+function LinkifiedText({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        /^https?:\/\//.test(part) ? (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noreferrer"
+            className="break-all text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+          >
+            {part.length > 48 ? `${part.slice(0, 48)}…` : part}
+          </a>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Upwork enrichment panel
 // ---------------------------------------------------------------------------
@@ -776,7 +800,21 @@ export function LeadWorkbench({
                     onClick={() => router.push(`/leads?leadId=${lead.id}`)}
                   >
                     <TableCell className="font-medium">
-                      <span className="line-clamp-2 max-w-xs">{lead.title}</span>
+                      <div className="flex items-start gap-1.5">
+                        <span className="line-clamp-2 max-w-xs">{lead.title}</span>
+                        {lead.sourceUrl && (
+                          <a
+                            href={lead.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Open job on Upwork"
+                            className="mt-0.5 shrink-0 text-stone-400 transition hover:text-emerald-600"
+                          >
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -945,12 +983,16 @@ export function LeadWorkbench({
                           {selectedLead.enrichment?.description ? 'Job description' : 'Lead brief'}
                         </p>
                         <p className="whitespace-pre-wrap text-sm leading-6 text-stone-700">
-                          {(
-                            selectedLead.enrichment?.description ||
-                            selectedLead.brief ||
-                            ''
-                          ).slice(0, selectedLead.enrichment?.description ? 4000 : 1500) ||
-                            'No lead copy captured.'}
+                          <LinkifiedText
+                            text={
+                              (
+                                selectedLead.enrichment?.description ||
+                                selectedLead.brief ||
+                                ''
+                              ).slice(0, selectedLead.enrichment?.description ? 4000 : 1500) ||
+                              'No lead copy captured.'
+                            }
+                          />
                         </p>
                       </div>
 

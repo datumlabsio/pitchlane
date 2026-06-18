@@ -42,10 +42,11 @@ const EMAIL_FOOTER = [
 export function cleanEmailBrief(raw: string): string {
   if (!raw) return "";
   let text = raw;
-  text = text.replace(/\[image:[^\]]*\]/gi, " "); // [image: Upwork]
-  text = text.replace(/\[([^\]]+)\]\(https?:[^)]+\)/gi, "$1"); // [text](url) -> text
-  text = text.replace(/<https?:\/\/[^>]*>/gi, " "); // <https://...>
-  text = text.replace(/https?:\/\/\S+/gi, " "); // bare urls
+  // Drop logo images together with the tracking link that follows them.
+  text = text.replace(/\[image:[^\]]*\]\s*(?:<[^>]*>)?/gi, " ");
+  // Keep real links: [text](url) -> "text url"; <url> -> url. (Linkified on render.)
+  text = text.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/gi, "$1 $2");
+  text = text.replace(/<(https?:\/\/[^>]+)>/gi, " $1 ");
 
   const out: string[] = [];
   for (const rawLine of text.split(/\r?\n/)) {

@@ -18,7 +18,7 @@ Pitchlane is a multi-profile Upwork lead intelligence app built for forwarded-em
 - Tailwind CSS
 - Prisma
 - Supabase Postgres
-- Trigger.dev
+- Vercel Cron (scheduled Gmail sync)
 - OpenAI Responses API
 
 ## Local setup

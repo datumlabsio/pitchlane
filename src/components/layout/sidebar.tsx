@@ -115,7 +115,7 @@ export function Sidebar({ lastSyncAt }: { lastSyncAt: string | null }) {
             {lastSyncAt ? (
               <>Last synced <span className="font-semibold">{formatSyncTime(lastSyncAt)}</span></>
             ) : (
-              'No sync has run yet. Trigger one from Settings.'
+              'No sync has run yet. Run one from Settings.'
             )}
           </p>
         </div>

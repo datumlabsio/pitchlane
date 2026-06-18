@@ -106,7 +106,7 @@ function StatusChip({ code }: { code: string }) {
   );
 }
 
-function ActivityItem({ event }: { event: LeadEvent }) {
+function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) {
   const payload = (event.payload ?? {}) as Record<string, unknown>;
 
   const meta: { icon: typeof Mail; title: string; tint: string } = (() => {
@@ -132,7 +132,7 @@ function ActivityItem({ event }: { event: LeadEvent }) {
         <div className={cn('flex size-7 shrink-0 items-center justify-center rounded-full', meta.tint)}>
           <Icon className="size-3.5" />
         </div>
-        <div className="mt-1 w-px flex-1 bg-stone-200 last:hidden" />
+        {!isLast && <div className="mt-1 w-px flex-1 bg-stone-200" />}
       </div>
       <div className="flex-1 pb-4">
         <div className="flex items-center justify-between gap-2">
@@ -1072,8 +1072,12 @@ export function LeadWorkbench({
                     <TabsContent value="activity" className="mt-0">
                       {selectedLead.events.length > 0 ? (
                         <div className="pl-0.5">
-                          {selectedLead.events.map((event) => (
-                            <ActivityItem key={event.id} event={event} />
+                          {selectedLead.events.map((event, i) => (
+                            <ActivityItem
+                              key={event.id}
+                              event={event}
+                              isLast={i === selectedLead.events.length - 1}
+                            />
                           ))}
                         </div>
                       ) : (

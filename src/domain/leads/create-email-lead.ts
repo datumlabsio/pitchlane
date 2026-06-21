@@ -3,7 +3,7 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { prisma } from '@/lib/prisma';
-import { fetchUpworkJob, isScrapeConfigured, type JobEnrichment } from '@/lib/scrape/upwork';
+import { fetchUpworkJob, isScrapeConfigured, type EnrichStatus, type JobEnrichment } from '@/lib/scrape/upwork';
 import { generateProposalDraft } from '@/lib/openai/client';
 import { notifySlackNewLead } from '@/lib/slack';
 
@@ -64,9 +64,21 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   // timeout, network error, empty result) leaves enrichment null and we fall
   // back to email-only data below.
   let enrichment: JobEnrichment | null = null;
+  let enrichStatus: EnrichStatus | null = null;
   if (input.sourceUrl && isScrapeConfigured() && emailEval.rejectionReasons.length === 0) {
-    enrichment = await fetchUpworkJob(input.sourceUrl);
+    const outcome = await fetchUpworkJob(input.sourceUrl);
+    enrichStatus = outcome.status;
+    if (outcome.status === 'enriched') enrichment = outcome.data;
   }
+
+  // Persisted enrichment carries a status so the UI can label the lead
+  // (enriched / private / failed). Only 'enriched' has data.
+  const enrichmentJson =
+    enrichStatus === 'enriched' && enrichment
+      ? { status: 'enriched', ...enrichment }
+      : enrichStatus
+        ? { status: enrichStatus }
+        : null;
 
   const enrichedDescription = enrichment?.description?.trim();
   // Re-score on the richer text when enrichment succeeded.
@@ -100,7 +112,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
       payload: { gmailLabel: input.gmailLabel, from: input.from ?? null },
     },
   ];
-  if (enrichment) {
+  if (enrichStatus === 'enriched' && enrichment) {
     events.push({
       type: 'lead.enriched',
       payload: { source: 'scrape', proposalsCount: enrichment.proposalsCount ?? null },
@@ -122,8 +134,8 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
       extractedBudget: finalBudget,
       extractedSkills: finalSkills,
       sourceCompleteness: completeness,
-      enrichment: enrichment ? (enrichment as unknown as Prisma.InputJsonValue) : undefined,
-      enrichedAt: enrichment ? new Date() : undefined,
+      enrichment: enrichmentJson ? (enrichmentJson as unknown as Prisma.InputJsonValue) : undefined,
+      enrichedAt: enrichStatus ? new Date() : undefined,
       confidence: evaluation.confidence,
       dedupeKey,
       status,

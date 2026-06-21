@@ -53,6 +53,7 @@ export type LeadSummary = {
 };
 
 export type LeadEnrichment = {
+  status: 'enriched' | 'private' | 'failed' | null;
   description: string | null;
   budget: string | null;
   paymentType: string | null;

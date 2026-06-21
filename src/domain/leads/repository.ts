@@ -11,7 +11,9 @@ function mapEnrichment(value: unknown): LeadEnrichment | null {
   const client = (e.client && typeof e.client === 'object' ? e.client : {}) as Record<string, unknown>;
   const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const status = e.status === 'enriched' || e.status === 'private' || e.status === 'failed' ? e.status : null;
   return {
+    status,
     description: str(e.description),
     budget: str(e.budget),
     paymentType: str(e.paymentType),

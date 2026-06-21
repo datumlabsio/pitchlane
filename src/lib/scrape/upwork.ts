@@ -30,10 +30,32 @@ export function isScrapeConfigured(): boolean {
   return Boolean(env.ZENROWS_API_KEY) && env.LEAD_ENRICHMENT_ENABLED === 'true';
 }
 
-const FETCH_TIMEOUT_MS = 70_000;
-const MAX_ATTEMPTS = 3;
+// Bounded so a slow/blocked fetch can't stall a sync: max ~2 × 25s.
+const FETCH_TIMEOUT_MS = 25_000;
+const MAX_ATTEMPTS = 2;
 
-async function fetchOnce(url: string): Promise<JobEnrichment | null> {
+export type EnrichStatus = 'enriched' | 'private' | 'failed';
+
+// 'enriched' = full public description obtained; 'private' = invite-only job we
+// can't read without the invited profile; 'failed' = Cloudflare block / error.
+export type EnrichOutcome =
+  | { status: 'enriched'; data: JobEnrichment }
+  | { status: 'private' }
+  | { status: 'failed' };
+
+// Markers Upwork serves when a job is invite-only / not viewable by this viewer.
+const PRIVATE_MARKERS = [
+  'this job is private',
+  'admitted freelancers',
+  'private and can only be viewed',
+];
+
+function looksPrivate(html: string): boolean {
+  const lower = html.toLowerCase();
+  return PRIVATE_MARKERS.some((m) => lower.includes(m));
+}
+
+async function fetchOnce(url: string): Promise<EnrichOutcome> {
   const endpoint =
     `https://api.zenrows.com/v1/?apikey=${encodeURIComponent(env.ZENROWS_API_KEY!)}` +
     `&url=${encodeURIComponent(url)}&js_render=true&premium_proxy=true&wait=5000`;
@@ -42,13 +64,13 @@ async function fetchOnce(url: string): Promise<JobEnrichment | null> {
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
     const response = await fetch(endpoint, { signal: controller.signal });
-    if (!response.ok) return null; // e.g. RESP001 = Upwork blocked this proxy; retry
+    if (!response.ok) return { status: 'failed' }; // e.g. RESP001 = blocked; retry
     const html = await response.text();
+    if (looksPrivate(html)) return { status: 'private' }; // invite-only — don't retry
     const parsed = parseUpworkJobHtml(html);
-    // Require a description — otherwise treat as a failed scrape.
-    return parsed.description ? parsed : null;
+    return parsed.description ? { status: 'enriched', data: parsed } : { status: 'failed' };
   } catch {
-    return null;
+    return { status: 'failed' };
   } finally {
     clearTimeout(timer);
   }
@@ -57,16 +79,18 @@ async function fetchOnce(url: string): Promise<JobEnrichment | null> {
 /**
  * Fetch the public Upwork job page through ZenRows (JS render + residential
  * proxy to get past Upwork's bot block) and parse the full job + client data.
- * Upwork blocks proxies intermittently (ZenRows RESP001), so we retry a few
- * times. Returns null after all attempts so callers fall back to email-only.
+ * Returns a 3-state outcome: enriched (got it), private (invite-only, can't),
+ * or failed (blocked/error). Only 'failed' is retried; callers fall back to the
+ * email content for 'private' and 'failed'.
  */
-export async function fetchUpworkJob(url: string): Promise<JobEnrichment | null> {
-  if (!env.ZENROWS_API_KEY || !url) return null;
+export async function fetchUpworkJob(url: string): Promise<EnrichOutcome> {
+  if (!env.ZENROWS_API_KEY || !url) return { status: 'failed' };
+  let last: EnrichOutcome = { status: 'failed' };
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const result = await fetchOnce(url);
-    if (result) return result;
+    last = await fetchOnce(url);
+    if (last.status !== 'failed') return last; // enriched or private — stop
   }
-  return null;
+  return last;
 }
 
 // ── HTML parsing ────────────────────────────────────────────────────────────

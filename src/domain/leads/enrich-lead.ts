@@ -5,7 +5,9 @@ import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { fetchUpworkJob, isScrapeConfigured } from '@/lib/scrape/upwork';
 
 export type EnrichLeadResult =
-  | { ok: true; score: number; status: LeadStatus }
+  | { ok: true; outcome: 'enriched'; score: number; status: LeadStatus }
+  | { ok: true; outcome: 'private' }
+  | { ok: true; outcome: 'failed' }
   | { ok: false; reason: string };
 
 /**
@@ -31,11 +33,21 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
   });
   if (!profileConfig) return { ok: false, reason: 'No active profile configuration for this lead.' };
 
-  const enrichment = await fetchUpworkJob(lead.sourceUrl);
-  if (!enrichment) {
-    return { ok: false, reason: 'The scraper returned no data for this job (it may be closed or blocked).' };
+  const outcome = await fetchUpworkJob(lead.sourceUrl);
+
+  // Private or failed: record the status so the UI labels it, then return.
+  if (outcome.status !== 'enriched') {
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        enrichment: { status: outcome.status } as unknown as Prisma.InputJsonValue,
+        enrichedAt: new Date(),
+      },
+    });
+    return { ok: true, outcome: outcome.status };
   }
 
+  const enrichment = outcome.data;
   const enrichedDescription = enrichment.description?.trim();
   const evalBody = enrichedDescription
     ? `${lead.rawEmailBody ?? lead.emailSnippet ?? ''}\n\n${enrichedDescription}`
@@ -63,7 +75,7 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
     prisma.lead.update({
       where: { id: leadId },
       data: {
-        enrichment: enrichment as unknown as Prisma.InputJsonValue,
+        enrichment: { status: 'enriched', ...enrichment } as unknown as Prisma.InputJsonValue,
         enrichedAt: new Date(),
         sourceCompleteness: SourceCompleteness.FULL,
         extractedBudget: enrichment.budget || lead.extractedBudget,
@@ -93,5 +105,5 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
     }),
   ]);
 
-  return { ok: true, score: evaluation.score, status: nextStatus };
+  return { ok: true, outcome: 'enriched', score: evaluation.score, status: nextStatus };
 }

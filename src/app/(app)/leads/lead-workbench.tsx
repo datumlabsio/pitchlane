@@ -115,6 +115,22 @@ function LinkifiedText({ text }: { text: string }) {
 // Upwork enrichment panel
 // ---------------------------------------------------------------------------
 
+function EnrichmentBadge({ status }: { status: LeadEnrichment['status'] }) {
+  if (!status) return null;
+  const map = {
+    enriched: { dot: 'bg-emerald-500', cls: 'bg-emerald-100 text-emerald-700', label: 'Full description' },
+    private: { dot: 'bg-amber-500', cls: 'bg-amber-100 text-amber-700', label: 'Private / invite-only' },
+    failed: { dot: 'bg-stone-400', cls: 'bg-stone-100 text-stone-600', label: "Couldn't fetch" },
+  } as const;
+  const m = map[status];
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium', m.cls)}>
+      <span className={cn('size-1.5 rounded-full', m.dot)} />
+      {m.label}
+    </span>
+  );
+}
+
 function EnrichmentPanel({ enrichment }: { enrichment: LeadEnrichment }) {
   const c = enrichment.client;
   const location = [c.location, c.country].filter(Boolean).join(', ');
@@ -890,11 +906,7 @@ export function LeadWorkbench({
                     {selectedLead.profileName}
                   </Badge>
                   <span className="text-xs text-stone-500">{selectedLead.budget}</span>
-                  {selectedLead.enrichedAt && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                      <Sparkles className="size-3" /> Enriched
-                    </span>
-                  )}
+                  <EnrichmentBadge status={selectedLead.enrichment?.status ?? null} />
                   <div className="ml-auto flex items-center gap-2">
                     {enrichmentEnabled && selectedLead.sourceUrl && (
                       <button
@@ -905,7 +917,11 @@ export function LeadWorkbench({
                         className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
                       >
                         <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
-                        {selectedLead.enrichedAt ? 'Re-enrich' : 'Enrich'}
+                        {selectedLead.enrichment?.status === 'failed'
+                          ? 'Retry fetch'
+                          : selectedLead.enrichment?.status
+                            ? 'Re-enrich'
+                            : 'Enrich'}
                       </button>
                     )}
                     {selectedLead.sourceUrl ? (
@@ -963,8 +979,18 @@ export function LeadWorkbench({
                       </div>
 
                       {/* Upwork enrichment */}
-                      {selectedLead.enrichment && (
+                      {selectedLead.enrichment?.status === 'enriched' && (
                         <EnrichmentPanel enrichment={selectedLead.enrichment} />
+                      )}
+                      {selectedLead.enrichment?.status === 'private' && (
+                        <p className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5 text-sm leading-6 text-amber-800">
+                          This is a private / invite-only job — only the invited profile can open it, so we&apos;re working from the email content below.
+                        </p>
+                      )}
+                      {selectedLead.enrichment?.status === 'failed' && (
+                        <p className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm leading-6 text-stone-600">
+                          Couldn&apos;t fetch the full job page (Upwork blocked the request). Using the email content below — hit <span className="font-medium">Retry fetch</span> above to try again.
+                        </p>
                       )}
 
                       {/* Notes */}

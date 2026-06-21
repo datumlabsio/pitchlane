@@ -13,7 +13,7 @@ export async function POST(_request: Request, context: { params: Promise<{ leadI
       return NextResponse.json({ ok: false, error: result.reason }, { status: 400 });
     }
 
-    return NextResponse.json({ ok: true, score: result.score, status: result.status });
+    return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Enrichment failed';
     return NextResponse.json({ ok: false, error: message }, { status: 500 });

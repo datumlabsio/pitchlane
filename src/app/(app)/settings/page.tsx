@@ -57,7 +57,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </h2>
             <p className="mt-1 text-sm text-stone-400">
               {google.connected
-                ? `Auto-syncs every ${google.syncIntervalMinutes} minute${google.syncIntervalMinutes === 1 ? '' : 's'} on the deployed app. Adjust the interval below.`
+                ? `Synced automatically by a scheduled cron. Leads enrich in the background. The interval below is the minimum gap between runs (currently ${google.syncIntervalMinutes} min).`
                 : 'Connect the shared forwarding inbox to enable Gmail sync.'}
             </p>
           </div>

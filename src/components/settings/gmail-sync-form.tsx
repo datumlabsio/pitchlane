@@ -99,7 +99,7 @@ export function GmailSyncForm({ connected, hasModifyScope, syncIntervalMinutes: 
 
       {/* Sync interval */}
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-xs text-stone-400 shrink-0">Auto-sync every</p>
+        <p className="text-xs text-stone-400 shrink-0">Minimum gap between syncs</p>
         <div className="flex items-center gap-2">
           <select
             value={interval}

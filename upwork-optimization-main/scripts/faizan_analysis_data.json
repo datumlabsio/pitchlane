@@ -1,0 +1,6995 @@
+{
+ "baseline": {
+  "name": "Faizan K.",
+  "title": "Analytics Engineer | dbt + Power BI | Snowflake, BigQuery Expert",
+  "hourly_rate": "$60.00/hr",
+  "url": "https://www.upwork.com/freelancers/ifaizankhan",
+  "location": "Berlin, Germany",
+  "tools": [
+   "Apache Airflow",
+   "Apache Spark",
+   "BigQuery",
+   "Google Analytics 4",
+   "Looker Studio",
+   "Microsoft Power BI",
+   "PostgreSQL",
+   "Python",
+   "SQL",
+   "Snowflake",
+   "Tableau",
+   "dbt"
+  ],
+  "skills": [
+   "Business Intelligence",
+   "Data Analytics",
+   "Data Engineering",
+   "Data Modeling",
+   "Data Visualization",
+   "Data Warehousing & ETL Software",
+   "ETL Pipeline",
+   "Marketing Analytics"
+  ],
+  "n_tools": 12,
+  "n_skills": 8
+ },
+ "n_collected": 100,
+ "comparisons": [
+  {
+   "file": "adeola-m-01a40ad737ff44ee58.md",
+   "name": "Adeola M.",
+   "title": "Marketing Data & Attribution Engineer | Analytics, Ad Tracking",
+   "hourly_rate": "$250.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01a40ad737ff44ee58",
+   "matched_keyword": "Data Analytics",
+   "location": "Sacramento, CA, USA \u2013 3:41 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Amplitude",
+     "Customer.io",
+     "Google Analytics",
+     "JavaScript",
+     "MySQL Programming"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Analytics Dashboard",
+     "Data Collection",
+     "Data Integration",
+     "Marketing Automation",
+     "Marketing Strategy",
+     "Tracking Tags Installation"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Engineering",
+     "Marketing Analytics"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 7,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "ahmed-m-01a71b764c19a6fb32.md",
+   "name": "Ahmed M.",
+   "title": "Senior Business Analyst | 12+ Years of Experience | PMP Certified",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01a71b764c19a6fb32",
+   "matched_keyword": "Data Warehousing & ETL Software",
+   "location": "Miamisburg, OH, USA \u2013 7:17 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 0,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Agile Software Development",
+     "Business Analysis",
+     "Business Process Modeling",
+     "Business Process Reengineering",
+     "Digital Project Management",
+     "Documentation",
+     "Jira",
+     "Product Management",
+     "Project Management",
+     "Project Scheduling",
+     "Requirement Analysis",
+     "Scrum",
+     "Software Documentation",
+     "Technical Project Management",
+     "User Stories"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 15,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 23
+   }
+  },
+  {
+   "file": "alex-g-01959f0fc97f9990cd.md",
+   "name": "Alex G.",
+   "title": "Marketing Funnels | CRO, Social (paid and org) & PPC, AEO, SEO, Email",
+   "hourly_rate": "$88.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01959f0fc97f9990cd",
+   "matched_keyword": "Marketing Analytics",
+   "location": "Austin, TX, USA \u2013 6:23 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 0,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Brand Strategy",
+     "Conversion Rate Optimization",
+     "Customer Acquisition",
+     "Digital Marketing Strategy",
+     "Direct Response Copywriting",
+     "Email Marketing",
+     "Growth Strategy",
+     "Market Research",
+     "Marketing Automation",
+     "Marketing Consulting",
+     "PPC Campaign Setup & Management",
+     "Paid Social",
+     "Performance Marketing",
+     "Sales Funnel"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 14,
+    "n_shared": 1,
+    "overlap_ratio": 0.045,
+    "total_distinct": 22
+   }
+  },
+  {
+   "file": "ali-a-01be3a028688e1fee8.md",
+   "name": "Ali A.",
+   "title": "Senior AI Engineer | LLMs, RAG & AI Multi Agents",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01be3a028688e1fee8",
+   "matched_keyword": "Apache Spark",
+   "location": "Ottawa, Canada \u2013 7:58 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS Lambda",
+     "Angular",
+     "JavaScript",
+     "Next.js",
+     "Node.js",
+     "React",
+     "TypeScript"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 7,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "AI Development",
+     "Artificial Intelligence",
+     "Back-End Development",
+     "Full-Stack Development",
+     "Large Language Model",
+     "Web Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 7,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "alina-k-0116423b525b255d26.md",
+   "name": "Alina K.",
+   "title": "Market Research Expert | Market and Competitive Analysis | Strategy",
+   "hourly_rate": "$65.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0116423b525b255d26",
+   "matched_keyword": "Business Intelligence",
+   "location": "Kyiv, Ukraine \u2013 3:39 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 0,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Audience Segmentation & Targeting",
+     "Brand Research",
+     "Business Analysis",
+     "Business Plan",
+     "Business Writing",
+     "Company Research",
+     "Competitive Analysis",
+     "Consumer Research",
+     "Data Analysis",
+     "Generative AI",
+     "Internet Survey",
+     "Market Analysis",
+     "Market Research",
+     "Qualitative Research",
+     "Quantitative Analysis",
+     "Quantitative Research",
+     "Report Writing",
+     "Research Papers",
+     "Survey Design",
+     "Topic Research"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 20,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 28
+   }
+  },
+  {
+   "file": "andrii-h-016e00e065a94be6f1.md",
+   "name": "Andrii H.",
+   "title": "Senior AI Engineer | RAG, AI Agents & the Data Pipelines Behind Them",
+   "hourly_rate": "$45.00/hr",
+   "url": "https://www.upwork.com/freelancers/~016e00e065a94be6f1",
+   "matched_keyword": "ETL Pipeline",
+   "location": "Vinnytsya, Ukraine \u2013 2:52 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "LangChain",
+     "OpenAI API",
+     "Vector Database"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "Data Extraction",
+     "Generative AI",
+     "LLM Prompt Engineering",
+     "Retrieval Augmented Generation",
+     "Web Scraping"
+    ],
+    "shared": [
+     "Data Engineering",
+     "ETL Pipeline"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 6,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "angel-alfredo-r-0172674b85be2dc1af.md",
+   "name": "Angel Alfredo R.",
+   "title": "Top-Tier Marketing, Collateral & Websites",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0172674b85be2dc1af",
+   "matched_keyword": "Data Visualization",
+   "location": "Westwood, NJ, USA \u2013 6:11 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Adobe Photoshop"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Adobe InDesign",
+     "Concept Design",
+     "Creative Direction",
+     "Digital Illustration",
+     "Ebook Design",
+     "Illustration",
+     "Logo Design",
+     "Presentation Design",
+     "Sales & Marketing Collateral",
+     "White Paper"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 10,
+    "n_shared": 1,
+    "overlap_ratio": 0.056,
+    "total_distinct": 18
+   }
+  },
+  {
+   "file": "anton-k-018a2caca04670859e.md",
+   "name": "Anton K.",
+   "title": "Conversion tracking, GA4, Pixels, Marketing attribution",
+   "hourly_rate": "$70.00/hr",
+   "url": "https://www.upwork.com/freelancers/~018a2caca04670859e",
+   "matched_keyword": "BigQuery",
+   "location": "Kyiv, Ukraine \u2013 2:05 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Analytics",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio",
+     "SQL"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 2,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Conversion Rate Optimization"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 1,
+    "n_shared": 1,
+    "overlap_ratio": 0.111,
+    "total_distinct": 9
+   }
+  },
+  {
+   "file": "artem-s-01ace5a4b015de62ac.md",
+   "name": "Artem S.",
+   "title": "AI Engineer | LLMs RAG Chatbots & Python Automation OpenAI Django",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01ace5a4b015de62ac",
+   "matched_keyword": "Python",
+   "location": "Lviv, Ukraine \u2013 1:02 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "ChatGPT",
+     "HTML",
+     "HTML5",
+     "Node.js",
+     "OpenAI Codex",
+     "React",
+     "React Bootstrap",
+     "Shopify"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 8,
+    "n_shared": 1,
+    "overlap_ratio": 0.05,
+    "total_distinct": 20
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "CSS Framework",
+     "Shopify Apps",
+     "Shopify Plus",
+     "Web Application",
+     "Website Redesign"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "awais-t-0152f57f3371750235.md",
+   "name": "Awais T.",
+   "title": "GCP & AWS Certified Cloud Developer, Full Stack, Java, Data Engineer",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0152f57f3371750235",
+   "matched_keyword": "Apache Spark",
+   "location": "Rowlett, TX, USA \u2013 7:03 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS CloudFormation",
+     "AWS Fargate",
+     "Amazon ECS",
+     "Java",
+     "NoSQL Database",
+     "React",
+     "Spring Boot",
+     "Spring Framework",
+     "WordPress"
+    ],
+    "shared": [
+     "Apache Spark"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 9,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "CI/CD",
+     "Cloud Computing",
+     "Containerization",
+     "Database",
+     "DevOps",
+     "Microservice",
+     "Serverless Stack",
+     "Solution Architecture Consultation"
+    ],
+    "shared": [
+     "Data Engineering"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 8,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "azhagarasan-a-019db1cc8263cb622c.md",
+   "name": "Azhagarasan A.",
+   "title": "Informatica, Tableau, Qlikview Developer",
+   "hourly_rate": "$85.00/hr",
+   "url": "https://www.upwork.com/freelancers/~019db1cc8263cb622c",
+   "matched_keyword": "Tableau",
+   "location": "Redditch, United Kingdom \u2013 10:42 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Apps Script",
+     "QlikView"
+    ],
+    "shared": [
+     "Tableau"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 2,
+    "n_shared": 1,
+    "overlap_ratio": 0.071,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analysis",
+     "Data Warehousing",
+     "ETL",
+     "Informatica",
+     "Web Development"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 5,
+    "n_shared": 2,
+    "overlap_ratio": 0.154,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "baset-h-01e038538aa5e5b6f7.md",
+   "name": "Baset H.",
+   "title": "A senior software engineer with over 10 years of experience across web",
+   "hourly_rate": "$80.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01e038538aa5e5b6f7",
+   "matched_keyword": "PostgreSQL",
+   "location": "Charlotte, NC, USA \u2013 8:27 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS Lambda",
+     "Amazon Web Services",
+     "Angular",
+     "Django",
+     "JavaScript",
+     "MongoDB",
+     "Node.js",
+     "React",
+     "TypeScript"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 9,
+    "n_shared": 2,
+    "overlap_ratio": 0.095,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "AI Model Integration",
+     "API Development",
+     "Database Architecture",
+     "DevOps",
+     "Full-Stack Development",
+     "Payment Gateway Integration",
+     "SaaS",
+     "Web Application"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 9,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   }
+  },
+  {
+   "file": "benjamin-v-0113b757a1c344df82.md",
+   "name": "Benjamin V.",
+   "title": "Partner in AI and emerging technologies",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0113b757a1c344df82",
+   "matched_keyword": "Data Modeling",
+   "location": "Pozuelo de Alarcon, Spain \u2013 1:39 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Adobe Illustrator",
+     "Amazon Web Services",
+     "HTML5",
+     "JavaScript",
+     "Next.js",
+     "Node.js",
+     "PHP",
+     "React",
+     "TypeScript"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 10,
+    "n_shared": 2,
+    "overlap_ratio": 0.091,
+    "total_distinct": 22
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Artificial Intelligence",
+     "Automation",
+     "Graphic Design",
+     "Lead Generation",
+     "Machine Learning",
+     "Web Application",
+     "Web Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 8,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "bera-c-017f70d4ff18e934a4.md",
+   "name": "Bera C.",
+   "title": "Backend-first Full-Stack Engineer | SaaS Platforms, APIs, Cloud",
+   "hourly_rate": "$79.90/hr",
+   "url": "https://www.upwork.com/freelancers/~017f70d4ff18e934a4",
+   "matched_keyword": "PostgreSQL",
+   "location": "Izmir, Turkey \u2013 3:26 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Amazon Web Services",
+     "Docker",
+     "JavaScript",
+     "Next.js",
+     "Node.js",
+     "RESTful API",
+     "React",
+     "TypeScript"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 9,
+    "n_shared": 2,
+    "overlap_ratio": 0.095,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Development",
+     "API Integration",
+     "Cloud Development",
+     "DevOps",
+     "Full-Stack Development",
+     "SaaS",
+     "Software Development",
+     "Web Application",
+     "Web Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 9,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   }
+  },
+  {
+   "file": "bilal-m-0199d30d119ff44f33.md",
+   "name": "Bilal M.",
+   "title": "Full Stack Developer | Ai Developer | React, Next.js, Python | N8N",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0199d30d119ff44f33",
+   "matched_keyword": "Python",
+   "location": "Woodinville, WA, USA \u2013 2:55 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Django",
+     "FastAPI",
+     "Next.js",
+     "Node.js",
+     "React",
+     "Supabase"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 6,
+    "n_shared": 1,
+    "overlap_ratio": 0.056,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Compliance",
+     "AI Development",
+     "Full-Stack Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 3,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "bob-h-01f556e5e248678df5.md",
+   "name": "Bob H.",
+   "title": "Data Engineer | Snowflake | AWS",
+   "hourly_rate": "$125.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01f556e5e248678df5",
+   "matched_keyword": "Apache Airflow",
+   "location": "Omaha, NE, USA \u2013 7:50 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS Glue",
+     "Amazon Athena",
+     "Apache Kafka",
+     "pandas"
+    ],
+    "shared": [
+     "Apache Airflow",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 4,
+    "n_shared": 2,
+    "overlap_ratio": 0.125,
+    "total_distinct": 16
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Management",
+     "ETL",
+     "Solution Architecture"
+    ],
+    "shared": [
+     "Data Modeling"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.091,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "boris-k-012a22e214e4dd366f.md",
+   "name": "Boris K.",
+   "title": "Java Architect | Java Lead Developer | AWS Architect",
+   "hourly_rate": "$48.00/hr",
+   "url": "https://www.upwork.com/freelancers/~012a22e214e4dd366f",
+   "matched_keyword": "PostgreSQL",
+   "location": "Warsaw, Poland \u2013 2:29 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Amazon EC2",
+     "Amazon Web Services",
+     "Docker",
+     "Elasticsearch",
+     "Java",
+     "MySQL",
+     "Spring Boot",
+     "Spring Framework"
+    ],
+    "shared": [
+     "PostgreSQL"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 9,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Artificial Intelligence",
+     "Cloud Architecture",
+     "Internet of Things Solutions Design",
+     "Large Language Model",
+     "SaaS"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "brian-w-01b775ea2daf68451e.md",
+   "name": "Brian W.",
+   "title": "Software & Cloud Engineer | AI | AWS | Data Science | GIS | SQL",
+   "hourly_rate": "$135.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01b775ea2daf68451e",
+   "matched_keyword": "SQL",
+   "location": "Louisville, CO, USA \u2013 6:23 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Amazon Web Services",
+     "ArcGIS",
+     "GIS",
+     "Microsoft SQL Server",
+     "PyTorch",
+     "Supabase",
+     "n8n"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.105,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Model Integration",
+     "Data Science",
+     "Full-Stack Development",
+     "SaaS Development",
+     "Software Debugging",
+     "Solution Architecture"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 6,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "cesar-r-01d6de31dda54d9993.md",
+   "name": "Cesar R.",
+   "title": "Fractional CDO | Analytics Infrastructure, GA4, GTM & BI Leadership",
+   "hourly_rate": "$125.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01d6de31dda54d9993",
+   "matched_keyword": "dbt",
+   "location": "Omaha, NE, USA \u2013 6:28 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "SQL",
+     "dbt"
+    ],
+    "coll_only": [
+     "Kibana",
+     "Looker",
+     "Microsoft Excel",
+     "Qlik Sense",
+     "Splunk"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 5,
+    "n_shared": 5,
+    "overlap_ratio": 0.294,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analysis"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 1,
+    "n_shared": 3,
+    "overlap_ratio": 0.333,
+    "total_distinct": 9
+   }
+  },
+  {
+   "file": "chancellor-t-019b26a16631686386.md",
+   "name": "Chancellor T.",
+   "title": "Data Engineer | API & Cloud Architecture Specialist",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~019b26a16631686386",
+   "matched_keyword": "ETL Pipeline",
+   "location": "San Diego, CA, USA \u2013 4:51 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Golang"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 1,
+    "n_shared": 1,
+    "overlap_ratio": 0.077,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Artificial Intelligence",
+     "Chatbot",
+     "Cloud Architecture",
+     "Data Analysis",
+     "Database",
+     "Exploratory Data Analysis",
+     "High Availability and Disaster Recovery",
+     "Integration Testing",
+     "Machine Learning",
+     "Web Scraping"
+    ],
+    "shared": [
+     "ETL Pipeline"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 11,
+    "n_shared": 1,
+    "overlap_ratio": 0.053,
+    "total_distinct": 19
+   }
+  },
+  {
+   "file": "chris-h-010fb45e736f4aedc9.md",
+   "name": "Chris H.",
+   "title": "Infusion Revenue Cycle Analytics | Harvard Health Data Scientist",
+   "hourly_rate": "$250.00/hr",
+   "url": "https://www.upwork.com/freelancers/~010fb45e736f4aedc9",
+   "matched_keyword": "Data Warehousing & ETL Software",
+   "location": "Charleston, SC, USA \u2013 7:20 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Big Data",
+     "Fabric",
+     "HubSpot",
+     "Microsoft Azure",
+     "Microsoft Power Automate",
+     "Power Query"
+    ],
+    "shared": [
+     "Microsoft Power BI"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 6,
+    "n_shared": 1,
+    "overlap_ratio": 0.056,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "A/B Testing",
+     "Artificial Intelligence",
+     "Machine Learning",
+     "Product Management",
+     "Project Management",
+     "Statistics"
+    ],
+    "shared": [
+     "Data Visualization",
+     "Data Warehousing & ETL Software"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 6,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "claudio-j-01eb4a267ec49710ab.md",
+   "name": "Claudio J.",
+   "title": "Dynamics 365 Business Central, D365 CRM/ERP, D365 Sales, Power Platform",
+   "hourly_rate": "$70.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01eb4a267ec49710ab",
+   "matched_keyword": "Business Intelligence",
+   "location": "Miami, FL, USA \u2013 8:40 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Dynamics 365",
+     "Microsoft Dynamics CRM",
+     "Microsoft Dynamics ERP",
+     "Microsoft Power Automate",
+     "Microsoft PowerApps",
+     "Microsoft SharePoint",
+     "Microsoft Teams",
+     "Office 365"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 8,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 20
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Azure Bot Service",
+     "Business Applications Consultation",
+     "CRM Development",
+     "CRM Software",
+     "Customer Relationship Management",
+     "Enterprise Resource Planning",
+     "Microsoft Dynamics Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 7,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "daniel-d-01eb4daa2fe210e9e9.md",
+   "name": "Daniel D.",
+   "title": "Software and Data Engineer",
+   "hourly_rate": "$90.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01eb4daa2fe210e9e9",
+   "matched_keyword": "Apache Airflow",
+   "location": "Seattle, WA, USA \u2013 5:47 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Elasticsearch",
+     "Flask",
+     "RESTful API",
+     "React",
+     "Terraform"
+    ],
+    "shared": [
+     "Apache Airflow",
+     "PostgreSQL",
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 6,
+    "n_shared": 4,
+    "overlap_ratio": 0.222,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AWS Application",
+     "Database Architecture",
+     "Database Design"
+    ],
+    "shared": [
+     "ETL Pipeline"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.091,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "daniel-p-01196ec9163afa84ee.md",
+   "name": "Daniel P.",
+   "title": "Data Engineer | Quant & AI",
+   "hourly_rate": "$120.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01196ec9163afa84ee",
+   "matched_keyword": "ETL Pipeline",
+   "location": "Warsaw, Poland \u2013 1:47 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Amazon S3",
+     "pandas"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 3,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Cleaning",
+     "Data Ingestion",
+     "Data Integration",
+     "Data Migration",
+     "Natural Language Processing",
+     "Trading Automation"
+    ],
+    "shared": [
+     "Data Engineering",
+     "Data Modeling",
+     "ETL Pipeline"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 6,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "deangelo-k-0150ee469de8382f9a.md",
+   "name": "DeAngelo K.",
+   "title": "Market Research | Data Analyst | Lead Gen | Private Equity | VC",
+   "hourly_rate": "$55.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0150ee469de8382f9a",
+   "matched_keyword": "Business Intelligence",
+   "location": "Fort Worth, TX, USA \u2013 7:38 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "B2B Marketing",
+     "Business Development",
+     "Competitive Analysis",
+     "Data Collection",
+     "Finance",
+     "Financial Analysis",
+     "Financial Analysis & Valuation",
+     "Financial Modeling",
+     "Market Research",
+     "Mergers & Acquisitions",
+     "Private Equity",
+     "Target Market Research"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Analytics"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 12,
+    "n_shared": 2,
+    "overlap_ratio": 0.1,
+    "total_distinct": 20
+   }
+  },
+  {
+   "file": "dipal-p-015f0d3b654b000581.md",
+   "name": "Dipal P.",
+   "title": "Sr Full Stack Developer .NET PHP Python AI Mobile SQL API 12 Years Exp",
+   "hourly_rate": "$62.50/hr",
+   "url": "https://www.upwork.com/freelancers/~015f0d3b654b000581",
+   "matched_keyword": "SQL",
+   "location": "Evesham Township, NJ, USA \u2013 8:20 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     ".NET Framework",
+     "API",
+     "ASP.NET",
+     "C#",
+     "JavaScript",
+     "Node.js",
+     "PHP",
+     "React Native",
+     "WordPress"
+    ],
+    "shared": [
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 9,
+    "n_shared": 2,
+    "overlap_ratio": 0.095,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Artificial Intelligence",
+     "Azure App Service",
+     "Ecommerce",
+     "Entity Framework",
+     "Full-Stack Development",
+     "Machine Learning",
+     "Microsoft Azure Administration",
+     "Mobile App Development",
+     "Web Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 9,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   }
+  },
+  {
+   "file": "dmytro-k-013285d93a80baf45b.md",
+   "name": "Dmytro K.",
+   "title": "Java/JavaFX/NodeJS/Angular development, software architecture",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~013285d93a80baf45b",
+   "matched_keyword": "PostgreSQL",
+   "location": "Kharkiv, Ukraine \u2013 3:33 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Angular",
+     "Docker",
+     "Hibernate",
+     "Java",
+     "JavaFX",
+     "JavaScript",
+     "MongoDB",
+     "MySQL",
+     "Node.js",
+     "RESTful API",
+     "Spring Boot",
+     "Spring Framework"
+    ],
+    "shared": [
+     "PostgreSQL"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 12,
+    "n_shared": 1,
+    "overlap_ratio": 0.042,
+    "total_distinct": 24
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Jakarta Server Pages",
+     "Microservice",
+     "Web Service"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 3,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "dusko-a-0163aee8a876c263a4.md",
+   "name": "Dusko A.",
+   "title": "Vehicle and Hardsurface 3D Maya Expert | UE5 | CAD to 3D Assets",
+   "hourly_rate": "$45.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0163aee8a876c263a4",
+   "matched_keyword": "Data Modeling",
+   "location": "Skopje, North Macedonia \u2013 1:37 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Autodesk Maya",
+     "Unreal Engine"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 2,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "3D Animation",
+     "3D Design",
+     "3D Model",
+     "3D Modeling",
+     "3D Product Rendering",
+     "3D Rendering",
+     "3D Vehicle Modeling",
+     "Automotive Design",
+     "Game Asset",
+     "Game Design",
+     "High Fidelity Design",
+     "Photorealistic Rendering",
+     "Vehicle & Motorcycle Wrap Design"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 13,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "dzianis-z-01fea2e8a2a560cf32.md",
+   "name": "Dzianis Z.",
+   "title": "Facebook Ads Meta Ads Manager | Google Ads Manager | Shopify eCommerce",
+   "hourly_rate": "$69.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01fea2e8a2a560cf32",
+   "matched_keyword": "Google Analytics 4",
+   "location": "Warsaw, Poland \u2013 2:57 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Facebook Ads Manager",
+     "Google Ads",
+     "Google Analytics",
+     "Google Tag Manager",
+     "Shopify"
+    ],
+    "shared": [
+     "Google Analytics 4"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 5,
+    "n_shared": 1,
+    "overlap_ratio": 0.059,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Bing Ads",
+     "Ecommerce",
+     "Ecommerce Marketing",
+     "Facebook Advertising",
+     "PPC Campaign Setup & Management",
+     "Pay Per Click Advertising",
+     "Search Engine Marketing",
+     "Social Media Advertising",
+     "Social Media Marketing"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 9,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   }
+  },
+  {
+   "file": "elvijs-v-01d27b3a745fb78e0e.md",
+   "name": "Elvijs V.",
+   "title": "Power BI Developer | Data analyst with Financial background",
+   "hourly_rate": "$55.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01d27b3a745fb78e0e",
+   "matched_keyword": "Microsoft Power BI",
+   "location": "Riga, Latvia \u2013 1:17 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "SQL"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Business Analysis",
+     "Data Analysis",
+     "Data Cleaning",
+     "Finance",
+     "Sales Analytics"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 6,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "emanuel-alexandre-t-018e8aa665b5f703ac.md",
+   "name": "Emanuel Alexandre T.",
+   "title": "Senior Database & Data Architecture Consultant | Business Intelligence",
+   "hourly_rate": "$80.00/hr",
+   "url": "https://www.upwork.com/freelancers/~018e8aa665b5f703ac",
+   "matched_keyword": "BigQuery",
+   "location": "Lisbon, Portugal \u2013 12:00 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Looker",
+     "Microsoft Excel",
+     "MySQL"
+    ],
+    "shared": [
+     "BigQuery",
+     "Microsoft Power BI",
+     "SQL"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 3,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analytics & Visualization Software",
+     "Database Architecture",
+     "Database Design",
+     "Database Management",
+     "Database Modeling",
+     "ETL",
+     "Relational Database"
+    ],
+    "shared": [
+     "Data Engineering",
+     "Data Warehousing & ETL Software"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "enes-b-011a67856416f75396.md",
+   "name": "Enes B.",
+   "title": "Sr. ML & AI Engineer | RAG | LLM Systems & AI Agents | Python",
+   "hourly_rate": "$70.00/hr",
+   "url": "https://www.upwork.com/freelancers/~011a67856416f75396",
+   "matched_keyword": "Apache Spark",
+   "location": "Istanbul, Turkey \u2013 2:55 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Claude",
+     "Docker",
+     "FastAPI",
+     "LangChain",
+     "OpenAI API",
+     "TensorFlow"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 6,
+    "n_shared": 1,
+    "overlap_ratio": 0.056,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "Data Analysis",
+     "Data Science",
+     "Deep Learning",
+     "Generative AI",
+     "Information Retrieval",
+     "Machine Learning",
+     "Natural Language Processing",
+     "Prompt Engineering",
+     "Retrieval Augmented Generation"
+    ],
+    "shared": [
+     "Data Engineering",
+     "ETL Pipeline"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 10,
+    "n_shared": 2,
+    "overlap_ratio": 0.111,
+    "total_distinct": 18
+   }
+  },
+  {
+   "file": "enmanuel-m-014904abb7f9d4ade2.md",
+   "name": "Enmanuel M.",
+   "title": "Data Engineer AWS",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~014904abb7f9d4ade2",
+   "matched_keyword": "Data Warehousing & ETL Software",
+   "location": "Waxhaw, NC, USA \u2013 7:16 pm local time",
+   "tools": {
+    "base_only": [
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS CloudFormation",
+     "AWS Glue",
+     "AWS Lambda",
+     "Amazon S3",
+     "Amazon Web Services",
+     "Databricks Platform",
+     "Google Cloud Platform"
+    ],
+    "shared": [
+     "Apache Airflow",
+     "Apache Spark"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.105,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Engineering & Architecture",
+     "Python Script"
+    ],
+    "shared": [
+     "Data Engineering"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 2,
+    "n_shared": 1,
+    "overlap_ratio": 0.1,
+    "total_distinct": 10
+   }
+  },
+  {
+   "file": "ethan-g-012ccf1dbddd9ffec8.md",
+   "name": "Ethan G.",
+   "title": "Google Analytics 4 | Google Tag Manager | Google Ads | SEO",
+   "hourly_rate": "$90.00/hr",
+   "url": "https://www.upwork.com/freelancers/~012ccf1dbddd9ffec8",
+   "matched_keyword": "Looker Studio",
+   "location": "Champaign, IL, USA \u2013 7:11 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads",
+     "Google Analytics",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "Google Analytics 4",
+     "Looker Studio"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Analytics & Tracking Setup",
+     "Conversion Rate Optimization",
+     "Google",
+     "Tracking Pixel",
+     "Web Analytics"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 6,
+    "n_shared": 1,
+    "overlap_ratio": 0.071,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "eugene-k-0188d1cca823f2f59b.md",
+   "name": "Eugene K.",
+   "title": "Marketing Analyst | GA4, GTM, Data Studio + Meta/G. Ads Attribution",
+   "hourly_rate": "$65.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0188d1cca823f2f59b",
+   "matched_keyword": "Looker Studio",
+   "location": "Warsaw, Poland \u2013 2:08 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Facebook Ads Manager",
+     "Google Ads",
+     "Google Analytics",
+     "Google Tag Manager",
+     "JavaScript"
+    ],
+    "shared": [
+     "Looker Studio"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 5,
+    "n_shared": 1,
+    "overlap_ratio": 0.059,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Conversion Rate Optimization",
+     "Data Analysis",
+     "Digital Marketing",
+     "Pay Per Click Advertising",
+     "Pixel Setup & Optimization",
+     "Search Engine Optimization"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 7,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "fanny-m-01b6619668be552f0e.md",
+   "name": "Fanny M.",
+   "title": "Track your Conversions with Google Tag Manager",
+   "hourly_rate": "$130.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01b6619668be552f0e",
+   "matched_keyword": "Data Analytics",
+   "location": "Olne, Belgium \u2013 12:45 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Analytics",
+     "Google Tag Manager",
+     "Looker"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio",
+     "SQL"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 3,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics & Tracking Setup",
+     "Analytics Dashboard",
+     "Data Analysis",
+     "Data Analytics & Visualization Software",
+     "Web Analytics",
+     "Web Analytics Bug Fix",
+     "Web Analytics Report"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Visualization"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "geoffrey-l-c-019654da9392fd22b9.md",
+   "name": "Geoffrey L C.",
+   "title": "Cloud Data Architect",
+   "hourly_rate": "$200.00/hr",
+   "url": "https://www.upwork.com/freelancers/~019654da9392fd22b9",
+   "matched_keyword": "Apache Airflow",
+   "location": "McKinney, TX, USA \u2013 7:51 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Tableau"
+    ],
+    "coll_only": [],
+    "shared": [
+     "Apache Airflow",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 0,
+    "n_shared": 5,
+    "overlap_ratio": 0.417,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Science",
+     "Database Architecture",
+     "ETL",
+     "Generative AI",
+     "Machine Learning",
+     "Solution Architecture"
+    ],
+    "shared": [
+     "Data Engineering",
+     "Data Modeling"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 6,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "guy-p-017c72364e4fb27690.md",
+   "name": "Guy P.",
+   "title": "AI Consultant | Custom AI Solutions, Automation & Software Development",
+   "hourly_rate": "$65.00/hr",
+   "url": "https://www.upwork.com/freelancers/~017c72364e4fb27690",
+   "matched_keyword": "Snowflake",
+   "location": "Marlborough, MA, USA \u2013 6:53 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Node.js",
+     "React",
+     "React Native",
+     "Swift"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 4,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI App Development",
+     "AI Consulting",
+     "AI Development",
+     "AI Implementation",
+     "AI Platform",
+     "AI Product Management",
+     "AI Security",
+     "DevOps",
+     "Enterprise Software Development",
+     "Generative AI",
+     "Hybrid App Development",
+     "Mobile App Development",
+     "Software Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 13,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "hari-n-018a99dc6c864ef7cc.md",
+   "name": "Hari N.",
+   "title": "Mechatronics & Robotics Engineer - Software, Electronics, Mechanical",
+   "hourly_rate": "$70.00/hr",
+   "url": "https://www.upwork.com/freelancers/~018a99dc6c864ef7cc",
+   "matched_keyword": "Data Engineering",
+   "location": "Wilmslow, United Kingdom \u2013 11:34 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Autodesk AutoCAD",
+     "Autodesk Fusion 360",
+     "SolidWorks"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "3D Design",
+     "3D Modeling",
+     "CAD",
+     "Electrical Engineering",
+     "Electronic Design",
+     "Electronics",
+     "Embedded System",
+     "KiCad",
+     "Machine Learning",
+     "Mechanical Design",
+     "Mechanical Engineering",
+     "Microcontroller Programming",
+     "PCB Design",
+     "Product Design",
+     "Product Development",
+     "Robotics"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 16,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 24
+   }
+  },
+  {
+   "file": "haseeb-a-01c13311cf3e346ef9.md",
+   "name": "Haseeb A.",
+   "title": "Full-Stack | Python | AWS | Django | Automations | Integrations | CRM",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01c13311cf3e346ef9",
+   "matched_keyword": "Python",
+   "location": "Dublin, OH, USA \u2013 5:46 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Amazon Web Services",
+     "Flask",
+     "LangChain"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Development",
+     "AI Model Integration",
+     "Full-Stack Development",
+     "Machine Learning",
+     "Odoo Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "jaime-s-01f261678ab2cbf568.md",
+   "name": "Jaime S.",
+   "title": "Senior Mechanical Engineer",
+   "hourly_rate": "$200.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01f261678ab2cbf568",
+   "matched_keyword": "Data Modeling",
+   "location": "Carrollton, TX, USA \u2013 6:41 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "ANSYS",
+     "COMSOL Multiphysics"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 2,
+    "n_shared": 1,
+    "overlap_ratio": 0.071,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "CFD Analysis",
+     "Control Engineering",
+     "Detail Oriented",
+     "Electromagnetic Simulation Software",
+     "Engineering Modeling Software",
+     "Finite Element Analysis",
+     "Mechanical Engineering",
+     "Modeling",
+     "Numerical Analysis",
+     "Optics",
+     "Project Management",
+     "Research & Development",
+     "Structural Dynamics"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 13,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "jan-t-015b43fa57ecfc1b1c.md",
+   "name": "Jan T.",
+   "title": "Senior Python Developer | Automation, Data Engineering & Backend",
+   "hourly_rate": "$95.00/hr",
+   "url": "https://www.upwork.com/freelancers/~015b43fa57ecfc1b1c",
+   "matched_keyword": "Python",
+   "location": "Melle, Germany \u2013 12:05 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 0,
+    "n_shared": 1,
+    "overlap_ratio": 0.083,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Development",
+     "API Integration",
+     "Algorithm Development",
+     "Automated Deployment Pipeline",
+     "Automation",
+     "Back-End Development",
+     "Data Extraction",
+     "Scripting"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 8,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "jasleen-k-01acb26e7eb2f8171e.md",
+   "name": "Jasleen K.",
+   "title": "Data Analyst | Tableau | PowerBI | Data Visualization Expert",
+   "hourly_rate": "$65.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01acb26e7eb2f8171e",
+   "matched_keyword": "Data Visualization",
+   "location": "Cary, NC, USA \u2013 6:12 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development",
+     "SQL Programming",
+     "Salesforce"
+    ],
+    "shared": [
+     "BigQuery",
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 5,
+    "n_shared": 5,
+    "overlap_ratio": 0.294,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Business Analysis",
+     "Data Analysis"
+    ],
+    "shared": [
+     "Data Visualization",
+     "ETL Pipeline"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 2,
+    "n_shared": 2,
+    "overlap_ratio": 0.2,
+    "total_distinct": 10
+   }
+  },
+  {
+   "file": "jody-ann-j-01c0e7bdc055436b3a.md",
+   "name": "Jody-Ann J.",
+   "title": "AWS-Certified ML Expert | Data Engineer | MLOps Engineer",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01c0e7bdc055436b3a",
+   "matched_keyword": "Apache Airflow",
+   "location": "Kingston, Jamaica \u2013 7:53 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Apache Kafka",
+     "NumPy",
+     "Python Scikit-Learn",
+     "TensorFlow",
+     "pandas"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "Python",
+     "Tableau"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 5,
+    "n_shared": 3,
+    "overlap_ratio": 0.176,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "A/B Testing",
+     "Analytical Presentation",
+     "Data Analysis",
+     "Data Wrangling",
+     "Deep Learning",
+     "DevOps",
+     "Exploratory Data Analysis"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 7,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "john-c-01ee4b3b3b670d6e53.md",
+   "name": "John C.",
+   "title": "Pitch Deck & Presentation | Not Just Slides, Your Competitive edge.",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01ee4b3b3b670d6e53",
+   "matched_keyword": "Data Visualization",
+   "location": "Chaska, MN, USA \u2013 5:14 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Adobe Illustrator"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Business Presentation",
+     "Fundraising",
+     "Google Slides",
+     "Graphic Design",
+     "Graphic Design Software",
+     "Infographic",
+     "Keynote",
+     "PPTX",
+     "Pitch Deck",
+     "Presentation Design",
+     "Presentation Slide",
+     "Presentations",
+     "Visual Presentation Design"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 13,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "juan-pablo-o-017d16391cf339bb6b.md",
+   "name": "Juan Pablo O.",
+   "title": "Cloud Architect & Fractional CTO | AWS, FinOps, AI-Native DevOps",
+   "hourly_rate": "$85.00/hr",
+   "url": "https://www.upwork.com/freelancers/~017d16391cf339bb6b",
+   "matched_keyword": "Apache Spark",
+   "location": "Montevideo, Uruguay \u2013 9:00 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS Lambda",
+     "Amazon Web Services",
+     "Google Cloud Platform",
+     "Kubernetes",
+     "Microsoft Azure",
+     "Terraform"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 6,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AWS Server Migration",
+     "Artificial Intelligence",
+     "CI/CD",
+     "Cloud Computing",
+     "Configuration Management",
+     "DevOps",
+     "HIPAA",
+     "LAMP Administration",
+     "Linux System Administration",
+     "Machine Learning",
+     "PCI",
+     "SOC 2",
+     "Solution Architecture"
+    ],
+    "shared": [
+     "Data Engineering"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 13,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "julian-n-01021e640f8b719504.md",
+   "name": "Julian N.",
+   "title": "Powerpoint Presentation | Presentation design | Pitch Deck Design",
+   "hourly_rate": "$44.50/hr",
+   "url": "https://www.upwork.com/freelancers/~01021e640f8b719504",
+   "matched_keyword": "Data Visualization",
+   "location": "Sumy, Ukraine \u2013 1:10 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Adobe Illustrator",
+     "Adobe Photoshop",
+     "Microsoft Excel",
+     "Microsoft PowerPoint",
+     "Microsoft Word"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Adobe InDesign",
+     "Business Presentation",
+     "Google Slides",
+     "Graphic Design",
+     "Infographic",
+     "Keynote",
+     "Logo Design",
+     "PPTX",
+     "Pitchbook",
+     "Presentation Design",
+     "Presentations",
+     "Sales Presentation",
+     "Visual Presentation Design",
+     "Web Design"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 14,
+    "n_shared": 1,
+    "overlap_ratio": 0.045,
+    "total_distinct": 22
+   }
+  },
+  {
+   "file": "justin-t-01e627a64e3fb641f7.md",
+   "name": "Justin T.",
+   "title": "Expert Data Analyst Specializing in Power BI Solutions",
+   "hourly_rate": "$125.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01e627a64e3fb641f7",
+   "matched_keyword": "Looker Studio",
+   "location": "Baltimore, MD, USA \u2013 8:13 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Google Analytics",
+     "Google Sheets",
+     "Looker",
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization"
+    ],
+    "shared": [
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 6,
+    "n_shared": 4,
+    "overlap_ratio": 0.222,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Business Analysis",
+     "Data Analysis",
+     "Interactive Data Visualization"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.091,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "kathleen-l-012af5222ce5b22099.md",
+   "name": "Kathleen L.",
+   "title": "Growth Marketing Expert & Business Development",
+   "hourly_rate": "$170.00/hr",
+   "url": "https://www.upwork.com/freelancers/~012af5222ce5b22099",
+   "matched_keyword": "Marketing Analytics",
+   "location": "Austin, TX, USA \u2013 5:28 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Branding",
+     "Business Consulting",
+     "Business Development",
+     "Campaign Optimization",
+     "Digital Marketing",
+     "Digital Strategy",
+     "Facebook Advertising",
+     "Growth Strategy",
+     "Market Research",
+     "Retargeting",
+     "Social Media Marketing",
+     "Startup Consulting",
+     "Web Design"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 13,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "keith-w-01f648055bf629214f.md",
+   "name": "Keith W.",
+   "title": "Tableau, Data Analytics, and Salesforce Consultant",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01f648055bf629214f",
+   "matched_keyword": "Tableau",
+   "location": "Olive Branch, MS, USA \u2013 4:40 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel",
+     "Salesforce CRM",
+     "Visual Basic for Applications"
+    ],
+    "shared": [
+     "Tableau"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analysis"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 9
+   }
+  },
+  {
+   "file": "kevin-k-01299b540162a39b1a.md",
+   "name": "Kevin K.",
+   "title": "Google Ads Expert - Google Ads Specialist - Top Rated Plus",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01299b540162a39b1a",
+   "matched_keyword": "Google Analytics 4",
+   "location": "Cleveland, OH, USA \u2013 9:00 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads",
+     "Google Analytics",
+     "Google Merchant Center",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "Google Analytics 4"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 4,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Campaign Management",
+     "Digital Marketing",
+     "Google Ad Manager",
+     "Google Ads Account Management",
+     "Google Ads Account Setup",
+     "Google Ads Audit",
+     "Google Shopping",
+     "PPC Campaign Setup & Management",
+     "Pay Per Click Advertising",
+     "Search Engine Marketing"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 10,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 18
+   }
+  },
+  {
+   "file": "kimberly-k-01b5442c3015ddc2b0.md",
+   "name": "Kimberly K.",
+   "title": "Sr. Database Administrator & Consultant (Expert Vetted)",
+   "hourly_rate": "$140.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01b5442c3015ddc2b0",
+   "matched_keyword": "SQL",
+   "location": "New Hudson, MI, USA \u2013 8:16 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft SQL Server",
+     "Microsoft SQL Server Programming",
+     "SQL Server Integration Services"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 3,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Database Maintenance",
+     "Database Management",
+     "Database Optimization",
+     "ETL",
+     "Microsoft SQL Server Administration",
+     "Microsoft SQL Server Reporting Services"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 6,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "kofi-o-0108059ce5e17e597b.md",
+   "name": "Kofi O.",
+   "title": "Data Analyst & Tableau Developer | Expert in BI, Tableau, SQL, Python",
+   "hourly_rate": "$67.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0108059ce5e17e597b",
+   "matched_keyword": "Tableau",
+   "location": "San Jose, CA, USA \u2013 2:41 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 1,
+    "n_shared": 4,
+    "overlap_ratio": 0.308,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Mining",
+     "Data Science",
+     "Database"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Visualization"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.182,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "leah-n-01566a8f12350c7211.md",
+   "name": "Leah N.",
+   "title": "Fractional COO | Growth Advisor | Data Analytics & Strategy Specialist",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01566a8f12350c7211",
+   "matched_keyword": "Data Analytics",
+   "location": "Cortlandt, NY, USA \u2013 6:43 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Sheets",
+     "Microsoft Excel"
+    ],
+    "shared": [
+     "Microsoft Power BI"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 2,
+    "n_shared": 1,
+    "overlap_ratio": 0.071,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Data Analytics",
+     "Analytics",
+     "Business Analysis",
+     "Business Coaching",
+     "Business Consulting",
+     "Business Development",
+     "Business Operations",
+     "Community Goals & KPIs",
+     "Data Analysis",
+     "Growth Strategy",
+     "KPI Metric Development",
+     "Management Consulting",
+     "Organizational Design & Effectiveness",
+     "Organizational Plan",
+     "Strategy"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Visualization"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 15,
+    "n_shared": 2,
+    "overlap_ratio": 0.087,
+    "total_distinct": 23
+   }
+  },
+  {
+   "file": "luke-b-01d3bc85f2deecd35a.md",
+   "name": "Luke B.",
+   "title": "Ex-Google Employee | 240M+ Managed in Google Ads, PPC & ROAS Expert",
+   "hourly_rate": "$41.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01d3bc85f2deecd35a",
+   "matched_keyword": "Google Analytics 4",
+   "location": "London, United Kingdom \u2013 1:59 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads",
+     "Google Analytics",
+     "Google Merchant Center",
+     "Shopify"
+    ],
+    "shared": [
+     "Google Analytics 4"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 4,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "A/B Testing",
+     "Digital Marketing",
+     "Google Ads Account Management",
+     "Google Ads Audit",
+     "Keyword Research",
+     "Landing Page Optimization",
+     "Lead Generation",
+     "Marketing Strategy",
+     "PPC Campaign Setup & Management",
+     "Pay Per Click Advertising",
+     "Search Engine Marketing Strategy"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 11,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 19
+   }
+  },
+  {
+   "file": "manas-r-01096b4eb8b623622a.md",
+   "name": "Manas R.",
+   "title": "Experienced Data Engineer, Machine Learning | Data Visualization",
+   "hourly_rate": "$75.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01096b4eb8b623622a",
+   "matched_keyword": "Apache Airflow",
+   "location": "Arlington, VA, USA \u2013 8:46 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Databricks Platform",
+     "SQL Programming"
+    ],
+    "shared": [
+     "Apache Airflow",
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 2,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analysis",
+     "Data Interpretation",
+     "Data Science",
+     "Machine Learning"
+    ],
+    "shared": [
+     "Data Engineering"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 4,
+    "n_shared": 1,
+    "overlap_ratio": 0.083,
+    "total_distinct": 12
+   }
+  },
+  {
+   "file": "marek-b-01f6d33bf4c708494c.md",
+   "name": "Marek B.",
+   "title": "Google Ads, Meta Ads, AI, Analytics | Also Restricted Regulated Brands",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01f6d33bf4c708494c",
+   "matched_keyword": "Google Analytics 4",
+   "location": "K\u00f3rnik, Poland \u2013 2:58 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Facebook Ads Manager",
+     "Google Ads",
+     "Google Merchant Center",
+     "Google Tag Manager",
+     "Shopify"
+    ],
+    "shared": [
+     "Google Analytics 4"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 5,
+    "n_shared": 1,
+    "overlap_ratio": 0.059,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Facebook Advertising",
+     "Google Ads Account Management",
+     "Google Ads Account Setup",
+     "Google Ads Audit",
+     "Google Shopping",
+     "PPC Campaign Setup & Management",
+     "Tracking Pixel",
+     "YouTube Ads"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 8,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "markus-f-012927d7111df9e91c.md",
+   "name": "Markus F.",
+   "title": "Industrial Product Design / 3D Modeling & Renders / Graphic Design",
+   "hourly_rate": "$120.00/hr",
+   "url": "https://www.upwork.com/freelancers/~012927d7111df9e91c",
+   "matched_keyword": "Data Modeling",
+   "location": "Kleve, Germany \u2013 1:36 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Blender",
+     "KeyShot"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 2,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "3D Animation",
+     "3D Design",
+     "3D Modeling",
+     "3D Rendering",
+     "AR Filters & Lenses",
+     "Adobe Creative Suite",
+     "Appearance Filter",
+     "Graphic Design",
+     "Lens Studio",
+     "Packaging Design",
+     "STL",
+     "UV Mapping"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 12,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 20
+   }
+  },
+  {
+   "file": "mia-m-018e26669c610b62b1.md",
+   "name": "Mia M.",
+   "title": "Data & Analytics | GA4, GTM, Looker | Dashboards | Data Strategy",
+   "hourly_rate": "$62.00/hr",
+   "url": "https://www.upwork.com/freelancers/~018e26669c610b62b1",
+   "matched_keyword": "Looker Studio",
+   "location": "Helsinki, Finland \u2013 3:06 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Search Console",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "Google Analytics 4",
+     "Looker Studio"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 2,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics & Tracking Setup",
+     "Conversion Rate Optimization",
+     "Dashboard",
+     "Data Analysis",
+     "Data Quality Assessment",
+     "Performance Measurement",
+     "Web Analytics",
+     "Web Analytics Report"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 8,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "michael-s-0134b0bcdead3e2426.md",
+   "name": "Michael S.",
+   "title": "Marketing Strategy, SEM, AIO, SEO, GEO, Google Ads",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0134b0bcdead3e2426",
+   "matched_keyword": "Marketing Analytics",
+   "location": "Grandville, MI, USA \u2013 6:25 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 0,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Marketing Audit",
+     "Marketing Strategy",
+     "Off-Page SEO",
+     "On-Page SEO",
+     "SEO Audit",
+     "SEO Backlinking",
+     "SEO Keyword Research",
+     "SEO Performance",
+     "Search Engine Optimization"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 9,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 17
+   }
+  },
+  {
+   "file": "michael-y-010d80ea4f05bc4b79.md",
+   "name": "Michael Y.",
+   "title": "Power BI Expert | Custom Dashboards | Microsoft Fabric | ETL | KPIs",
+   "hourly_rate": "$150.00/hr",
+   "url": "https://www.upwork.com/freelancers/~010d80ea4f05bc4b79",
+   "matched_keyword": "Data Warehousing & ETL Software",
+   "location": "Plantation, FL, USA \u2013 7:12 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Azure SQL Database",
+     "Microsoft Excel",
+     "Microsoft Power BI Development"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 3,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Consulting",
+     "Dashboard",
+     "Data Analysis",
+     "Data Science"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 3,
+    "n_coll_only": 4,
+    "n_shared": 5,
+    "overlap_ratio": 0.417,
+    "total_distinct": 12
+   }
+  },
+  {
+   "file": "mikhail-o-015b3690e959b814b9.md",
+   "name": "Mikhail O.",
+   "title": "AI Agents & Automation | Full Stack | CRM/ERP Integration | DevOps",
+   "hourly_rate": "$95.00/hr",
+   "url": "https://www.upwork.com/freelancers/~015b3690e959b814b9",
+   "matched_keyword": "ETL Pipeline",
+   "location": "West Palm Beach, FL, USA \u2013 7:44 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Amazon Web Services",
+     "Claude",
+     "HubSpot",
+     "Salesforce CRM",
+     "Zapier",
+     "Zoho CRM",
+     "n8n"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 8,
+    "n_shared": 1,
+    "overlap_ratio": 0.05,
+    "total_distinct": 20
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "AI Development",
+     "AI Model Integration",
+     "API Integration",
+     "Artificial Intelligence",
+     "Automation",
+     "CRM Software",
+     "DevOps",
+     "Machine Learning",
+     "Mobile App Development"
+    ],
+    "shared": [
+     "ETL Pipeline"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 10,
+    "n_shared": 1,
+    "overlap_ratio": 0.056,
+    "total_distinct": 18
+   }
+  },
+  {
+   "file": "mirlan-d-018b98b04f7abbef96.md",
+   "name": "Mirlan D.",
+   "title": "Data Engineer | Data Analyst",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~018b98b04f7abbef96",
+   "matched_keyword": "dbt",
+   "location": "Oulu, Finland \u2013 2:23 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Snowflake",
+     "Tableau"
+    ],
+    "coll_only": [
+     "Docker",
+     "Google Cloud Platform",
+     "Metabase"
+    ],
+    "shared": [
+     "BigQuery",
+     "Python",
+     "SQL",
+     "dbt"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 3,
+    "n_shared": 4,
+    "overlap_ratio": 0.267,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Data Extraction",
+     "Data Ingestion",
+     "Data Processing",
+     "ETL"
+    ],
+    "shared": [
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 5,
+    "n_shared": 3,
+    "overlap_ratio": 0.231,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "mo-e-01eb54113dafb67378.md",
+   "name": "Mo E.",
+   "title": "Certified PowerBI Expert & DAX Pro | DAX, SQL, Excel, and Python",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01eb54113dafb67378",
+   "matched_keyword": "Microsoft Power BI",
+   "location": "San Jose, CA, USA \u2013 3:20 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Data Analysis Expressions",
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development",
+     "Power Query"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "SQL"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 5,
+    "n_shared": 2,
+    "overlap_ratio": 0.118,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Dashboard",
+     "Data Analysis",
+     "Financial Analysis",
+     "Financial Analysis & Valuation"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 5,
+    "n_shared": 3,
+    "overlap_ratio": 0.231,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "muhammad-a-01a5d6badffc69005a.md",
+   "name": "Muhammad A.",
+   "title": "I Connect APIs, Automate Workflows & Fix Reporting Systems",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01a5d6badffc69005a",
+   "matched_keyword": "Snowflake",
+   "location": "Lewisville, TX, USA \u2013 5:52 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel",
+     "Microsoft Power Automate",
+     "Microsoft Power BI Data Visualization"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 3,
+    "n_shared": 4,
+    "overlap_ratio": 0.267,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analysis",
+     "Data Mining",
+     "Data Scraping"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 3,
+    "n_shared": 3,
+    "overlap_ratio": 0.273,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "nagesh-g-01dbc08caf6346cb1f.md",
+   "name": "Nagesh G.",
+   "title": "Data Scientist | Agentic AI | ETL | Tableau | Power BI",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01dbc08caf6346cb1f",
+   "matched_keyword": "dbt",
+   "location": "Newark, NJ, USA \u2013 6:29 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization"
+    ],
+    "shared": [
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Tableau"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 2,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "CI/CD",
+     "Dashboard",
+     "Data Cleaning",
+     "Data Science",
+     "Data Scraping",
+     "Report"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Visualization",
+     "ETL Pipeline"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 7,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "nandy-b-013135fbf0742301df.md",
+   "name": "Nandy B.",
+   "title": "Expert Azure, Microsoft 365, DevSecOps, Forensics, High-Value Security",
+   "hourly_rate": "$85.00/hr",
+   "url": "https://www.upwork.com/freelancers/~013135fbf0742301df",
+   "matched_keyword": "Data Engineering",
+   "location": "Lehigh County, PA, USA \u2013 6:38 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Azure",
+     "Office 365"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 2,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Cloud Engineering Consultation",
+     "Cloud Implementation",
+     "Cloud Security",
+     "Digital Forensics",
+     "Email Security",
+     "Incident Response Readiness Assessment",
+     "Information Security",
+     "Information Security Audit",
+     "Microsoft Endpoint Manager",
+     "Microsoft Exchange Online",
+     "Risk Assessment",
+     "Solution Architecture Consultation"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 12,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 20
+   }
+  },
+  {
+   "file": "naveed-h-013777dc5087cc6c80.md",
+   "name": "Naveed H.",
+   "title": "Analytics Data Engineer Power BI Tableau SQL GA4 Azure AWS Google BQ",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~013777dc5087cc6c80",
+   "matched_keyword": "Snowflake",
+   "location": "Glenview, IL, USA \u2013 5:56 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Analytics",
+     "Microsoft Excel"
+    ],
+    "shared": [
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 2,
+    "n_shared": 4,
+    "overlap_ratio": 0.286,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Dashboard",
+     "Data Analysis",
+     "Database Modeling",
+     "Web Development"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Visualization",
+     "Marketing Analytics"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 5,
+    "n_shared": 3,
+    "overlap_ratio": 0.231,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "neil-s-01a7fcdc76e94a9c77.md",
+   "name": "Neil S.",
+   "title": "Google Analytics 4, Google Tag Manager, Data Studio, Marketing Pro",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01a7fcdc76e94a9c77",
+   "matched_keyword": "Google Analytics 4",
+   "location": "North Las Vegas, NV, USA \u2013 5:55 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Analytics API",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "Google Analytics 4",
+     "Looker Studio"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 2,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Data Interpretation",
+     "Data Mining",
+     "Internet Marketing",
+     "Management Skills",
+     "Web Analytics"
+    ],
+    "shared": [
+     "Data Visualization",
+     "Marketing Analytics"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 6,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "nichole-m-01c30c1d4bf9f4939c.md",
+   "name": "Nichole M.",
+   "title": "Power BI & Custom App Dev | Google Ads & Marketing | Expert-Vetted",
+   "hourly_rate": "$85.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01c30c1d4bf9f4939c",
+   "matched_keyword": "Microsoft Power BI",
+   "location": "Mooresville, NC, USA \u2013 6:18 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Analytics",
+     "Google Analytics API",
+     "Microsoft Excel",
+     "Microsoft Power Automate",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development",
+     "Microsoft PowerApps"
+    ],
+    "shared": [
+     "BigQuery",
+     "Microsoft Power BI"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.105,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AWS Application",
+     "Database Administration",
+     "Microsoft Power Automate Administration",
+     "Microsoft SQL Server Administration",
+     "Real Estate Financial Modeling"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 5,
+    "n_shared": 1,
+    "overlap_ratio": 0.077,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "ogo-e-018c2a992ea0389756.md",
+   "name": "Ogo E.",
+   "title": "Premium Power BI & Tableau Expert for Mid-Enterprise Growth",
+   "hourly_rate": "$120.00/hr",
+   "url": "https://www.upwork.com/freelancers/~018c2a992ea0389756",
+   "matched_keyword": "dbt",
+   "location": "Dallas, TX, USA \u2013 6:31 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Data Analysis Expressions",
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development",
+     "Power Query"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 9,
+    "n_coll_only": 5,
+    "n_shared": 3,
+    "overlap_ratio": 0.176,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Data Analysis",
+     "Data Science",
+     "Google Docs"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 4,
+    "n_shared": 3,
+    "overlap_ratio": 0.25,
+    "total_distinct": 12
+   }
+  },
+  {
+   "file": "oleg-m-013d4abaa4dfabf3b2.md",
+   "name": "Oleg M.",
+   "title": "Web Scraping & Data Extraction Expert | Scrapers, Crawlers | Top 1",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~013d4abaa4dfabf3b2",
+   "matched_keyword": "Data Engineering",
+   "location": "Kyiv, Ukraine \u2013 1:31 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Beautiful Soup",
+     "REST API",
+     "Scrapy",
+     "Selenium"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 4,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Automation",
+     "Data Collection",
+     "Data Extraction",
+     "Data Processing",
+     "Python-Requests",
+     "Web Crawler",
+     "Web Crawling",
+     "Web Scraping",
+     "Web Scraping Framework"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 10,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 18
+   }
+  },
+  {
+   "file": "oleksandr-s-01eaa89028c31a7a05.md",
+   "name": "Oleksandr S.",
+   "title": "AI Solution Architect | GenAI, AI Agents, LLM Integrations, RAG, SaaS",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01eaa89028c31a7a05",
+   "matched_keyword": "Data Engineering",
+   "location": "Kiev, Ukraine \u2013 1:36 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "JavaScript",
+     "TensorFlow"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "AI App Development",
+     "AI Chatbot",
+     "AI Development",
+     "AI Model Integration",
+     "API Integration",
+     "Artificial Intelligence",
+     "Automation",
+     "Computer Vision",
+     "Data Analysis",
+     "Data Science",
+     "Deep Learning",
+     "Generative AI",
+     "Machine Learning",
+     "Natural Language Processing",
+     "Web Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 16,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 24
+   }
+  },
+  {
+   "file": "parth-p-011c9b6411c37628f6.md",
+   "name": "Parth P.",
+   "title": "Full Stack AI Agent & Workflow Expert",
+   "hourly_rate": "$132.74/hr",
+   "url": "https://www.upwork.com/freelancers/~011c9b6411c37628f6",
+   "matched_keyword": "Data Visualization",
+   "location": "London, United Kingdom \u2013 11:08 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Sheets",
+     "Microsoft Excel",
+     "Microsoft Power BI Data Visualization"
+    ],
+    "shared": [
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 3,
+    "n_shared": 5,
+    "overlap_ratio": 0.333,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Analytics Dashboard",
+     "Business Analysis",
+     "Data Analytics & Visualization Software"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 4,
+    "n_shared": 3,
+    "overlap_ratio": 0.25,
+    "total_distinct": 12
+   }
+  },
+  {
+   "file": "patrycja-b-012aa082489dc6ec68.md",
+   "name": "Patrycja B.",
+   "title": "Business Plan Writer & Strategic Operations Consultant | Ex-Accenture",
+   "hourly_rate": "$120.00/hr",
+   "url": "https://www.upwork.com/freelancers/~012aa082489dc6ec68",
+   "matched_keyword": "Business Intelligence",
+   "location": "Warsaw, Poland \u2013 2:35 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 0,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Business Analysis",
+     "Business Coaching",
+     "Business Consulting",
+     "Business Plan",
+     "Business Strategy",
+     "Business Writing",
+     "Financial Analysis",
+     "Financial Modeling",
+     "Go-to-Market Strategy",
+     "Management Consulting",
+     "Market Research",
+     "Program Management",
+     "Project Management",
+     "Startup Consulting",
+     "Strategy"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 15,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 23
+   }
+  },
+  {
+   "file": "paulo-o-0133eaf89671e49952.md",
+   "name": "Paulo O.",
+   "title": "Power BI Expert | DAX, Microsoft Fabric, Power Apps & Power Automate",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0133eaf89671e49952",
+   "matched_keyword": "Microsoft Power BI",
+   "location": "Sao Paulo, Brazil \u2013 7:21 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Microsoft Azure",
+     "Microsoft Excel",
+     "Microsoft Power Automate",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development",
+     "Microsoft PowerApps",
+     "Microsoft SharePoint",
+     "Office 365"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "SQL"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 9,
+    "n_shared": 2,
+    "overlap_ratio": 0.095,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Artificial Intelligence",
+     "Automation",
+     "Dashboard",
+     "Data Analysis",
+     "Microsoft SharePoint Development"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 6,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "polina-l-016b51a5776e4ea29c.md",
+   "name": "Polina L.",
+   "title": "UI UX Design | UI UX design SaaS | Figma | Web App",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~016b51a5776e4ea29c",
+   "matched_keyword": "Data Engineering",
+   "location": "Kyiv, Ukraine \u2013 1:33 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Figma"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Graphic Design",
+     "Map Visualization",
+     "Mockup",
+     "Presentation Design",
+     "Responsive Design",
+     "UX & UI",
+     "Web Design",
+     "Wireframing"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 8,
+    "n_shared": 1,
+    "overlap_ratio": 0.062,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "rachel-g-016638667644918cc1.md",
+   "name": "Rachel G.",
+   "title": "Tableau Developer",
+   "hourly_rate": "$75.00/hr",
+   "url": "https://www.upwork.com/freelancers/~016638667644918cc1",
+   "matched_keyword": "Tableau",
+   "location": "Huntsville, AL, USA \u2013 4:37 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Excel"
+    ],
+    "shared": [
+     "Tableau"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 1,
+    "n_shared": 1,
+    "overlap_ratio": 0.077,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Dashboard",
+     "Excel Macros",
+     "Online Instruction"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Visualization"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.182,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "rodrigo-karim-g-01e3b25a4fc3443504.md",
+   "name": "Rodrigo Karim G.",
+   "title": "Senior Data Engineer & Architect | Tech, Business & Human Behavior",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01e3b25a4fc3443504",
+   "matched_keyword": "Looker Studio",
+   "location": "Cordoba, Argentina \u2013 9:07 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Cloud Platform"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 1,
+    "n_shared": 5,
+    "overlap_ratio": 0.385,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Business Analysis",
+     "Data Analysis",
+     "Data Science",
+     "ETL",
+     "IT Infrastructure",
+     "Project Management"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 6,
+    "n_shared": 3,
+    "overlap_ratio": 0.214,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "sam-b-010d176ce3ed0cba55.md",
+   "name": "Sam B.",
+   "title": "MSBA | Tableau | PowerBI | Report Automation",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~010d176ce3ed0cba55",
+   "matched_keyword": "Tableau",
+   "location": "Malibu, CA, USA \u2013 2:38 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "IBM SPSS",
+     "R"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 2,
+    "n_shared": 4,
+    "overlap_ratio": 0.286,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Accounting",
+     "Data Analysis",
+     "Finance"
+    ],
+    "shared": [
+     "Data Visualization"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.091,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "sergey-s-0180aba62195a2e325.md",
+   "name": "Sergey S.",
+   "title": "SQL Server DBA / Developer",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0180aba62195a2e325",
+   "matched_keyword": "SQL",
+   "location": "Dublin, Ireland \u2013 1:19 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Transact-SQL"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "ETL",
+     "Microsoft SQL Server Administration",
+     "Performance Optimization"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 3,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "sergii-l-01de04c6db55e28656.md",
+   "name": "Sergii L.",
+   "title": "\"[ EXPERT ] Data Analyst. Tracking Implementation Specialist. CRO\"",
+   "hourly_rate": "$99.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01de04c6db55e28656",
+   "matched_keyword": "Data Analytics",
+   "location": "Kiev, Ukraine \u2013 1:47 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads",
+     "Google Analytics",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "Google Analytics 4"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Data Analysis",
+     "Facebook Pixel Setup & Optimization",
+     "PPC Campaign Setup & Management",
+     "Tracking Tags Installation"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Visualization",
+     "Marketing Analytics"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 5,
+    "n_shared": 3,
+    "overlap_ratio": 0.231,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "serhii-k-01fac5119ba98814ea.md",
+   "name": "Serhii K.",
+   "title": "BI Consultant | Data Automation, Reporting Systems & AI Workflows",
+   "hourly_rate": "$49.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01fac5119ba98814ea",
+   "matched_keyword": "BigQuery",
+   "location": "Brovary, Ukraine \u2013 2:03 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "PostgreSQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Apps Script",
+     "Google Sheets",
+     "Microsoft Excel",
+     "Visual Basic for Applications",
+     "n8n"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 5,
+    "n_shared": 5,
+    "overlap_ratio": 0.294,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Agent Development",
+     "API Integration",
+     "Automation",
+     "Dashboard",
+     "Data Warehousing",
+     "ETL",
+     "Internal Reporting"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 7,
+    "n_shared": 3,
+    "overlap_ratio": 0.2,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "simon-s-0159b404653df0722c.md",
+   "name": "Simon S.",
+   "title": "Enterprise Data Architect & Fractional CIO | AI Governance, SQL, Oracle",
+   "hourly_rate": "$145.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0159b404653df0722c",
+   "matched_keyword": "Data Warehousing & ETL Software",
+   "location": "Orlando, FL, USA \u2013 7:11 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft SQL Server",
+     "Oracle Database"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 2,
+    "n_shared": 4,
+    "overlap_ratio": 0.286,
+    "total_distinct": 14
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "AI Governance",
+     "Data Migration",
+     "Database Administration",
+     "Database Design",
+     "Information Technology Strategy",
+     "Software Integration",
+     "Strategy"
+    ],
+    "shared": [
+     "Business Intelligence"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 7,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "soheil-d-013e1a6daf843f5322.md",
+   "name": "Soheil D.",
+   "title": "Python Backend Developer (Expert-Vetted)",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~013e1a6daf843f5322",
+   "matched_keyword": "Python",
+   "location": "Lahti, Finland \u2013 12:50 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 1,
+    "n_shared": 1,
+    "overlap_ratio": 0.077,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Analytics",
+     "Blockchain",
+     "Computer Vision",
+     "Data Analysis",
+     "Data Science",
+     "Data Scraping",
+     "Deep Neural Network",
+     "Neural Network"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 8,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 16
+   }
+  },
+  {
+   "file": "stijn-w-0171fb1cd6aa8525cf.md",
+   "name": "Stijn W.",
+   "title": "Conversion Tracking Expert | GA4, Facebook CAPI, Google Ads | Stape",
+   "hourly_rate": "$72.10/hr",
+   "url": "https://www.upwork.com/freelancers/~0171fb1cd6aa8525cf",
+   "matched_keyword": "BigQuery",
+   "location": "Sint-Oedenrode, Netherlands \u2013 1:08 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads",
+     "Google Analytics",
+     "Google Analytics API",
+     "Google Tag Manager",
+     "JavaScript",
+     "Shopify",
+     "WordPress"
+    ],
+    "shared": [
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Python"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 7,
+    "n_shared": 4,
+    "overlap_ratio": 0.211,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Data Science",
+     "Facebook Pixel Setup & Optimization",
+     "Google Analytics Report",
+     "Tracking Pixel"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 4,
+    "n_shared": 1,
+    "overlap_ratio": 0.083,
+    "total_distinct": 12
+   }
+  },
+  {
+   "file": "subha-m-0139fa54e0b4263da7.md",
+   "name": "Subha M.",
+   "title": "Sr. Consultant - Data Engineering, Analytics and Reporting",
+   "hourly_rate": "$56.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0139fa54e0b4263da7",
+   "matched_keyword": "ETL Pipeline",
+   "location": "Stamford, CT, USA \u2013 7:48 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS Lambda",
+     "Amazon Redshift",
+     "Google Analytics",
+     "Microsoft Azure SQL Database",
+     "Microsoft Excel",
+     "SQL Server Integration Services"
+    ],
+    "shared": [
+     "Looker Studio",
+     "Python",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 6,
+    "n_shared": 4,
+    "overlap_ratio": 0.222,
+    "total_distinct": 18
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Amazon CloudWatch",
+     "Data Scraping"
+    ],
+    "shared": [
+     "Data Visualization",
+     "ETL Pipeline"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.182,
+    "total_distinct": 11
+   }
+  },
+  {
+   "file": "taras-s-01460127a95acc1ca1.md",
+   "name": "Taras S.",
+   "title": "Tracking&GA4 Pro(15.808+ Hrs Exp)|PREMIER Google Partner|ROI-oriented",
+   "hourly_rate": "$50.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01460127a95acc1ca1",
+   "matched_keyword": "BigQuery",
+   "location": "Kiev, Ukraine \u2013 2:04 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Google Ads",
+     "Google Analytics",
+     "Google Tag Manager"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Apps Script API",
+     "Conversion Rate Optimization",
+     "Facebook",
+     "Internet Marketing",
+     "YouTube Marketing"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "thiago-f-0134eb4957fa2016b3.md",
+   "name": "Thiago F.",
+   "title": "Power BI Expert | Microsoft Certified Data Analyst",
+   "hourly_rate": "$75.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0134eb4957fa2016b3",
+   "matched_keyword": "Microsoft Power BI",
+   "location": "Sorocaba, Brazil \u2013 7:16 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "Microsoft Excel",
+     "Microsoft Power Automate",
+     "Microsoft Power BI Data Visualization",
+     "Microsoft Power BI Development",
+     "Microsoft SharePoint",
+     "Power Query"
+    ],
+    "shared": [
+     "Microsoft Power BI",
+     "SQL"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.105,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Dashboard",
+     "Data Analysis",
+     "Microsoft SharePoint Administration",
+     "Report"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Visualization"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 4,
+    "n_shared": 2,
+    "overlap_ratio": 0.167,
+    "total_distinct": 12
+   }
+  },
+  {
+   "file": "thomas-p-01ac266ead86a8d8c8.md",
+   "name": "Thomas P.",
+   "title": "Data Scientist | AI Engineer",
+   "hourly_rate": "$200.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01ac266ead86a8d8c8",
+   "matched_keyword": "Snowflake",
+   "location": "Carbondale, IL, USA \u2013 5:54 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Domo",
+     "Facebook Ads Manager",
+     "Google Ads"
+    ],
+    "shared": [
+     "Looker Studio"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 3,
+    "n_shared": 1,
+    "overlap_ratio": 0.067,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Data Analysis",
+     "Data Cleaning",
+     "Data Mining",
+     "Data Science",
+     "Machine Learning",
+     "Paid Media",
+     "Search Engine Optimization"
+    ],
+    "shared": [
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 7,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   }
+  },
+  {
+   "file": "tom-e-019382ce584a085be3.md",
+   "name": "Tom E.",
+   "title": "Looker Studio, Supermetrics, Bigquery, ETL, Reporting, SQL",
+   "hourly_rate": "$95.00/hr",
+   "url": "https://www.upwork.com/freelancers/~019382ce584a085be3",
+   "matched_keyword": "dbt",
+   "location": "Duncan, Canada \u2013 4:24 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau"
+    ],
+    "coll_only": [
+     "Google Analytics",
+     "Google Cloud Platform",
+     "Supermetrics"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio",
+     "SQL",
+     "dbt"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 3,
+    "n_shared": 4,
+    "overlap_ratio": 0.267,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Customer Retention Strategy",
+     "Data Analysis"
+    ],
+    "shared": [
+     "Business Intelligence",
+     "Data Modeling"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 2,
+    "n_shared": 2,
+    "overlap_ratio": 0.2,
+    "total_distinct": 10
+   }
+  },
+  {
+   "file": "tori-ann-h-01e2ffef7e40e82081.md",
+   "name": "Tori-Ann H.",
+   "title": "Data Engineer & Data Scientist | SQL, Python, Azure, Power BI",
+   "hourly_rate": "$67.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01e2ffef7e40e82081",
+   "matched_keyword": "Snowflake",
+   "location": "St. Louis, MO, USA \u2013 5:58 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Fabric",
+     "Microsoft Azure",
+     "Microsoft Azure SQL Database",
+     "Microsoft Power Automate",
+     "SQL Programming"
+    ],
+    "shared": [
+     "Python",
+     "Tableau"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 5,
+    "n_shared": 2,
+    "overlap_ratio": 0.118,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Visualization",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "Azure Service Fabric",
+     "Data Science",
+     "Data Warehousing",
+     "Financial Analysis",
+     "Machine Learning"
+    ],
+    "shared": [
+     "Data Modeling",
+     "Data Warehousing & ETL Software"
+    ],
+    "n_base_only": 6,
+    "n_coll_only": 6,
+    "n_shared": 2,
+    "overlap_ratio": 0.143,
+    "total_distinct": 14
+   }
+  },
+  {
+   "file": "vadym-s-01ef79b7e86cb898c5.md",
+   "name": "Vadym S.",
+   "title": "Computer Vision Engineer | Data Scientist | Machine Learning | AI",
+   "hourly_rate": "$75.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01ef79b7e86cb898c5",
+   "matched_keyword": "Data Modeling",
+   "location": "Kharkiv, Ukraine \u2013 2:34 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "C++",
+     "Keras",
+     "OpenCV",
+     "PyTorch",
+     "TensorFlow"
+    ],
+    "shared": [
+     "Python"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 5,
+    "n_shared": 1,
+    "overlap_ratio": 0.059,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "3D Modeling",
+     "Artificial Intelligence",
+     "Automation",
+     "Computer Vision",
+     "Data Science",
+     "Deep Learning",
+     "Deep Neural Network",
+     "Image Processing",
+     "Image Recognition",
+     "Machine Learning",
+     "Natural Language Processing",
+     "Neural Network",
+     "Photogrammetry"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 13,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "vitalii-s-01d229464ee8cc71c8.md",
+   "name": "Vitalii S.",
+   "title": "Senior Software Engineer | Java | ReactJS | NextJS | NodeJS | NestJS",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01d229464ee8cc71c8",
+   "matched_keyword": "Apache Spark",
+   "location": "Monastyrets, Ukraine \u2013 2:59 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "AWS Lambda",
+     "Hibernate",
+     "Java",
+     "JavaScript",
+     "NestJS",
+     "Next.js",
+     "NoSQL Database",
+     "Node.js",
+     "OpenAI API",
+     "React",
+     "Spring Boot",
+     "Spring Framework",
+     "TypeScript"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 13,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 25
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Jakarta EE",
+     "Java Persistence API"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 2,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 10
+   }
+  },
+  {
+   "file": "wesley-w-01b58aac3cc90d421a.md",
+   "name": "Wesley W.",
+   "title": "Google Analytics 4 | GTM | Looker Studio | BigQuery | Consent Mode V2",
+   "hourly_rate": "$100.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01b58aac3cc90d421a",
+   "matched_keyword": "Data Analytics",
+   "location": "Barton Seagrave, United Kingdom \u2013 11:42 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "Google Analytics 4",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "dbt"
+    ],
+    "coll_only": [
+     "Adobe Analytics",
+     "Google Analytics",
+     "Google Search Console",
+     "Google Sheets",
+     "Google Tag Manager",
+     "Microsoft Excel",
+     "Microsoft SQL Server"
+    ],
+    "shared": [
+     "BigQuery",
+     "Looker Studio",
+     "SQL",
+     "Tableau"
+    ],
+    "n_base_only": 8,
+    "n_coll_only": 7,
+    "n_shared": 4,
+    "overlap_ratio": 0.211,
+    "total_distinct": 19
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Engineering",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Statistics"
+    ],
+    "shared": [
+     "Data Analytics",
+     "Data Modeling",
+     "Data Visualization"
+    ],
+    "n_base_only": 5,
+    "n_coll_only": 1,
+    "n_shared": 3,
+    "overlap_ratio": 0.333,
+    "total_distinct": 9
+   }
+  },
+  {
+   "file": "will-h-01ef3675fbba8e48bb.md",
+   "name": "Will H.",
+   "title": "Lead Research | Qualitative and Quantitative Research",
+   "hourly_rate": "$70.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01ef3675fbba8e48bb",
+   "matched_keyword": "Business Intelligence",
+   "location": "London, United Kingdom \u2013 1:42 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 0,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 12
+   },
+   "skills": {
+    "base_only": [
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Business Management",
+     "Company Research",
+     "Competitive Analysis",
+     "Leadership Skills",
+     "Market Analysis",
+     "Market Survey",
+     "Online Market Research",
+     "Product Research",
+     "Research & Strategy",
+     "Survey",
+     "Survey Data Analysis",
+     "Survey Design",
+     "Survey Question Writing"
+    ],
+    "shared": [
+     "Business Intelligence"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 13,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "william-s-0134432d8ffacfdd32.md",
+   "name": "William S.",
+   "title": "Microsoft Access and SQL Server Engineer",
+   "hourly_rate": "$80.00/hr",
+   "url": "https://www.upwork.com/freelancers/~0134432d8ffacfdd32",
+   "matched_keyword": "SQL",
+   "location": "San Antonio, TX, USA \u2013 7:15 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Microsoft Access",
+     "Microsoft Azure",
+     "Microsoft Azure SQL Database",
+     "Microsoft Excel",
+     "Microsoft SQL Server",
+     "Microsoft SQL Server Programming",
+     "Office 365",
+     "Transact-SQL",
+     "Visual Basic for Applications"
+    ],
+    "shared": [
+     "SQL"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 9,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "Database Architecture",
+     "Database Design",
+     "Database Development",
+     "Microsoft Access Programming",
+     "Stored Procedure Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 5,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   }
+  },
+  {
+   "file": "yevhenii-k-015cb17f91b2c8a966.md",
+   "name": "Yevhenii K.",
+   "title": "Facebook ads | Google Ads | Digital Marketing | PPC | Media Buyer",
+   "hourly_rate": "$40.00/hr",
+   "url": "https://www.upwork.com/freelancers/~015cb17f91b2c8a966",
+   "matched_keyword": "Marketing Analytics",
+   "location": "Mykolayiv, Ukraine \u2013 1:29 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Facebook Ads Manager",
+     "Google Ads",
+     "Google Analytics",
+     "Google Tag Manager",
+     "Meta Pixel"
+    ],
+    "shared": [
+     "Google Analytics 4"
+    ],
+    "n_base_only": 11,
+    "n_coll_only": 5,
+    "n_shared": 1,
+    "overlap_ratio": 0.059,
+    "total_distinct": 17
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "A/B Testing",
+     "Advertising Strategy",
+     "Campaign Optimization",
+     "Digital Marketing Strategy",
+     "Ecommerce Marketing",
+     "Facebook Advertising",
+     "Google Shopping",
+     "Instagram Ad Campaign",
+     "Lead Generation",
+     "Pay Per Click Advertising",
+     "Retargeting",
+     "Social Media Ad Campaign",
+     "Social Media Advertising"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 13,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   }
+  },
+  {
+   "file": "yuriy-n-014af9a7529312d1bc.md",
+   "name": "Yuriy N.",
+   "title": "Odoo Developer | Odoo Implementation | Odoo expert | Odoo python",
+   "hourly_rate": "$60.00/hr",
+   "url": "https://www.upwork.com/freelancers/~014af9a7529312d1bc",
+   "matched_keyword": "PostgreSQL",
+   "location": "Lviv, Ukraine \u2013 3:31 am local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "API",
+     "JavaScript",
+     "Odoo"
+    ],
+    "shared": [
+     "PostgreSQL",
+     "Python"
+    ],
+    "n_base_only": 10,
+    "n_coll_only": 3,
+    "n_shared": 2,
+    "overlap_ratio": 0.133,
+    "total_distinct": 15
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline",
+     "Marketing Analytics"
+    ],
+    "coll_only": [
+     "API Integration",
+     "CRM Software",
+     "Customer Relationship Management",
+     "Database Architecture",
+     "ERP Software",
+     "Ecommerce Website",
+     "Enterprise Resource Planning",
+     "Full-Stack Development",
+     "Odoo Administration",
+     "Odoo Development"
+    ],
+    "shared": [],
+    "n_base_only": 8,
+    "n_coll_only": 10,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 18
+   }
+  },
+  {
+   "file": "zan-v-01be89e1011ef42a03.md",
+   "name": "Zan V.",
+   "title": "Facebook Ads - 73,412,108 USD in Client Profit Over the Last 12 Months",
+   "hourly_rate": "$75.00/hr",
+   "url": "https://www.upwork.com/freelancers/~01be89e1011ef42a03",
+   "matched_keyword": "Marketing Analytics",
+   "location": "Cheyenne, WY, USA \u2013 4:26 pm local time",
+   "tools": {
+    "base_only": [
+     "Apache Airflow",
+     "Apache Spark",
+     "BigQuery",
+     "Google Analytics 4",
+     "Looker Studio",
+     "Microsoft Power BI",
+     "PostgreSQL",
+     "Python",
+     "SQL",
+     "Snowflake",
+     "Tableau",
+     "dbt"
+    ],
+    "coll_only": [
+     "Facebook Ads Manager"
+    ],
+    "shared": [],
+    "n_base_only": 12,
+    "n_coll_only": 1,
+    "n_shared": 0,
+    "overlap_ratio": 0.0,
+    "total_distinct": 13
+   },
+   "skills": {
+    "base_only": [
+     "Business Intelligence",
+     "Data Analytics",
+     "Data Engineering",
+     "Data Modeling",
+     "Data Visualization",
+     "Data Warehousing & ETL Software",
+     "ETL Pipeline"
+    ],
+    "coll_only": [
+     "Ad Creative",
+     "Advertising Strategy",
+     "Creative Strategy",
+     "Digital Marketing",
+     "Digital Marketing Strategy",
+     "Ecommerce Marketing",
+     "Facebook Ad Campaign",
+     "Facebook Advertising",
+     "Instagram Ad Campaign",
+     "Media Buying",
+     "Social Media Ad Campaign",
+     "Social Media Advertising",
+     "Social Media Marketing"
+    ],
+    "shared": [
+     "Marketing Analytics"
+    ],
+    "n_base_only": 7,
+    "n_coll_only": 13,
+    "n_shared": 1,
+    "overlap_ratio": 0.048,
+    "total_distinct": 21
+   }
+  }
+ ],
+ "rollup": {
+  "tools_shared": [
+   [
+    "Python",
+    41
+   ],
+   [
+    "SQL",
+    29
+   ],
+   [
+    "Microsoft Power BI",
+    22
+   ],
+   [
+    "Looker Studio",
+    18
+   ],
+   [
+    "Tableau",
+    18
+   ],
+   [
+    "PostgreSQL",
+    13
+   ],
+   [
+    "BigQuery",
+    12
+   ],
+   [
+    "Google Analytics 4",
+    10
+   ],
+   [
+    "Apache Airflow",
+    5
+   ],
+   [
+    "dbt",
+    3
+   ],
+   [
+    "Apache Spark",
+    2
+   ],
+   [
+    "Snowflake",
+    2
+   ]
+  ],
+  "tools_base_only": [
+   [
+    "Apache Spark",
+    98
+   ],
+   [
+    "Snowflake",
+    98
+   ],
+   [
+    "dbt",
+    97
+   ],
+   [
+    "Apache Airflow",
+    95
+   ],
+   [
+    "Google Analytics 4",
+    90
+   ],
+   [
+    "BigQuery",
+    88
+   ],
+   [
+    "PostgreSQL",
+    87
+   ],
+   [
+    "Looker Studio",
+    82
+   ],
+   [
+    "Tableau",
+    82
+   ],
+   [
+    "Microsoft Power BI",
+    78
+   ],
+   [
+    "SQL",
+    71
+   ],
+   [
+    "Python",
+    59
+   ]
+  ],
+  "tools_coll_only": [
+   [
+    "Microsoft Excel",
+    25
+   ],
+   [
+    "Google Analytics",
+    18
+   ],
+   [
+    "Google Tag Manager",
+    14
+   ],
+   [
+    "API",
+    13
+   ],
+   [
+    "JavaScript",
+    12
+   ],
+   [
+    "Google Ads",
+    12
+   ],
+   [
+    "Microsoft Power BI Data Visualization",
+    11
+   ],
+   [
+    "Node.js",
+    10
+   ],
+   [
+    "React",
+    10
+   ],
+   [
+    "Amazon Web Services",
+    9
+   ],
+   [
+    "Microsoft Power BI Development",
+    8
+   ],
+   [
+    "Microsoft Power Automate",
+    7
+   ],
+   [
+    "AWS Lambda",
+    6
+   ],
+   [
+    "Microsoft Azure",
+    6
+   ],
+   [
+    "Facebook Ads Manager",
+    6
+   ],
+   [
+    "Next.js",
+    5
+   ],
+   [
+    "TypeScript",
+    5
+   ],
+   [
+    "Shopify",
+    5
+   ],
+   [
+    "Docker",
+    5
+   ],
+   [
+    "Microsoft SQL Server",
+    5
+   ],
+   [
+    "Google Cloud Platform",
+    5
+   ],
+   [
+    "Google Sheets",
+    5
+   ],
+   [
+    "Java",
+    4
+   ],
+   [
+    "Spring Boot",
+    4
+   ],
+   [
+    "Spring Framework",
+    4
+   ]
+  ],
+  "skills_shared": [
+   [
+    "Data Visualization",
+    34
+   ],
+   [
+    "Business Intelligence",
+    18
+   ],
+   [
+    "Data Modeling",
+    16
+   ],
+   [
+    "Data Engineering",
+    13
+   ],
+   [
+    "Marketing Analytics",
+    12
+   ],
+   [
+    "Data Analytics",
+    11
+   ],
+   [
+    "ETL Pipeline",
+    9
+   ],
+   [
+    "Data Warehousing & ETL Software",
+    3
+   ]
+  ],
+  "skills_base_only": [
+   [
+    "Data Warehousing & ETL Software",
+    97
+   ],
+   [
+    "ETL Pipeline",
+    91
+   ],
+   [
+    "Data Analytics",
+    89
+   ],
+   [
+    "Marketing Analytics",
+    88
+   ],
+   [
+    "Data Engineering",
+    87
+   ],
+   [
+    "Data Modeling",
+    84
+   ],
+   [
+    "Business Intelligence",
+    82
+   ],
+   [
+    "Data Visualization",
+    66
+   ]
+  ],
+  "skills_coll_only": [
+   [
+    "Data Analysis",
+    29
+   ],
+   [
+    "Machine Learning",
+    15
+   ],
+   [
+    "Data Science",
+    15
+   ],
+   [
+    "API Integration",
+    14
+   ],
+   [
+    "Analytics",
+    11
+   ],
+   [
+    "Artificial Intelligence",
+    11
+   ],
+   [
+    "Business Analysis",
+    9
+   ],
+   [
+    "ETL",
+    9
+   ],
+   [
+    "Dashboard",
+    9
+   ],
+   [
+    "AI Agent Development",
+    8
+   ],
+   [
+    "Full-Stack Development",
+    8
+   ],
+   [
+    "Automation",
+    8
+   ],
+   [
+    "Web Development",
+    7
+   ],
+   [
+    "DevOps",
+    7
+   ],
+   [
+    "Conversion Rate Optimization",
+    6
+   ],
+   [
+    "PPC Campaign Setup & Management",
+    6
+   ],
+   [
+    "AI Development",
+    6
+   ],
+   [
+    "Generative AI",
+    6
+   ],
+   [
+    "Database Architecture",
+    6
+   ],
+   [
+    "Project Management",
+    5
+   ],
+   [
+    "Market Research",
+    5
+   ],
+   [
+    "AI Model Integration",
+    5
+   ],
+   [
+    "Graphic Design",
+    5
+   ],
+   [
+    "Facebook Advertising",
+    5
+   ],
+   [
+    "Pay Per Click Advertising",
+    5
+   ]
+  ]
+ },
+ "avg_tool_overlap": 0.111,
+ "avg_skill_overlap": 0.087
+}

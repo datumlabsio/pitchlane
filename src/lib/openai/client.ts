@@ -3,12 +3,20 @@ import { env } from '@/lib/env';
 export type ProposalGenerationInput = {
   profileName: string;
   roleFocus: string;
+  /** The freelancer's own profile summary (profileConfig.jdSummary) — grounds claims. */
+  profileSummary?: string;
   proposalTone: string;
   proposalRules: string[];
   reusableSnippets: string[];
   title: string;
   emailSubject: string;
+  /** Full job description (enriched when available, else email body). */
   emailBody: string;
+  // Enrichment facts about the job + client (when available).
+  jobBudget?: string;
+  jobSkills?: string[];
+  clientSummary?: string;
+  proposalsCount?: number;
   /** When regenerating, the current draft the reviewer wants improved. */
   previousProposal?: string;
   /** Free-text reviewer feedback to steer the rewrite. */
@@ -29,26 +37,41 @@ function buildSystemPrompt(input: ProposalGenerationInput): string {
     ? `\n\nReusable proof points you MAY weave in when relevant (do not force all of them):\n${input.reusableSnippets.map((s) => `- ${s}`).join('\n')}`
     : '';
 
+  const profileBlock = input.profileSummary?.trim()
+    ? `\n\nABOUT THE FREELANCER (ground every claim in this — never invent experience beyond it):\n${input.profileSummary.trim()}`
+    : '';
+
   return [
     `You are an elite Upwork proposal writer drafting on behalf of ${input.profileName}, a senior freelancer focused on ${input.roleFocus}.`,
     `Write in a ${input.proposalTone.toLowerCase()} tone.`,
+    profileBlock,
     '',
     'Follow these rules exactly:',
     rules,
     '',
     'Hard constraints:',
     '- Output ONLY the proposal text. No preamble, no "Here is your proposal", no markdown headings, no subject line.',
-    '- Ground every claim in the freelancer\'s focus area and the job post. Never invent specific clients, metrics, or experience that are not implied by the profile.',
+    '- Base the proposal on the FULL job description and the client facts provided. Address the specific requirements named in the description.',
+    '- Use the client history and budget to calibrate your angle and pricing framing where natural — do not quote a rate unless it fits.',
+    '- Ground every claim in the freelancer\'s focus area + the "About the freelancer" summary. Never invent clients, metrics, or experience not implied there.',
     '- Write as the freelancer (first person), addressed to the client.',
     snippets,
   ].join('\n');
 }
 
 function buildUserPrompt(input: ProposalGenerationInput): string {
+  const facts: string[] = [];
+  if (input.jobBudget) facts.push(`Budget: ${input.jobBudget}`);
+  if (input.jobSkills?.length) facts.push(`Skills: ${input.jobSkills.join(', ')}`);
+  if (input.proposalsCount != null) facts.push(`Proposals submitted so far: ${input.proposalsCount}`);
+  if (input.clientSummary) facts.push(`Client: ${input.clientSummary}`);
+
   const base = [
     'JOB POST',
     `Title: ${input.emailSubject || input.title}`,
+    ...(facts.length ? ['', ...facts] : []),
     '',
+    'Description:',
     input.emailBody?.trim() || '(No description captured — infer intent from the title.)',
   ].join('\n');
 

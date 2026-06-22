@@ -63,12 +63,15 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   const proposal = await generateProposalDraft({
     profileName: account.personName,
     roleFocus: profileConfig.roleFocus,
+    profileSummary: profileConfig.jdSummary,
     proposalTone: profileConfig.proposalTone,
     proposalRules: profileConfig.proposalRules,
     reusableSnippets: profileConfig.reusableSnippets,
     title: input.subject,
     emailSubject: input.subject,
     emailBody: input.body,
+    jobBudget: input.extractedBudget,
+    jobSkills: input.extractedSkills,
   });
 
   const status = evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold

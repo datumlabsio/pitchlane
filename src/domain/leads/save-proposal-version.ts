@@ -42,17 +42,44 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
 
   const currentPrimary = lead.proposals.find((p) => p.isPrimary) ?? lead.proposals[0];
 
+  // Pull job + client facts from the stored enrichment so manual regenerations
+  // use the full description + client context, not just the email.
+  const e =
+    lead.enrichment && typeof lead.enrichment === 'object' && !Array.isArray(lead.enrichment)
+      ? (lead.enrichment as Record<string, unknown>)
+      : null;
+  const enriched = e?.status === 'enriched';
+  const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v : undefined);
+  const num = (v: unknown) => (typeof v === 'number' ? v : undefined);
+  const client =
+    e?.client && typeof e.client === 'object' && !Array.isArray(e.client)
+      ? (e.client as Record<string, unknown>)
+      : {};
+  const clientSummary = enriched
+    ? [
+        [str(client.location), str(client.country)].filter(Boolean).join(', '),
+        str(client.totalSpent) ? `${str(client.totalSpent)} spent` : null,
+        num(client.totalHires) != null ? `${num(client.totalHires)} hires` : null,
+        client.paymentVerified === true ? 'payment verified' : null,
+      ].filter(Boolean).join(' · ') || undefined
+    : undefined;
+
   const content = input.mode === 'edit'
     ? input.content
     : await generateProposalDraft({
         profileName: lead.account.personName,
         roleFocus: profileConfig.roleFocus,
+        profileSummary: profileConfig.jdSummary,
         proposalTone: profileConfig.proposalTone,
         proposalRules: profileConfig.proposalRules,
         reusableSnippets: profileConfig.reusableSnippets,
         title: lead.title,
         emailSubject: lead.emailSubject ?? lead.title,
-        emailBody: lead.rawEmailBody ?? lead.emailSnippet ?? lead.title,
+        emailBody: str(e?.description) ?? lead.rawEmailBody ?? lead.emailSnippet ?? lead.title,
+        jobBudget: str(e?.budget),
+        jobSkills: Array.isArray(e?.skills) ? (e!.skills as unknown[]).map(String) : undefined,
+        proposalsCount: num(e?.proposalsCount),
+        clientSummary,
         feedback: input.feedback,
         previousProposal: input.feedback ? currentPrimary?.content : undefined,
       });

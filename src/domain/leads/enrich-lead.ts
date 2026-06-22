@@ -73,17 +73,32 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
       ? LeadStatus.QUALIFIED
       : lead.status;
 
-  // Regenerate the proposal off the full job description (the email-only draft
-  // made at ingest was thinner).
+  // Regenerate the proposal off the full job description + client facts (the
+  // email-only draft made at ingest was thinner).
+  const c = enrichment.client;
+  const clientSummary = [
+    [c.location, c.country].filter(Boolean).join(', '),
+    c.totalSpent ? `${c.totalSpent} spent` : null,
+    c.totalHires != null ? `${c.totalHires} hires` : null,
+    c.paymentVerified ? 'payment verified' : null,
+    c.rating != null ? `${c.rating.toFixed(1)}★` : null,
+    c.industry || null,
+  ].filter(Boolean).join(' · ') || undefined;
+
   const newProposal = await generateProposalDraft({
     profileName: lead.account.personName,
     roleFocus: profileConfig.roleFocus,
+    profileSummary: profileConfig.jdSummary,
     proposalTone: profileConfig.proposalTone,
     proposalRules: profileConfig.proposalRules,
     reusableSnippets: profileConfig.reusableSnippets,
     title: lead.title,
     emailSubject: lead.emailSubject ?? lead.title,
     emailBody: enrichedDescription ?? lead.rawEmailBody ?? lead.title,
+    jobBudget: enrichment.budget,
+    jobSkills: enrichment.skills,
+    proposalsCount: enrichment.proposalsCount,
+    clientSummary,
   });
 
   await prisma.$transaction([

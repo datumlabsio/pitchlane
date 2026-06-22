@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import {
   ArrowRight,
+  Check,
+  Copy,
   ExternalLink,
   FileEdit,
   Mail,
@@ -644,6 +646,7 @@ export function LeadWorkbench({
   const [statusMessage, setStatusMessage] = useState('');
   const [isPending, startTransition] = useTransition();
   const [proposalDraft, setProposalDraft] = useState('');
+  const [copied, setCopied] = useState(false);
   const [proposalFeedback, setProposalFeedback] = useState('');
   const [connectsSpent, setConnectsSpent] = useState('');
   const [appliedAt, setAppliedAt] = useState('');
@@ -723,6 +726,16 @@ export function LeadWorkbench({
       { method: 'POST' },
       'Enriched from Upwork — score updated.',
     );
+  }
+
+  function copyProposal() {
+    navigator.clipboard
+      .writeText(proposalDraft)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => setStatusMessage('Could not copy to clipboard.'));
   }
 
   function saveProposal(mode: 'edit' | 'regenerate') {
@@ -1111,6 +1124,15 @@ export function LeadWorkbench({
                         placeholder="Write your proposal here..."
                       />
                       <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!proposalDraft.trim()}
+                          onClick={copyProposal}
+                        >
+                          {copied ? <Check className="mr-1.5 size-3.5" /> : <Copy className="mr-1.5 size-3.5" />}
+                          {copied ? 'Copied' : 'Copy'}
+                        </Button>
                         <Button
                           size="sm"
                           disabled={isPending}

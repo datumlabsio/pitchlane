@@ -4,6 +4,10 @@
     {
       "path": "/api/integrations/gmail/sync",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/leads/enrich-pending",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

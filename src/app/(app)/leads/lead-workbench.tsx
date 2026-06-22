@@ -965,15 +965,17 @@ export function LeadWorkbench({
                           </p>
                         </div>
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
-                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Confidence</p>
+                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Proposals</p>
                           <p className="mt-1.5 text-lg font-semibold text-stone-950">
-                            {selectedLead.confidence}
+                            {selectedLead.enrichment?.proposalsCount != null
+                              ? selectedLead.enrichment.proposalsCount
+                              : '—'}
                           </p>
                         </div>
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
-                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Source</p>
+                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Client spent</p>
                           <p className="mt-1.5 text-lg font-semibold text-stone-950">
-                            {selectedLead.sourceCompleteness}
+                            {selectedLead.enrichment?.client.totalSpent ?? '—'}
                           </p>
                         </div>
                       </div>

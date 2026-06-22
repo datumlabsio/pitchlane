@@ -3,6 +3,8 @@ import { LeadStatus, Prisma, SourceCompleteness } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { fetchUpworkJob, isScrapeConfigured } from '@/lib/scrape/upwork';
+import { generateProposalDraft } from '@/lib/openai/client';
+import { notifySlackNewLead } from '@/lib/slack';
 
 export type EnrichLeadResult =
   | { ok: true; outcome: 'enriched'; score: number; status: LeadStatus }
@@ -71,6 +73,19 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
       ? LeadStatus.QUALIFIED
       : lead.status;
 
+  // Regenerate the proposal off the full job description (the email-only draft
+  // made at ingest was thinner).
+  const newProposal = await generateProposalDraft({
+    profileName: lead.account.personName,
+    roleFocus: profileConfig.roleFocus,
+    proposalTone: profileConfig.proposalTone,
+    proposalRules: profileConfig.proposalRules,
+    reusableSnippets: profileConfig.reusableSnippets,
+    title: lead.title,
+    emailSubject: lead.emailSubject ?? lead.title,
+    emailBody: enrichedDescription ?? lead.rawEmailBody ?? lead.title,
+  });
+
   await prisma.$transaction([
     prisma.lead.update({
       where: { id: leadId },
@@ -96,6 +111,10 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
         confidence: evaluation.confidence,
       },
     }),
+    prisma.proposalVersion.updateMany({ where: { leadId, isPrimary: true }, data: { isPrimary: false } }),
+    prisma.proposalVersion.create({
+      data: { leadId, profileConfigId: profileConfig.id, content: newProposal, isPrimary: true, isAiGenerated: true },
+    }),
     prisma.leadEvent.create({
       data: {
         leadId,
@@ -104,6 +123,17 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
       },
     }),
   ]);
+
+  // Alert if enrichment pushed a previously-NEW lead over the qualified bar.
+  if (lead.status === LeadStatus.NEW && nextStatus === LeadStatus.QUALIFIED) {
+    void notifySlackNewLead({
+      profileName: lead.account.personName,
+      title: lead.title,
+      score: evaluation.score,
+      budget: enrichment.budget || lead.extractedBudget || 'Unknown',
+      leadId,
+    });
+  }
 
   return { ok: true, outcome: 'enriched', score: evaluation.score, status: nextStatus };
 }

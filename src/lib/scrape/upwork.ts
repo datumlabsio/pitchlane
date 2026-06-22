@@ -24,15 +24,26 @@ export type JobEnrichment = {
   raw?: unknown;
 };
 
-// Enrichment is OFF unless explicitly enabled. Flip LEAD_ENRICHMENT_ENABLED=true
-// (and set ZENROWS_API_KEY) to turn it back on — all the code below stays intact.
-export function isScrapeConfigured(): boolean {
-  return Boolean(env.ZENROWS_API_KEY) && env.LEAD_ENRICHMENT_ENABLED === 'true';
+// Prefer Bright Data Web Unlocker (reliable on Upwork's Cloudflare); fall back to
+// ZenRows if only that is configured.
+function brightDataReady(): boolean {
+  return Boolean(env.BRIGHTDATA_API_TOKEN && env.BRIGHTDATA_ZONE);
+}
+function zenRowsReady(): boolean {
+  return Boolean(env.ZENROWS_API_KEY);
 }
 
-// Bounded so a slow/blocked fetch can't stall a sync: max ~2 × 25s.
-const FETCH_TIMEOUT_MS = 25_000;
-const MAX_ATTEMPTS = 2;
+// Enrichment is OFF unless explicitly enabled. Set LEAD_ENRICHMENT_ENABLED=true
+// plus a provider's keys to turn it on — all the code below stays intact.
+export function isScrapeConfigured(): boolean {
+  return (brightDataReady() || zenRowsReady()) && env.LEAD_ENRICHMENT_ENABLED === 'true';
+}
+
+// Bright Data Web Unlocker fully renders Upwork (~45-60s), so allow headroom.
+// One attempt keeps inline sync latency bounded; the manual Retry button (and
+// reliability of the unlocker) cover the occasional miss.
+const FETCH_TIMEOUT_MS = 75_000;
+const MAX_ATTEMPTS = 1;
 
 export type EnrichStatus = 'enriched' | 'private' | 'failed';
 
@@ -55,17 +66,33 @@ function looksPrivate(html: string): boolean {
   return PRIVATE_MARKERS.some((m) => lower.includes(m));
 }
 
-async function fetchOnce(url: string): Promise<EnrichOutcome> {
+// Fetch the raw page HTML through whichever unlocker is configured.
+async function fetchHtml(url: string, signal: AbortSignal): Promise<{ ok: boolean; html: string }> {
+  if (brightDataReady()) {
+    const res = await fetch('https://api.brightdata.com/request', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.BRIGHTDATA_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ zone: env.BRIGHTDATA_ZONE, url, format: 'raw' }),
+      signal,
+    });
+    return { ok: res.ok, html: res.ok ? await res.text() : '' };
+  }
   const endpoint =
     `https://api.zenrows.com/v1/?apikey=${encodeURIComponent(env.ZENROWS_API_KEY!)}` +
     `&url=${encodeURIComponent(url)}&js_render=true&premium_proxy=true&wait=5000`;
+  const res = await fetch(endpoint, { signal });
+  return { ok: res.ok, html: res.ok ? await res.text() : '' };
+}
 
+async function fetchOnce(url: string): Promise<EnrichOutcome> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const response = await fetch(endpoint, { signal: controller.signal });
-    if (!response.ok) return { status: 'failed' }; // e.g. RESP001 = blocked; retry
-    const html = await response.text();
+    const { ok, html } = await fetchHtml(url, controller.signal);
+    if (!ok || !html) return { status: 'failed' }; // blocked / error; retry
     if (looksPrivate(html)) return { status: 'private' }; // invite-only — don't retry
     const parsed = parseUpworkJobHtml(html);
     return parsed.description ? { status: 'enriched', data: parsed } : { status: 'failed' };
@@ -77,14 +104,13 @@ async function fetchOnce(url: string): Promise<EnrichOutcome> {
 }
 
 /**
- * Fetch the public Upwork job page through ZenRows (JS render + residential
- * proxy to get past Upwork's bot block) and parse the full job + client data.
- * Returns a 3-state outcome: enriched (got it), private (invite-only, can't),
- * or failed (blocked/error). Only 'failed' is retried; callers fall back to the
- * email content for 'private' and 'failed'.
+ * Fetch the public Upwork job page through Bright Data Web Unlocker (or ZenRows)
+ * and parse the full job + client data. Returns a 3-state outcome: enriched (got
+ * it), private (invite-only, can't), or failed (blocked/error). Only 'failed' is
+ * retried; callers fall back to the email content for 'private' and 'failed'.
  */
 export async function fetchUpworkJob(url: string): Promise<EnrichOutcome> {
-  if (!env.ZENROWS_API_KEY || !url) return { status: 'failed' };
+  if (!url || (!brightDataReady() && !zenRowsReady())) return { status: 'failed' };
   let last: EnrichOutcome = { status: 'failed' };
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     last = await fetchOnce(url);
@@ -103,6 +129,8 @@ function decodeEntities(s: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;/g, "'")
     .replace(/&#x27;/gi, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x2[fF];/g, '/')
     .replace(/&nbsp;/g, ' ');
 }
 

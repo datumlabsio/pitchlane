@@ -156,7 +156,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <div className="flex flex-wrap gap-2">
           {[
             { label: 'Supabase', ok: !!env.NEXT_PUBLIC_SUPABASE_URL },
-            { label: 'OpenAI', ok: !!env.OPENAI_API_KEY },
+            { label: 'Anthropic', ok: !!env.ANTHROPIC_KEY },
             { label: 'Google OAuth', ok: !!env.GOOGLE_CLIENT_ID },
             { label: 'Vercel Cron', ok: !!env.CRON_SECRET },
             { label: 'Slack', ok: !!env.SLACK_WEBHOOK_URL },

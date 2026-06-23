@@ -8,7 +8,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle: string })
       </div>
       <div className="inline-flex items-center gap-3 rounded-full border border-stone-900/10 bg-white/70 px-4 py-2 text-sm text-stone-700 shadow-sm backdrop-blur">
         <span className="size-2 rounded-full bg-emerald-500" />
-        System ready — Gmail, OpenAI, and Supabase connected
+        System ready — Gmail, Anthropic, and Supabase connected
       </div>
     </header>
   );

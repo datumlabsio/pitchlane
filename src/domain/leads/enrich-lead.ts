@@ -3,7 +3,7 @@ import { LeadStatus, Prisma, SourceCompleteness } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { fetchUpworkJob, isScrapeConfigured } from '@/lib/scrape/upwork';
-import { generateProposalDraft } from '@/lib/openai/client';
+import { generateProposalDraft } from '@/lib/ai/proposals';
 import { getSlackMinScore } from '@/domain/integrations/repository';
 import { notifySlackNewLead } from '@/lib/slack';
 

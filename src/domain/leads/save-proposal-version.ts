@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { generateProposalDraft } from '@/lib/openai/client';
+import { generateProposalDraft } from '@/lib/ai/proposals';
 
 export type SaveProposalVersionInput =
   | {

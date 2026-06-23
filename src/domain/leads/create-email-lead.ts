@@ -3,7 +3,6 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { prisma } from '@/lib/prisma';
-import { generateProposalDraft } from '@/lib/openai/client';
 import { notifySlackNewLead } from '@/lib/slack';
 
 export type IngestEmailInput = {
@@ -55,24 +54,12 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     scoringWeights: profileConfig.scoringWeights as { skillMatch?: number; roleFit?: number; keywordMatch?: number; budgetFit?: number; confidence?: number } | null,
   };
 
-  // Evaluate + draft from the email only. Full-description enrichment is
-  // decoupled (the enrich-pending cron) so ingest stays fast — a slow inline
-  // fetch here widened the dedupe race window and let concurrent syncs collide.
+  // Evaluate from the email only — fast, so ingest never blocks on the ~50s
+  // enrichment fetch. The proposal is intentionally NOT generated here: a
+  // teaser-email draft is low quality, so we wait for the enrich-pending cron
+  // to write it off the full description. Private/failed leads stay draft-less
+  // and the UI shows why; the user can still generate from the email manually.
   const evaluation = evaluateEmail({ subject: input.subject, body: input.body, ...evalConfig });
-
-  const proposal = await generateProposalDraft({
-    profileName: account.personName,
-    roleFocus: profileConfig.roleFocus,
-    profileSummary: profileConfig.jdSummary,
-    proposalTone: profileConfig.proposalTone,
-    proposalRules: profileConfig.proposalRules,
-    reusableSnippets: profileConfig.reusableSnippets,
-    title: input.subject,
-    emailSubject: input.subject,
-    emailBody: input.body,
-    jobBudget: input.extractedBudget,
-    jobSkills: input.extractedSkills,
-  });
 
   const status = evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
     ? LeadStatus.QUALIFIED
@@ -107,14 +94,6 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
             matchedKeywords: evaluation.matchedKeywords,
             summary: evaluation.summary,
             confidence: evaluation.confidence,
-          },
-        },
-        proposals: {
-          create: {
-            profileConfigId: profileConfig.id,
-            content: proposal,
-            isPrimary: true,
-            isAiGenerated: true,
           },
         },
         events: {

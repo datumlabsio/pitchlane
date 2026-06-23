@@ -65,6 +65,9 @@ export type LeadListOptions = {
   status?: string;
   search?: string;
   since?: string;
+  /** Custom range (yyyy-MM-dd). Takes precedence over `since` when set. */
+  from?: string;
+  to?: string;
 };
 
 // Date-range filter tokens → lookback window in ms.
@@ -76,6 +79,18 @@ export const SINCE_WINDOWS_MS: Record<string, number> = {
   '3d': 3 * 24 * 60 * 60 * 1000,
   '7d': 7 * 24 * 60 * 60 * 1000,
 };
+
+// createdAt filter: a custom from/to range wins; otherwise the preset window.
+function buildCreatedAtFilter(opts: LeadListOptions): { gte?: Date; lte?: Date } | undefined {
+  if (opts.from || opts.to) {
+    const range: { gte?: Date; lte?: Date } = {};
+    if (opts.from) range.gte = new Date(`${opts.from}T00:00:00.000`);
+    if (opts.to) range.lte = new Date(`${opts.to}T23:59:59.999`);
+    return range;
+  }
+  const ms = opts.since ? SINCE_WINDOWS_MS[opts.since] : undefined;
+  return ms ? { gte: new Date(Date.now() - ms) } : undefined;
+}
 
 export type LeadListResult = {
   items: LeadSummary[];
@@ -90,14 +105,14 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   const limit = Math.min(100, opts.limit ?? 20);
   const skip = (page - 1) * limit;
 
-  const sinceMs = opts.since ? SINCE_WINDOWS_MS[opts.since] : undefined;
+  const createdAt = buildCreatedAtFilter(opts);
   const where = {
     ...(opts.accountId ? { accountId: opts.accountId } : {}),
     ...(opts.status ? { status: opts.status as LeadStatus } : {}),
     ...(opts.search
       ? { title: { contains: opts.search, mode: 'insensitive' as const } }
       : {}),
-    ...(sinceMs ? { createdAt: { gte: new Date(Date.now() - sinceMs) } } : {}),
+    ...(createdAt ? { createdAt } : {}),
   };
 
   const [leads, total] = await Promise.all([

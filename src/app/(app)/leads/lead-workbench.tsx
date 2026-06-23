@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import {
   ArrowRight,
+  CalendarDays,
   Check,
   Copy,
   ExternalLink,
@@ -17,6 +18,7 @@ import {
   StickyNote,
   X,
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -30,6 +32,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar, type DateRange } from '@/components/ui/calendar';
 import {
   leadLifecycleStatuses,
   leadStatusLabelMap,
@@ -303,7 +307,17 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
 // ---------------------------------------------------------------------------
 
 type FilterAccount = { id: string; personName: string; gmailLabel: string };
-type CurrentFilters = { accountId?: string; status?: string; search?: string; since?: string };
+type CurrentFilters = { accountId?: string; status?: string; search?: string; since?: string; from?: string; to?: string };
+
+const DATE_PRESETS: Array<{ token: string; label: string }> = [
+  { token: 'any', label: 'Any time' },
+  { token: '1h', label: 'Last hour' },
+  { token: '6h', label: 'Last 6 hours' },
+  { token: '12h', label: 'Last 12 hours' },
+  { token: '24h', label: 'Last 24 hours' },
+  { token: '3d', label: 'Last 3 days' },
+  { token: '7d', label: 'Last 7 days' },
+];
 
 function FilterBar({
   accounts,
@@ -314,7 +328,24 @@ function FilterBar({
 }) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState<string>(currentFilters.search ?? '');
-  const hasFilters = !!(currentFilters.accountId || currentFilters.status || currentFilters.search || currentFilters.since);
+  const [calOpen, setCalOpen] = useState(false);
+  const [range, setRange] = useState<DateRange | undefined>(() => {
+    const f = currentFilters.from ? new Date(`${currentFilters.from}T00:00:00`) : undefined;
+    const t = currentFilters.to ? new Date(`${currentFilters.to}T00:00:00`) : undefined;
+    return f || t ? { from: f, to: t } : undefined;
+  });
+  const hasCustom = Boolean(currentFilters.from || currentFilters.to);
+  const dateActive = hasCustom || Boolean(currentFilters.since);
+  const dateLabel = hasCustom
+    ? `${currentFilters.from ?? '…'}${currentFilters.to ? ` → ${currentFilters.to}` : '+'}`
+    : (DATE_PRESETS.find((p) => p.token === currentFilters.since)?.label ?? 'Any time');
+  const hasFilters = !!(
+    currentFilters.accountId ||
+    currentFilters.status ||
+    currentFilters.search ||
+    currentFilters.since ||
+    hasCustom
+  );
 
   function buildUrl(updates: Record<string, string | null>) {
     const params = new URLSearchParams();
@@ -322,6 +353,8 @@ function FilterBar({
     if (currentFilters.status) params.set('status', currentFilters.status);
     if (currentFilters.search) params.set('search', currentFilters.search);
     if (currentFilters.since) params.set('since', currentFilters.since);
+    if (currentFilters.from) params.set('from', currentFilters.from);
+    if (currentFilters.to) params.set('to', currentFilters.to);
     for (const [k, v] of Object.entries(updates)) {
       if (v === null || v === '') params.delete(k);
       else params.set(k, v);
@@ -335,6 +368,29 @@ function FilterBar({
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     router.push(buildUrl({ search: searchInput || null }));
+  }
+
+  function applyRange() {
+    if (!range?.from) return;
+    router.push(
+      buildUrl({
+        from: format(range.from, 'yyyy-MM-dd'),
+        to: range.to ? format(range.to, 'yyyy-MM-dd') : null,
+        since: null, // custom range replaces the preset window
+      }),
+    );
+    setCalOpen(false);
+  }
+
+  function clearRange() {
+    setRange(undefined);
+    router.push(buildUrl({ from: null, to: null }));
+    setCalOpen(false);
+  }
+
+  function pickPreset(token: string) {
+    router.push(buildUrl({ since: token === 'any' ? null : token, from: null, to: null }));
+    setCalOpen(false);
   }
 
   return (
@@ -375,32 +431,69 @@ function FilterBar({
         </SelectContent>
       </Select>
 
-      <Select
-        value={currentFilters.since ?? 'any'}
-        onValueChange={(v: string | null) => router.push(buildUrl({ since: !v || v === 'any' ? null : v }))}
-        items={{
-          any: 'Any time',
-          '1h': 'Last hour',
-          '6h': 'Last 6 hours',
-          '12h': 'Last 12 hours',
-          '24h': 'Last 24 hours',
-          '3d': 'Last 3 days',
-          '7d': 'Last 7 days',
-        }}
-      >
-        <SelectTrigger className="h-8 w-36 text-xs">
-          <SelectValue placeholder="Any time" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="any">Any time</SelectItem>
-          <SelectItem value="1h">Last hour</SelectItem>
-          <SelectItem value="6h">Last 6 hours</SelectItem>
-          <SelectItem value="12h">Last 12 hours</SelectItem>
-          <SelectItem value="24h">Last 24 hours</SelectItem>
-          <SelectItem value="3d">Last 3 days</SelectItem>
-          <SelectItem value="7d">Last 7 days</SelectItem>
-        </SelectContent>
-      </Select>
+      <Popover open={calOpen} onOpenChange={setCalOpen}>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn('h-8 gap-1.5 text-xs', dateActive && 'border-amber-300 bg-amber-50 text-amber-900')}
+            />
+          }
+        >
+          <CalendarDays className="size-3.5" />
+          {dateLabel}
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-auto p-0">
+          <div className="flex">
+            {/* Preset quick-picks — apply on click */}
+            <div className="flex w-36 shrink-0 flex-col gap-0.5 border-r border-stone-100 p-2">
+              {DATE_PRESETS.map((p) => {
+                const active =
+                  (p.token === 'any' && !currentFilters.since && !hasCustom) ||
+                  currentFilters.since === p.token;
+                return (
+                  <button
+                    key={p.token}
+                    type="button"
+                    onClick={() => pickPreset(p.token)}
+                    className={cn(
+                      'rounded-md px-2.5 py-1.5 text-left text-xs transition hover:bg-stone-100',
+                      active && 'bg-amber-100 font-medium text-amber-900 hover:bg-amber-100',
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Custom range */}
+            <div className="p-2">
+              <Calendar
+                mode="range"
+                selected={range}
+                onSelect={(r: DateRange | undefined) => setRange(r)}
+                numberOfMonths={2}
+                defaultMonth={range?.from}
+                autoFocus
+              />
+              <div className="mt-1 flex items-center justify-between gap-3 border-t border-stone-100 px-1 pt-2">
+                <button
+                  type="button"
+                  onClick={clearRange}
+                  disabled={!hasCustom && !range}
+                  className="text-xs text-stone-500 transition hover:text-stone-700 disabled:opacity-40"
+                >
+                  Clear
+                </button>
+                <Button size="sm" className="h-7 text-xs" disabled={!range?.from} onClick={applyRange}>
+                  Apply range
+                </Button>
+              </div>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
 
       <form onSubmit={handleSearchSubmit} className="flex items-center gap-1">
         <div className="relative">
@@ -459,6 +552,8 @@ function Pagination({
     if (currentFilters.status) params.set('status', currentFilters.status);
     if (currentFilters.search) params.set('search', currentFilters.search);
     if (currentFilters.since) params.set('since', currentFilters.since);
+    if (currentFilters.from) params.set('from', currentFilters.from);
+    if (currentFilters.to) params.set('to', currentFilters.to);
     params.set('page', String(targetPage));
     return `/leads?${params.toString()}`;
   }
@@ -874,6 +969,8 @@ export function LeadWorkbench({
     if (currentFilters.status) params.set('status', currentFilters.status);
     if (currentFilters.search) params.set('search', currentFilters.search);
     if (currentFilters.since) params.set('since', currentFilters.since);
+    if (currentFilters.from) params.set('from', currentFilters.from);
+    if (currentFilters.to) params.set('to', currentFilters.to);
     if (page > 1) params.set('page', String(page));
     const qs = params.toString();
     return qs ? `/leads?${qs}` : '/leads';

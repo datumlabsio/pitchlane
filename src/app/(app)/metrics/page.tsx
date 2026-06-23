@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Topbar } from '@/components/layout/topbar';
+import { DateRangeFilter } from '@/components/filters/date-range-filter';
 import {
   getDashboardMetrics,
   getPipelineFunnel,
@@ -19,12 +20,18 @@ function RateCell({ value }: { value: number }) {
   return <span className={`tabular-nums font-medium ${color}`}>{value}%</span>;
 }
 
-export default async function MetricsPage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function MetricsPage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams;
+  const str = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
+  const dateWindow = { since: str('since'), from: str('from'), to: str('to') };
+
   const [metrics, funnel, profileRows, statusBreakdown] = await Promise.all([
-    getDashboardMetrics(),
-    getPipelineFunnel(),
-    getProfilePerformanceRows(),
-    getStatusBreakdown(),
+    getDashboardMetrics(dateWindow),
+    getPipelineFunnel(dateWindow),
+    getProfilePerformanceRows(dateWindow),
+    getStatusBreakdown(dateWindow),
   ]);
 
   const totals = profileRows.reduce(
@@ -47,6 +54,10 @@ export default async function MetricsPage() {
         title="Metrics"
         subtitle="Pipeline performance across all profiles — qualification rates, application tracking, and win rate."
       />
+
+      <div className="-mt-3 flex justify-end">
+        <DateRangeFilter />
+      </div>
 
       {/* ── Metric cards ── */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

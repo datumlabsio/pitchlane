@@ -1,6 +1,7 @@
 import { LeadStatus } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { buildCreatedAtRange, type DateWindow } from '@/lib/date-window';
 
 // Statuses that mean the lead was ever qualified (i.e. it moved past the initial screening)
 const QUALIFIED_STATUSES: LeadStatus[] = [
@@ -30,28 +31,33 @@ const APPLIED_STATUSES: LeadStatus[] = [
   LeadStatus.LOST,
 ];
 
-export async function getPipelineFunnel() {
+export async function getPipelineFunnel(window: DateWindow = {}) {
+  const createdAt = buildCreatedAtRange(window);
+  const base = createdAt ? { createdAt } : {};
   const [total, qualified, applied, won] = await Promise.all([
-    prisma.lead.count(),
-    prisma.lead.count({ where: { status: { in: QUALIFIED_STATUSES } } }),
-    prisma.lead.count({ where: { status: { in: APPLIED_STATUSES } } }),
-    prisma.lead.count({ where: { status: LeadStatus.WON } }),
+    prisma.lead.count({ where: base }),
+    prisma.lead.count({ where: { ...base, status: { in: QUALIFIED_STATUSES } } }),
+    prisma.lead.count({ where: { ...base, status: { in: APPLIED_STATUSES } } }),
+    prisma.lead.count({ where: { ...base, status: LeadStatus.WON } }),
   ]);
   return { total, qualified, applied, won };
 }
 
-export async function getStatusBreakdown() {
+export async function getStatusBreakdown(window: DateWindow = {}) {
+  const createdAt = buildCreatedAtRange(window);
   const groups = await prisma.lead.groupBy({
     by: ['status'],
+    where: createdAt ? { createdAt } : undefined,
     _count: { _all: true },
     orderBy: { _count: { status: 'desc' } },
   });
   return groups.map((g) => ({ status: g.status as LeadStatus, count: g._count._all }));
 }
 
-export async function getRecentQualifiedLeads() {
+export async function getRecentQualifiedLeads(window: DateWindow = {}) {
+  const createdAt = buildCreatedAtRange(window);
   const leads = await prisma.lead.findMany({
-    where: { status: { in: [LeadStatus.QUALIFIED, LeadStatus.NEW] } },
+    where: { status: { in: [LeadStatus.QUALIFIED, LeadStatus.NEW] }, ...(createdAt ? { createdAt } : {}) },
     orderBy: { createdAt: 'desc' },
     take: 8,
     include: {
@@ -71,16 +77,16 @@ export async function getRecentQualifiedLeads() {
   }));
 }
 
-export async function getDashboardMetrics() {
-  const [totalLeads, applications, won, applied] = await Promise.all([
-    prisma.lead.count(),
-    prisma.application.findMany({ select: { connectsSpent: true } }),
-    prisma.lead.count({ where: { status: LeadStatus.WON } }),
-    prisma.lead.count({ where: { status: { in: APPLIED_STATUSES } } }),
+export async function getDashboardMetrics(window: DateWindow = {}) {
+  const createdAt = buildCreatedAtRange(window);
+  const base = createdAt ? { createdAt } : {};
+  const [totalLeads, won, applied, qualified] = await Promise.all([
+    prisma.lead.count({ where: base }),
+    prisma.lead.count({ where: { ...base, status: LeadStatus.WON } }),
+    prisma.lead.count({ where: { ...base, status: { in: APPLIED_STATUSES } } }),
+    prisma.lead.count({ where: { ...base, status: { in: QUALIFIED_STATUSES } } }),
   ]);
 
-  const connectsSpent = applications.reduce((sum, a) => sum + (a.connectsSpent ?? 0), 0);
-  const qualified = await prisma.lead.count({ where: { status: { in: QUALIFIED_STATUSES } } });
   const qualRate = totalLeads === 0 ? 0 : Math.round((qualified / totalLeads) * 100);
   const winRate = applied === 0 ? 0 : Math.round((won / applied) * 100);
 
@@ -92,12 +98,13 @@ export async function getDashboardMetrics() {
   ];
 }
 
-export async function getProfilePerformanceRows() {
+export async function getProfilePerformanceRows(window: DateWindow = {}) {
+  const createdAt = buildCreatedAtRange(window);
   const accounts = await prisma.account.findMany({
     where: { isActive: true },
     include: {
-      leads: { select: { status: true } },
-      applications: { select: { connectsSpent: true } },
+      leads: { where: createdAt ? { createdAt } : undefined, select: { status: true } },
+      applications: { where: createdAt ? { createdAt } : undefined, select: { connectsSpent: true } },
     },
     orderBy: { name: 'asc' },
   });

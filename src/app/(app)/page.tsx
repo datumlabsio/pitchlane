@@ -2,16 +2,23 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { Topbar } from '@/components/layout/topbar';
+import { DateRangeFilter } from '@/components/filters/date-range-filter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getDashboardMetrics, getProfilePerformanceRows, getRecentQualifiedLeads } from '@/domain/metrics/repository';
 
-export default async function HomePage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams;
+  const str = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
+  const dateWindow = { since: str('since'), from: str('from'), to: str('to') };
+
   const [metrics, profileRows, needsReview] = await Promise.all([
-    getDashboardMetrics(),
-    getProfilePerformanceRows(),
-    getRecentQualifiedLeads(),
+    getDashboardMetrics(dateWindow),
+    getProfilePerformanceRows(dateWindow),
+    getRecentQualifiedLeads(dateWindow),
   ]);
 
   const totals = profileRows.reduce(
@@ -27,6 +34,10 @@ export default async function HomePage() {
   return (
     <div className="space-y-8">
       <Topbar title="Dashboard" subtitle="Overview of lead activity across all profiles." />
+
+      <div className="-mt-3 flex justify-end">
+        <DateRangeFilter />
+      </div>
 
       {/* Metric cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

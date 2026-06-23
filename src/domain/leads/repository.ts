@@ -1,6 +1,7 @@
 import type { LeadStatus } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { buildCreatedAtRange } from '@/lib/date-window';
 
 import { cleanEmailBrief } from '@/lib/utils';
 import { leadStatusLabelMap, type LeadDetail, type LeadEnrichment, type LeadSummary } from '@/domain/leads/types';
@@ -70,28 +71,6 @@ export type LeadListOptions = {
   to?: string;
 };
 
-// Date-range filter tokens → lookback window in ms.
-export const SINCE_WINDOWS_MS: Record<string, number> = {
-  '1h': 60 * 60 * 1000,
-  '6h': 6 * 60 * 60 * 1000,
-  '12h': 12 * 60 * 60 * 1000,
-  '24h': 24 * 60 * 60 * 1000,
-  '3d': 3 * 24 * 60 * 60 * 1000,
-  '7d': 7 * 24 * 60 * 60 * 1000,
-};
-
-// createdAt filter: a custom from/to range wins; otherwise the preset window.
-function buildCreatedAtFilter(opts: LeadListOptions): { gte?: Date; lte?: Date } | undefined {
-  if (opts.from || opts.to) {
-    const range: { gte?: Date; lte?: Date } = {};
-    if (opts.from) range.gte = new Date(`${opts.from}T00:00:00.000`);
-    if (opts.to) range.lte = new Date(`${opts.to}T23:59:59.999`);
-    return range;
-  }
-  const ms = opts.since ? SINCE_WINDOWS_MS[opts.since] : undefined;
-  return ms ? { gte: new Date(Date.now() - ms) } : undefined;
-}
-
 export type LeadListResult = {
   items: LeadSummary[];
   total: number;
@@ -105,7 +84,7 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   const limit = Math.min(100, opts.limit ?? 20);
   const skip = (page - 1) * limit;
 
-  const createdAt = buildCreatedAtFilter(opts);
+  const createdAt = buildCreatedAtRange(opts);
   const where = {
     ...(opts.accountId ? { accountId: opts.accountId } : {}),
     ...(opts.status ? { status: opts.status as LeadStatus } : {}),

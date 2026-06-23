@@ -20,10 +20,11 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
   const accountId = sp('accountId');
   const status = sp('status');
   const search = sp('search');
+  const since = sp('since');
   const selectedLeadId = sp('leadId') ?? null;
 
   const [leadsData, selectedLead] = await Promise.all([
-    listLeadSummaries({ page, accountId, status, search }),
+    listLeadSummaries({ page, accountId, status, search, since }),
     selectedLeadId ? getLeadDetail(selectedLeadId) : null,
   ]);
 
@@ -44,7 +45,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
         selectedLeadId={selectedLeadId}
         labels={labels}
         accounts={accounts.map((a) => ({ id: a.id, personName: a.personName, gmailLabel: a.gmailLabel }))}
-        currentFilters={{ accountId, status, search }}
+        currentFilters={{ accountId, status, search, since }}
         enrichmentEnabled={env.LEAD_ENRICHMENT_ENABLED === 'true'}
       />
     </div>

@@ -303,7 +303,7 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
 // ---------------------------------------------------------------------------
 
 type FilterAccount = { id: string; personName: string; gmailLabel: string };
-type CurrentFilters = { accountId?: string; status?: string; search?: string };
+type CurrentFilters = { accountId?: string; status?: string; search?: string; since?: string };
 
 function FilterBar({
   accounts,
@@ -314,13 +314,14 @@ function FilterBar({
 }) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState<string>(currentFilters.search ?? '');
-  const hasFilters = !!(currentFilters.accountId || currentFilters.status || currentFilters.search);
+  const hasFilters = !!(currentFilters.accountId || currentFilters.status || currentFilters.search || currentFilters.since);
 
   function buildUrl(updates: Record<string, string | null>) {
     const params = new URLSearchParams();
     if (currentFilters.accountId) params.set('accountId', currentFilters.accountId);
     if (currentFilters.status) params.set('status', currentFilters.status);
     if (currentFilters.search) params.set('search', currentFilters.search);
+    if (currentFilters.since) params.set('since', currentFilters.since);
     for (const [k, v] of Object.entries(updates)) {
       if (v === null || v === '') params.delete(k);
       else params.set(k, v);
@@ -371,6 +372,33 @@ function FilterBar({
               {label}
             </SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={currentFilters.since ?? 'any'}
+        onValueChange={(v: string | null) => router.push(buildUrl({ since: !v || v === 'any' ? null : v }))}
+        items={{
+          any: 'Any time',
+          '1h': 'Last hour',
+          '6h': 'Last 6 hours',
+          '12h': 'Last 12 hours',
+          '24h': 'Last 24 hours',
+          '3d': 'Last 3 days',
+          '7d': 'Last 7 days',
+        }}
+      >
+        <SelectTrigger className="h-8 w-36 text-xs">
+          <SelectValue placeholder="Any time" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="any">Any time</SelectItem>
+          <SelectItem value="1h">Last hour</SelectItem>
+          <SelectItem value="6h">Last 6 hours</SelectItem>
+          <SelectItem value="12h">Last 12 hours</SelectItem>
+          <SelectItem value="24h">Last 24 hours</SelectItem>
+          <SelectItem value="3d">Last 3 days</SelectItem>
+          <SelectItem value="7d">Last 7 days</SelectItem>
         </SelectContent>
       </Select>
 
@@ -430,6 +458,7 @@ function Pagination({
     if (currentFilters.accountId) params.set('accountId', currentFilters.accountId);
     if (currentFilters.status) params.set('status', currentFilters.status);
     if (currentFilters.search) params.set('search', currentFilters.search);
+    if (currentFilters.since) params.set('since', currentFilters.since);
     params.set('page', String(targetPage));
     return `/leads?${params.toString()}`;
   }
@@ -844,6 +873,7 @@ export function LeadWorkbench({
     if (currentFilters.accountId) params.set('accountId', currentFilters.accountId);
     if (currentFilters.status) params.set('status', currentFilters.status);
     if (currentFilters.search) params.set('search', currentFilters.search);
+    if (currentFilters.since) params.set('since', currentFilters.since);
     if (page > 1) params.set('page', String(page));
     const qs = params.toString();
     return qs ? `/leads?${qs}` : '/leads';

@@ -36,10 +36,13 @@ function mapEnrichment(value: unknown): LeadEnrichment | null {
 
 function formatRelative(date: Date) {
   const diffMs = Date.now() - date.getTime();
-  const diffHours = Math.max(1, Math.round(diffMs / (1000 * 60 * 60)));
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.round(diffHours / 24);
-  return `${diffDays}d ago`;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 function toConfidenceLabel(confidence: number) {
@@ -61,6 +64,17 @@ export type LeadListOptions = {
   accountId?: string;
   status?: string;
   search?: string;
+  since?: string;
+};
+
+// Date-range filter tokens → lookback window in ms.
+export const SINCE_WINDOWS_MS: Record<string, number> = {
+  '1h': 60 * 60 * 1000,
+  '6h': 6 * 60 * 60 * 1000,
+  '12h': 12 * 60 * 60 * 1000,
+  '24h': 24 * 60 * 60 * 1000,
+  '3d': 3 * 24 * 60 * 60 * 1000,
+  '7d': 7 * 24 * 60 * 60 * 1000,
 };
 
 export type LeadListResult = {
@@ -76,12 +90,14 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   const limit = Math.min(100, opts.limit ?? 20);
   const skip = (page - 1) * limit;
 
+  const sinceMs = opts.since ? SINCE_WINDOWS_MS[opts.since] : undefined;
   const where = {
     ...(opts.accountId ? { accountId: opts.accountId } : {}),
     ...(opts.status ? { status: opts.status as LeadStatus } : {}),
     ...(opts.search
       ? { title: { contains: opts.search, mode: 'insensitive' as const } }
       : {}),
+    ...(sinceMs ? { createdAt: { gte: new Date(Date.now() - sinceMs) } } : {}),
   };
 
   const [leads, total] = await Promise.all([

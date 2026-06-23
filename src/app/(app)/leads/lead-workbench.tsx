@@ -661,6 +661,24 @@ function ManualIngestDialogContent({
 // Main component
 // ---------------------------------------------------------------------------
 
+// Small "auto-updating" indicator for the leads header.
+function LiveIndicator({ paused }: { paused: boolean }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 text-xs text-stone-500"
+      title={paused ? 'Auto-refresh paused while a lead is open' : 'Auto-updating every 60s'}
+    >
+      <span className="relative flex size-2">
+        {!paused && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        )}
+        <span className={cn('relative inline-flex size-2 rounded-full', paused ? 'bg-stone-300' : 'bg-emerald-500')} />
+      </span>
+      {paused ? 'Paused' : 'Live'}
+    </span>
+  );
+}
+
 export function LeadWorkbench({
   leads,
   total,
@@ -705,6 +723,20 @@ export function LeadWorkbench({
     setNotes(selectedLead?.application?.notes ?? '');
     setStatusMessage('');
   }, [selectedLead]);
+
+  // Auto-refresh the list so leads from the sync/enrich crons appear without a
+  // manual reload. Soft refresh (re-runs the server query, keeps URL filters +
+  // scroll, preserves list client state). Paused while a lead panel is open — a
+  // refresh would reset the panel's inputs — and while the tab is backgrounded.
+  useEffect(() => {
+    if (selectedLeadId) return;
+    const id = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        router.refresh();
+      }
+    }, 60_000);
+    return () => clearInterval(id);
+  }, [selectedLeadId, router]);
 
   async function runRequest(url: string, init: RequestInit, successMessage: string) {
     setStatusMessage('');
@@ -822,7 +854,9 @@ export function LeadWorkbench({
       {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <FilterBar accounts={accounts} currentFilters={currentFilters} />
-        <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
+        <div className="flex items-center gap-3">
+          <LiveIndicator paused={Boolean(selectedLeadId)} />
+          <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
           <DialogTrigger
             render={<Button size="sm" className="gap-1.5" />}
           >
@@ -841,7 +875,8 @@ export function LeadWorkbench({
               }}
             />
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Table */}

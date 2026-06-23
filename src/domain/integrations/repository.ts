@@ -48,6 +48,23 @@ export function getMetaSyncInterval(metadata: unknown): number {
   return 5;
 }
 
+/** Global minimum match score (%) for a lead to be sent to Slack. Default 40. */
+export function getMetaSlackMinScore(metadata: unknown): number {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    const m = metadata as Record<string, unknown>;
+    if (typeof m.slackMinScore === 'number' && m.slackMinScore >= 0 && m.slackMinScore <= 100) {
+      return m.slackMinScore;
+    }
+  }
+  return 40;
+}
+
+/** Read the global Slack alert threshold from the Gmail connection metadata. */
+export async function getSlackMinScore(): Promise<number> {
+  const connection = await getGoogleConnection();
+  return getMetaSlackMinScore(connection?.metadata);
+}
+
 export async function getGoogleConnectionStatus() {
   const connection = await getGoogleConnection();
   const latestSync = await prisma.syncRun.findFirst({
@@ -61,6 +78,7 @@ export async function getGoogleConnectionStatus() {
     scopes: connection?.scopes ?? [],
     updatedAt: connection?.updatedAt ?? null,
     syncIntervalMinutes: getMetaSyncInterval(connection?.metadata),
+    slackMinScore: getMetaSlackMinScore(connection?.metadata),
     latestSync: latestSync
       ? {
           startedAt: latestSync.startedAt,
@@ -115,6 +133,19 @@ export async function updateGmailSyncInterval(minutes: number) {
   return prisma.integrationConnection.update({
     where: { provider: IntegrationProvider.GOOGLE_GMAIL },
     data: { metadata: { ...currentMeta, syncIntervalMinutes: minutes } },
+  });
+}
+
+export async function updateSlackMinScore(score: number) {
+  const connection = await getGoogleConnection();
+  const currentMeta = (connection?.metadata && typeof connection.metadata === 'object' && !Array.isArray(connection.metadata))
+    ? (connection.metadata as Record<string, unknown>)
+    : {};
+  // Upsert so the threshold can be set even before Gmail is connected.
+  return prisma.integrationConnection.upsert({
+    where: { provider: IntegrationProvider.GOOGLE_GMAIL },
+    update: { metadata: { ...currentMeta, slackMinScore: score } },
+    create: { provider: IntegrationProvider.GOOGLE_GMAIL, metadata: { slackMinScore: score } },
   });
 }
 

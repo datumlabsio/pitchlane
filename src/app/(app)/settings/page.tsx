@@ -112,6 +112,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             connected={google.connected}
             hasModifyScope={google.scopes.includes('https://www.googleapis.com/auth/gmail.modify')}
             syncIntervalMinutes={google.syncIntervalMinutes}
+            slackMinScore={google.slackMinScore}
           />
         </div>
       </div>

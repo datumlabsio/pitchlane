@@ -4,7 +4,15 @@ import { prisma } from '@/lib/prisma';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { fetchUpworkJob, isScrapeConfigured } from '@/lib/scrape/upwork';
 import { generateProposalDraft } from '@/lib/openai/client';
+import { getSlackMinScore } from '@/domain/integrations/repository';
 import { notifySlackNewLead } from '@/lib/slack';
+
+// Mirror of the leads-list confidence labelling (0–100 → High/Medium/Low).
+function confidenceLabel(c: number): string {
+  if (c >= 75) return 'High';
+  if (c >= 55) return 'Medium';
+  return 'Low';
+}
 
 export type EnrichLeadResult =
   | { ok: true; outcome: 'enriched'; score: number; status: LeadStatus }
@@ -24,7 +32,7 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
 
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    include: { account: true },
+    include: { account: true, evaluations: { orderBy: { createdAt: 'desc' }, take: 1 } },
   });
   if (!lead) return { ok: false, reason: 'Lead not found.' };
   if (!lead.sourceUrl) return { ok: false, reason: 'This lead has no Upwork job URL to enrich from.' };
@@ -34,6 +42,9 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
     orderBy: [{ version: 'desc' }, { createdAt: 'desc' }],
   });
   if (!profileConfig) return { ok: false, reason: 'No active profile configuration for this lead.' };
+
+  const slackMinScore = await getSlackMinScore();
+  const freshLead = !lead.enrichedAt && (lead.status === LeadStatus.NEW || lead.status === LeadStatus.QUALIFIED);
 
   const outcome = await fetchUpworkJob(lead.sourceUrl);
 
@@ -46,6 +57,21 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
         enrichedAt: new Date(),
       },
     });
+    // Smart alert for invite-only jobs we can't fetch. 'failed' is skipped so the
+    // cron's retries don't spam the channel; private won't be re-picked anyway.
+    const existingScore = lead.evaluations[0]?.score ?? 0;
+    if (outcome.status === 'private' && freshLead && existingScore >= slackMinScore) {
+      void notifySlackNewLead({
+        variant: 'private',
+        profileName: lead.account.personName,
+        title: lead.title,
+        score: existingScore,
+        confidence: confidenceLabel(lead.evaluations[0]?.confidence ?? lead.confidence ?? 0),
+        budget: lead.extractedBudget || 'Unknown',
+        leadId,
+        sourceUrl: lead.sourceUrl,
+      });
+    }
     return { ok: true, outcome: outcome.status };
   }
 
@@ -139,14 +165,20 @@ export async function enrichLead(leadId: string): Promise<EnrichLeadResult> {
     }),
   ]);
 
-  // Alert if enrichment pushed a previously-NEW lead over the qualified bar.
-  if (lead.status === LeadStatus.NEW && nextStatus === LeadStatus.QUALIFIED) {
+  // Rich alert once we have the full description + proposal — any fresh lead at or
+  // above the global Slack threshold (first enrichment only, so re-enriching is quiet).
+  if (freshLead && evaluation.score >= slackMinScore) {
     void notifySlackNewLead({
+      variant: 'enriched',
       profileName: lead.account.personName,
       title: lead.title,
       score: evaluation.score,
+      confidence: confidenceLabel(evaluation.confidence),
       budget: enrichment.budget || lead.extractedBudget || 'Unknown',
       leadId,
+      sourceUrl: lead.sourceUrl,
+      description: enrichedDescription,
+      proposal: newProposal,
     });
   }
 

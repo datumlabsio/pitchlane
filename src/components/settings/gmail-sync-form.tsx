@@ -24,9 +24,15 @@ type Props = {
   connected: boolean;
   hasModifyScope: boolean;
   syncIntervalMinutes: number;
+  slackMinScore: number;
 };
 
-export function GmailSyncForm({ connected, hasModifyScope, syncIntervalMinutes: initialInterval }: Props) {
+export function GmailSyncForm({
+  connected,
+  hasModifyScope,
+  syncIntervalMinutes: initialInterval,
+  slackMinScore: initialSlackScore,
+}: Props) {
   const [syncPending, setSyncPending] = useState(false);
   const [labelPending, setLabelPending] = useState(false);
   const [intervalSaving, setIntervalSaving] = useState(false);
@@ -34,6 +40,9 @@ export function GmailSyncForm({ connected, hasModifyScope, syncIntervalMinutes: 
   const [labelDone, setLabelDone] = useState(false);
   const [interval, setInterval] = useState(initialInterval);
   const [savedInterval, setSavedInterval] = useState(initialInterval);
+  const [slackScore, setSlackScore] = useState(initialSlackScore);
+  const [savedSlackScore, setSavedSlackScore] = useState(initialSlackScore);
+  const [slackSaving, setSlackSaving] = useState(false);
   const [error, setError] = useState('');
 
   const canAct = connected && hasModifyScope;
@@ -89,6 +98,25 @@ export function GmailSyncForm({ connected, hasModifyScope, syncIntervalMinutes: 
     }
   }
 
+  async function onSaveSlackScore(score: number) {
+    setSlackSaving(true);
+    setError('');
+    try {
+      const res = await fetch('/api/integrations/gmail/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slackMinScore: score }),
+      });
+      const payload = await res.json();
+      if (!res.ok || !payload.ok) { setError(payload.error || 'Failed to save threshold'); return; }
+      setSavedSlackScore(score);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save threshold');
+    } finally {
+      setSlackSaving(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {connected && !hasModifyScope && (
@@ -127,6 +155,38 @@ export function GmailSyncForm({ connected, hasModifyScope, syncIntervalMinutes: 
           )}
         </div>
       </div>
+
+      {/* Slack alert threshold */}
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-xs text-stone-400 shrink-0">Slack alert threshold</p>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step={5}
+            value={slackScore}
+            onChange={(e) => setSlackScore(Math.max(0, Math.min(100, Math.round(Number(e.target.value)) || 0)))}
+            className="w-20 rounded-lg border border-white/15 bg-white/8 px-3 py-1.5 text-xs text-stone-200 focus:outline-none focus:ring-1 focus:ring-white/30"
+          />
+          <span className="text-xs text-stone-500">% match</span>
+          {slackScore !== savedSlackScore ? (
+            <button
+              type="button"
+              disabled={slackSaving}
+              onClick={() => onSaveSlackScore(slackScore)}
+              className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-medium text-stone-950 transition hover:bg-amber-300 disabled:opacity-50"
+            >
+              {slackSaving ? 'Saving…' : 'Save'}
+            </button>
+          ) : (
+            <span className="text-xs text-stone-500">· saved</span>
+          )}
+        </div>
+      </div>
+      <p className="text-xs text-stone-500">
+        Leads scoring at or above this go to Slack once enrichment finishes — with the description, proposal, and links. Default 40%.
+      </p>
 
       {/* Action buttons */}
       <div className="flex flex-wrap items-center gap-2">

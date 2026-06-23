@@ -3,7 +3,6 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { prisma } from '@/lib/prisma';
-import { notifySlackNewLead } from '@/lib/slack';
 
 export type IngestEmailInput = {
   gmailLabel: string;
@@ -114,15 +113,8 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     throw error;
   }
 
-  if (status === LeadStatus.QUALIFIED) {
-    void notifySlackNewLead({
-      profileName: account.personName,
-      title: input.subject,
-      score: evaluation.score,
-      budget: input.extractedBudget ?? 'Unknown',
-      leadId: lead.id,
-    });
-  }
-
+  // Slack alerts fire after enrichment (with the full description + proposal +
+  // links), not at ingest — see enrichLead. Leads without a job URL won't enrich,
+  // so they don't trigger Slack.
   return { lead, duplicate: false };
 }

@@ -9,7 +9,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4.1-mini"),
   ANTHROPIC_KEY: z.string().optional(),
-  ANTHROPIC_MODEL: z.string().default("claude-opus-4-8"),
+  ANTHROPIC_MODEL: z.string().default("claude-sonnet-4-6"),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),

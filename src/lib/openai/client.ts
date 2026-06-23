@@ -128,8 +128,29 @@ export async function generateProposalDraft(input: ProposalGenerationInput) {
     return fallbackProposal(input);
   }
 
-  const payload = (await response.json()) as { output_text?: string };
-  return payload.output_text?.trim() || fallbackProposal(input);
+  const payload = (await response.json()) as ResponsesPayload;
+  const text = extractOutputText(payload);
+  return text || fallbackProposal(input);
+}
+
+type ResponsesPayload = {
+  // `output_text` is an SDK-only convenience and is NOT present in the raw REST
+  // JSON — the text actually lives in output[].content[].text.
+  output_text?: string;
+  output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
+};
+
+function extractOutputText(payload: ResponsesPayload): string {
+  if (typeof payload.output_text === 'string' && payload.output_text.trim()) {
+    return payload.output_text.trim();
+  }
+  const parts: string[] = [];
+  for (const item of payload.output ?? []) {
+    for (const c of item.content ?? []) {
+      if (typeof c.text === 'string') parts.push(c.text);
+    }
+  }
+  return parts.join('').trim();
 }
 
 function fallbackProposal(input: ProposalGenerationInput) {

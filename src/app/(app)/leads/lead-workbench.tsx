@@ -835,8 +835,8 @@ export function LeadWorkbench({
                     onClick={() => router.push(`/leads?leadId=${lead.id}`)}
                   >
                     <TableCell className="font-medium">
-                      <div className="flex items-start gap-1.5">
-                        <span className="line-clamp-2 max-w-xs">{lead.title}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="min-w-0 flex-1 truncate">{lead.title}</span>
                         {lead.sourceUrl && (
                           <a
                             href={lead.sourceUrl}

@@ -1,3 +1,5 @@
+import Anthropic from '@anthropic-ai/sdk';
+
 import { env } from '@/lib/env';
 
 export type ProposalGenerationInput = {
@@ -97,60 +99,49 @@ function buildUserPrompt(input: ProposalGenerationInput): string {
   return base;
 }
 
-export async function generateProposalDraft(input: ProposalGenerationInput) {
-  if (!env.OPENAI_API_KEY) {
-    return fallbackProposal(input);
+let anthropicClient: Anthropic | null = null;
+
+function getAnthropic(): Anthropic | null {
+  if (!env.ANTHROPIC_KEY) return null;
+  if (!anthropicClient) {
+    anthropicClient = new Anthropic({ apiKey: env.ANTHROPIC_KEY });
   }
-
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: env.OPENAI_MODEL,
-      input: [
-        {
-          role: 'system',
-          content: [{ type: 'input_text', text: buildSystemPrompt(input) }],
-        },
-        {
-          role: 'user',
-          content: [{ type: 'input_text', text: buildUserPrompt(input) }],
-        },
-      ],
-      max_output_tokens: 700,
-    }),
-  });
-
-  if (!response.ok) {
-    return fallbackProposal(input);
-  }
-
-  const payload = (await response.json()) as ResponsesPayload;
-  const text = extractOutputText(payload);
-  return text || fallbackProposal(input);
+  return anthropicClient;
 }
 
-type ResponsesPayload = {
-  // `output_text` is an SDK-only convenience and is NOT present in the raw REST
-  // JSON — the text actually lives in output[].content[].text.
-  output_text?: string;
-  output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
-};
+export async function generateProposalDraft(input: ProposalGenerationInput) {
+  const anthropic = getAnthropic();
+  if (!anthropic) {
+    return fallbackProposal(input);
+  }
 
-function extractOutputText(payload: ResponsesPayload): string {
-  if (typeof payload.output_text === 'string' && payload.output_text.trim()) {
-    return payload.output_text.trim();
-  }
-  const parts: string[] = [];
-  for (const item of payload.output ?? []) {
-    for (const c of item.content ?? []) {
-      if (typeof c.text === 'string') parts.push(c.text);
+  try {
+    // Adaptive thinking lets Claude plan the proposal against every rule before
+    // writing — the whole point here is faithful adherence to the profile config.
+    // Stream so a longer (thinking) turn never trips an HTTP timeout.
+    const message = await anthropic.messages
+      .stream({
+        model: env.ANTHROPIC_MODEL,
+        max_tokens: 4096,
+        thinking: { type: 'adaptive' },
+        system: buildSystemPrompt(input),
+        messages: [{ role: 'user', content: buildUserPrompt(input) }],
+      })
+      .finalMessage();
+
+    if (message.stop_reason === 'refusal') {
+      return fallbackProposal(input);
     }
+
+    const text = message.content
+      .map((block) => (block.type === 'text' ? block.text : ''))
+      .join('')
+      .trim();
+
+    return text || fallbackProposal(input);
+  } catch {
+    return fallbackProposal(input);
   }
-  return parts.join('').trim();
 }
 
 function fallbackProposal(input: ProposalGenerationInput) {

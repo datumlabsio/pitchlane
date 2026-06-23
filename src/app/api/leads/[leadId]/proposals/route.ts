@@ -3,6 +3,9 @@ import { z } from 'zod';
 
 import { saveProposalVersion } from '@/domain/leads/save-proposal-version';
 
+// Regeneration runs an Opus 4.8 call with adaptive thinking — give it room.
+export const maxDuration = 90;
+
 const requestSchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal('regenerate'),

@@ -81,7 +81,7 @@ describe('buildLeadAlertBody', () => {
       leadId: 'lead_2',
       sourceUrl: 'https://www.upwork.com/jobs/~02z',
     });
-    expect(out).toContain('Couldn’t fetch the description');
+    expect(out).toContain('Private or no longer available');
     expect(out).toContain('$200–400');
     // no client line / source badge when we couldn't enrich
     expect(out).not.toContain('Payment verified');

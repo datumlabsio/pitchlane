@@ -75,7 +75,7 @@ export function buildLeadAlertBody(payload: SlackLeadPayload): { text: string; b
     meta.push(
       payload.variant === 'private'
         ? '🔒 _Invite-only job — Upwork only shows it to the invited account. Enrich from the app if the email has the brief._'
-        : '⚠️ _Couldn’t fetch the description automatically — retry from the app._',
+        : '🔒 _Private or no longer available — Upwork isn’t showing this job publicly._',
     );
   }
 

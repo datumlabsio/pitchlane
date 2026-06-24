@@ -125,7 +125,7 @@ function EnrichmentBadge({ status }: { status: LeadEnrichment['status'] }) {
   const map = {
     enriched: { dot: 'bg-emerald-500', cls: 'bg-emerald-100 text-emerald-700', label: 'Full description' },
     private: { dot: 'bg-amber-500', cls: 'bg-amber-100 text-amber-700', label: 'Private / invite-only' },
-    failed: { dot: 'bg-stone-400', cls: 'bg-stone-100 text-stone-600', label: "Couldn't fetch" },
+    failed: { dot: 'bg-amber-500', cls: 'bg-amber-100 text-amber-700', label: 'Private / closed' },
   } as const;
   const m = map[status];
   return (
@@ -186,9 +186,9 @@ function ProposalEmptyState({
     reason =
       "Upwork only shows invite-only jobs to the invited account, so the description can't be fetched automatically. Generate from the email below if it contains the brief.";
   } else if (status === 'failed') {
-    title = 'Description not fetched — fetch failed';
+    title = 'Job is private or no longer available';
     reason =
-      "Upwork blocked the request (or the page couldn't be parsed) the last time we tried. Hit Retry fetch on the Overview tab, or generate from the email below.";
+      "Upwork isn't showing this job publicly — it's invite-only or has been closed — so the full description can't be fetched. Generate from the email below if it has the brief.";
   } else {
     title = 'Description not fetched — no job link';
     reason =
@@ -1163,8 +1163,8 @@ export function LeadWorkbench({
                         </p>
                       )}
                       {selectedLead.enrichment?.status === 'failed' && (
-                        <p className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm leading-6 text-stone-600">
-                          Couldn&apos;t fetch the full job page (Upwork blocked the request). Using the email content below — hit <span className="font-medium">Retry fetch</span> above to try again.
+                        <p className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5 text-sm leading-6 text-amber-800">
+                          This job is private or no longer available — Upwork isn&apos;t showing it publicly, so the full description can&apos;t be fetched. Working from the email content below; hit <span className="font-medium">Retry fetch</span> if you think it&apos;s still open.
                         </p>
                       )}
 

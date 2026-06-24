@@ -1,10 +1,11 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { after, type NextRequest, NextResponse } from 'next/server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { syncGmailInbox } from '@/domain/integrations/gmail-sync';
+import { enrichLead } from '@/domain/leads/enrich-lead';
 
-// Each new lead may trigger a scrape-enrichment call (up to ~70s); allow the
-// batch room to finish. Vercel caps this to the plan limit (300s on Pro).
+// Ingest returns fast; enrichment + Slack alerts run in after() (up to maxDuration).
+// Vercel caps this to the plan limit (300s on Pro, 60s on Hobby).
 export const maxDuration = 300;
 
 function hasCronSecret(request: NextRequest) {
@@ -33,6 +34,24 @@ async function manualAuthorized(request: NextRequest) {
 
 async function runSync() {
   const result = await syncGmailInbox();
+
+  // Enrich + alert each freshly-created lead right after responding. API-first
+  // enrichment is ~1-2s, so the batch usually finishes well within maxDuration;
+  // anything that spills (e.g. a slow Bright Data fallback, or the function being
+  // cut off on Hobby's 60s) is swept up by the enrich-pending safety-net cron.
+  // Sequential keeps us frugal with the Upwork API rate limit.
+  if (result.newLeadIds.length) {
+    after(async () => {
+      for (const id of result.newLeadIds) {
+        try {
+          await enrichLead(id);
+        } catch {
+          // Best-effort — the safety-net cron retries stragglers.
+        }
+      }
+    });
+  }
+
   return NextResponse.json({ ok: true, ...result });
 }
 

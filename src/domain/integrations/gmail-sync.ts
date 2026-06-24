@@ -15,6 +15,8 @@ type SyncSummary = {
   duplicatesSkipped: number;
   errorsCount: number;
   errorSummary: string | null;
+  /** IDs of freshly-created leads with a job URL, for inline enrichment after the response. */
+  newLeadIds: string[];
   labels: Array<{
     gmailLabel: string;
     scanned: number;
@@ -41,6 +43,7 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
   let errorsCount = 0;
   const labelSummaries: SyncSummary['labels'] = [];
   const errorMessages: string[] = [];
+  const newLeadIds: string[] = [];
 
   try {
     const gmail = await createAuthenticatedGmailClient();
@@ -118,6 +121,9 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
           } else {
             perLabel.created += 1;
             leadsCreated += 1;
+            // Enrichable leads (have a job URL) get enriched + alerted right after the
+            // sync responds — see the route's after() hook.
+            if (result.lead.sourceUrl) newLeadIds.push(result.lead.id);
           }
         } catch (error) {
           perLabel.errors += 1;
@@ -152,6 +158,7 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
       errorsCount,
       errorSummary,
       labels: labelSummaries,
+      newLeadIds,
     };
   } catch (error) {
     const errorSummary = error instanceof Error ? error.message : 'Unknown Gmail sync failure';

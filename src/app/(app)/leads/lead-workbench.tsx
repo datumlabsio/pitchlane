@@ -150,21 +150,29 @@ function SourceBadge({ source }: { source: LeadEnrichment['source'] }) {
   );
 }
 
-// Shown in the proposal tab when a lead has no proposal yet. The proposal is
-// only written once the full job description is enriched, so this explains the
-// current state — and, when it can't be fetched, why.
+// Shown in the proposal tab when a lead has no proposal yet, explaining why and
+// what to do. A proposal is auto-written only for enriched leads above the qualify
+// score; everything else lands here (fetched-but-not-drafted, pending, or unfetchable).
 function ProposalEmptyState({ status, hasUrl }: { status: LeadEnrichment['status']; hasUrl: boolean }) {
   // status null + a job URL => enrichment simply hasn't run yet (pending).
   const pending = status === null && hasUrl;
 
+  let tone: 'pending' | 'info' | 'warn' = 'warn';
   let title: string;
   let reason: string;
   if (pending) {
+    tone = 'pending';
     title = 'Fetching the job description…';
     reason =
-      'The proposal is written automatically once enrichment pulls the full Upwork job page — usually within a few minutes of the lead arriving.';
+      'The proposal is written automatically once enrichment pulls the full Upwork job — usually within seconds of the lead arriving.';
+  } else if (status === 'enriched') {
+    // Description fetched, but no proposal: it scored below the auto-draft bar.
+    tone = 'info';
+    title = 'Description fetched — no proposal yet';
+    reason =
+      "We only auto-draft proposals for leads above your qualify score, to save on AI cost. The full job description is below — generate a proposal whenever you want one.";
   } else if (status === 'private') {
-    title = "Description not fetched — private / invite-only job";
+    title = 'Description not fetched — private / invite-only job';
     reason =
       "Upwork only shows invite-only jobs to the invited account, so the description can't be fetched automatically. Generate from the email below if it contains the brief.";
   } else if (status === 'failed') {
@@ -177,13 +185,19 @@ function ProposalEmptyState({ status, hasUrl }: { status: LeadEnrichment['status
       "There's no Upwork job link on this lead, so there's nothing to fetch automatically. Generate from the email below if you want a draft.";
   }
 
+  const styles = {
+    pending: { box: 'border-sky-200 bg-sky-50/70', dot: 'bg-sky-500' },
+    info: { box: 'border-emerald-200 bg-emerald-50/70', dot: 'bg-emerald-500' },
+    warn: { box: 'border-amber-200 bg-amber-50/70', dot: 'bg-amber-500' },
+  }[tone];
+
   return (
-    <div className={cn('rounded-xl border p-4', pending ? 'border-sky-200 bg-sky-50/70' : 'border-amber-200 bg-amber-50/70')}>
+    <div className={cn('rounded-xl border p-4', styles.box)}>
       <div className="flex items-center gap-2">
         {pending ? (
           <RefreshCw className="size-4 animate-spin text-sky-600" />
         ) : (
-          <span className="size-2 rounded-full bg-amber-500" />
+          <span className={cn('size-2 rounded-full', styles.dot)} />
         )}
         <p className="text-sm font-semibold text-stone-800">{title}</p>
       </div>

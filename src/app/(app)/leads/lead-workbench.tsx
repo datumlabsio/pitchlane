@@ -188,7 +188,7 @@ function ProposalEmptyState({
   } else if (status === 'failed') {
     title = 'Description not fetched — fetch failed';
     reason =
-      "Upwork blocked the request (or the page couldn't be parsed) the last time we tried. Re-enrich from the Overview tab to retry, or generate from the email below.";
+      "Upwork blocked the request (or the page couldn't be parsed) the last time we tried. Hit Retry fetch on the Overview tab, or generate from the email below.";
   } else {
     title = 'Description not fetched — no job link';
     reason =
@@ -1054,15 +1054,15 @@ export function LeadWorkbench({
                         type="button"
                         onClick={enrichLead}
                         disabled={isPending}
-                        title="Fetch full job + client details from Upwork"
+                        title="Re-fetch the job & client details from Upwork, re-score, and rewrite the proposal (older versions are kept)"
                         className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
                       >
                         <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
                         {selectedLead.enrichment?.status === 'failed'
                           ? 'Retry fetch'
                           : selectedLead.enrichment?.status
-                            ? 'Re-enrich'
-                            : 'Enrich'}
+                            ? 'Refresh from Upwork'
+                            : 'Fetch from Upwork'}
                       </button>
                     )}
                     {selectedLead.sourceUrl ? (

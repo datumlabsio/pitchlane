@@ -24,8 +24,8 @@ export type EnrichLeadResult =
 /**
  * (Re-)enrich a lead from its Upwork job URL — API-first, scraper fallback — re-score
  * on the full description, write a proposal for promising leads, and alert Slack. Runs
- * inline right after ingest, from the safety-net cron, and from the manual Re-enrich
- * button (which passes `force` to bypass the already-enriched guard below).
+ * inline right after ingest, from the safety-net cron, and from the manual "Refresh
+ * from Upwork" button (which passes `force` to bypass the already-enriched guard below).
  */
 export async function enrichLead(leadId: string, opts?: { force?: boolean }): Promise<EnrichLeadResult> {
   if (!isUpworkApiEnabled() && !isScrapeConfigured()) {

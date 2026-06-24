@@ -264,7 +264,7 @@ function EnrichmentPanel({ enrichment }: { enrichment: LeadEnrichment }) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-stone-400">Enriched, but the actor returned no client details.</p>
+        <p className="text-sm text-stone-400">Enriched, but no public client details were available for this job.</p>
       )}
     </div>
   );
@@ -782,7 +782,11 @@ export function LeadWorkbench({
     return () => clearInterval(id);
   }, [selectedLeadId, router]);
 
-  async function runRequest(url: string, init: RequestInit, successMessage: string) {
+  async function runRequest(
+    url: string,
+    init: RequestInit,
+    successMessage: string | ((result: { outcome?: string }) => string),
+  ) {
     setStatusMessage('');
     startTransition(async () => {
       try {
@@ -792,7 +796,7 @@ export function LeadWorkbench({
           setStatusMessage(result.error ?? 'Request failed.');
           return;
         }
-        setStatusMessage(successMessage);
+        setStatusMessage(typeof successMessage === 'function' ? successMessage(result) : successMessage);
         router.refresh();
       } catch (error) {
         setStatusMessage(error instanceof Error ? error.message : 'Unknown request error.');
@@ -842,7 +846,10 @@ export function LeadWorkbench({
     void runRequest(
       `/api/leads/${selectedLead.id}/enrich`,
       { method: 'POST' },
-      'Enriched from Upwork — score updated.',
+      (result) =>
+        result.outcome === 'enriched'
+          ? 'Refreshed from Upwork — job details and score updated.'
+          : "This job isn't publicly viewable (private or closed), so there's nothing to fetch.",
     );
   }
 

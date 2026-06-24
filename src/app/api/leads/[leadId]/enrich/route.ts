@@ -7,7 +7,7 @@ export const maxDuration = 90;
 export async function POST(_request: Request, context: { params: Promise<{ leadId: string }> }) {
   try {
     const { leadId } = await context.params;
-    // Manual button → force past the already-enriched guard so "Re-enrich" always re-runs.
+    // Manual button → force past the already-enriched guard so "Refresh from Upwork" always re-runs.
     const result = await enrichLead(leadId, { force: true });
 
     if (!result.ok) {

@@ -29,7 +29,7 @@ export type EnrichLeadResult =
  */
 export async function enrichLead(leadId: string, opts?: { force?: boolean }): Promise<EnrichLeadResult> {
   if (!isUpworkApiEnabled() && !isScrapeConfigured()) {
-    return { ok: false, reason: 'No enrichment source configured (Upwork API not connected and scraper disabled).' };
+    return { ok: false, reason: "Enrichment isn't set up yet — connect Upwork under Settings to fetch job details." };
   }
 
   const lead = await prisma.lead.findUnique({

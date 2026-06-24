@@ -34,7 +34,11 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
 
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    include: { account: true, evaluations: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    include: {
+      account: true,
+      evaluations: { orderBy: { createdAt: 'desc' }, take: 1 },
+      proposals: { select: { id: true }, take: 1 },
+    },
   });
   if (!lead) return { ok: false, reason: 'Lead not found.' };
   if (!lead.sourceUrl) return { ok: false, reason: 'This lead has no Upwork job URL to enrich from.' };
@@ -138,12 +142,14 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     c.industry || null,
   ].filter(Boolean).join(' · ') || undefined;
 
-  // Only spend a Claude call on promising leads (the qualify bar) — every lead still
-  // alerts and scores, but low-fit ones stay draft-less until you request a proposal
-  // in the UI. The manual Re-enrich button (force) always writes one. This also keeps
-  // the inline-ingest path fast: most leads skip the slow generation step entirely.
+  // Write a proposal only when the lead has none yet AND it clears the qualify bar.
+  // So: low-fit leads stay draft-less until you ask (in the UI), and a manual "Refresh
+  // from Upwork" never clobbers an existing draft — it just refreshes data + re-scores.
+  // (force only bypasses the already-enriched guard above, not this.) Keeps the inline
+  // path fast too: most leads skip the slow generation step entirely.
+  const hasExistingProposal = lead.proposals.length > 0;
   const shouldWriteProposal =
-    Boolean(opts?.force) || (evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold);
+    !hasExistingProposal && evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold;
 
   const newProposal = shouldWriteProposal
     ? await generateProposalDraft({

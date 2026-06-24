@@ -1054,7 +1054,7 @@ export function LeadWorkbench({
                         type="button"
                         onClick={enrichLead}
                         disabled={isPending}
-                        title="Re-fetch the job & client details from Upwork, re-score, and rewrite the proposal (older versions are kept)"
+                        title="Re-fetch the job & client details from Upwork and re-score — your proposal is left as-is"
                         className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
                       >
                         <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />

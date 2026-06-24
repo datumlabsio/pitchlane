@@ -92,6 +92,6 @@ describe('buildLeadAlertBody', () => {
     const body = buildLeadAlertBody(BASE);
     const actions = body.blocks.find((b) => (b as Record<string, unknown>).type === 'actions') as Record<string, any>;
     const labels = actions.elements.map((e: any) => e.text.text);
-    expect(labels).toEqual(['View on Upwork', 'Open in Pitchlane']);
+    expect(labels).toEqual(['View on Upwork', 'Open in SalesFlow']);
   });
 });

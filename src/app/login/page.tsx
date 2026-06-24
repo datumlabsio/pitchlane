@@ -35,13 +35,13 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <p className="text-2xl font-bold tracking-tight text-stone-950">Pitchlane</p>
+          <p className="text-2xl font-bold tracking-tight text-stone-950">SalesFlow</p>
           <p className="mt-1 text-sm text-stone-500">Upwork lead intelligence</p>
         </div>
 
         <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
           <h1 className="mb-1 text-lg font-semibold text-stone-950">Sign in</h1>
-          <p className="mb-6 text-sm text-stone-500">Use your Google account to access Pitchlane.</p>
+          <p className="mb-6 text-sm text-stone-500">Use your Google account to access SalesFlow.</p>
 
           <button
             type="button"

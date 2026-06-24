@@ -12,7 +12,7 @@ export function Topbar({
   return (
     <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Pitchlane</p>
+        <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">SalesFlow</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-stone-950">{title}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">{subtitle}</p>
       </div>

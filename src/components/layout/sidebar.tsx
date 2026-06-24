@@ -76,7 +76,7 @@ export function Sidebar({ lastSyncAt }: { lastSyncAt: string | null }) {
   return (
     <aside className="hidden w-72 shrink-0 flex-col overflow-y-auto rounded-[2rem] border border-amber-950/10 bg-[#1f1a17] p-5 text-stone-50 shadow-2xl lg:flex sticky top-4 md:top-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)]">
       <div className="mb-10">
-        <p className="text-xs uppercase tracking-[0.3em] text-amber-200/70">Pitchlane</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-amber-200/70">SalesFlow</p>
         <h1 className="mt-3 text-2xl font-semibold">Lead intelligence for multi-profile Upwork ops.</h1>
       </div>
 

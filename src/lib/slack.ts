@@ -105,7 +105,7 @@ export function buildLeadAlertBody(payload: SlackLeadPayload): { text: string; b
   }
   buttons.push({
     type: 'button',
-    text: { type: 'plain_text', text: 'Open in Pitchlane', emoji: true },
+    text: { type: 'plain_text', text: 'Open in SalesFlow', emoji: true },
     url: leadUrl,
     style: 'primary',
   });
@@ -123,7 +123,7 @@ export async function notifySlackSyncDown(minutesSince: number | null): Promise<
   if (!webhookUrl) return;
   const since = minutesSince == null ? 'a while (no runs on record)' : `${minutesSince} min`;
   const body = {
-    text: `⚠️ Pitchlane ingestion may be down — no successful Gmail sync in ${since}.`,
+    text: `⚠️ SalesFlow ingestion may be down — no successful Gmail sync in ${since}.`,
     blocks: [
       {
         type: 'section',

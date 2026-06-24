@@ -7,7 +7,7 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 const serif = Fraunces({ subsets: ['latin'], variable: '--font-serif' });
 
 export const metadata: Metadata = {
-  title: "Pitchlane",
+  title: "SalesFlow",
   description: "Multi-profile Upwork lead intelligence and proposal workflow.",
 };
 

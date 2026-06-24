@@ -124,7 +124,6 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   const items = leads.map<LeadSummary>((lead) => {
     const evaluation = lead.evaluations[0];
     const proposal = lead.proposals[0];
-    const confidence = evaluation?.confidence ?? lead.confidence;
 
     return {
       id: lead.id,
@@ -133,7 +132,9 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
       status: leadStatusLabelMap[lead.status] ?? 'New',
       statusCode: lead.status,
       matchScore: evaluation?.score ?? 0,
-      confidence: toConfidenceLabel(confidence),
+      // Tier reflects the match score, so it never contradicts it (the old
+      // text-length "confidence" could read High next to a low match).
+      confidence: toConfidenceLabel(evaluation?.score ?? 0),
       budget: lead.extractedBudget || 'Unknown',
       sourceCompleteness: lead.sourceCompleteness === 'FULL' ? 'Full' : 'Partial',
       createdAt: formatRelative(lead.createdAt),
@@ -175,7 +176,6 @@ export async function getLeadDetail(leadId: string) {
 
   const evaluation = lead.evaluations[0];
   const application = lead.applications[0];
-  const confidence = evaluation?.confidence ?? lead.confidence;
 
   return {
     id: lead.id,
@@ -185,7 +185,8 @@ export async function getLeadDetail(leadId: string) {
     status: leadStatusLabelMap[lead.status] ?? 'New',
     statusCode: lead.status,
     matchScore: evaluation?.score ?? 0,
-    confidence: toConfidenceLabel(confidence),
+    // Tier reflects the match score, so it never contradicts it.
+    confidence: toConfidenceLabel(evaluation?.score ?? 0),
     budget: lead.extractedBudget || 'Unknown',
     sourceCompleteness: lead.sourceCompleteness === 'FULL' ? 'Full' : 'Partial',
     createdAt: formatDateTime(lead.createdAt),

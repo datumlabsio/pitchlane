@@ -94,7 +94,7 @@ export function GmailSyncForm({
 
       {/* Slack alert threshold */}
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-xs text-stone-400 shrink-0">Slack alert threshold</p>
+        <p className="text-xs text-stone-400 shrink-0">🟢 Hot lead threshold</p>
         <div className="flex items-center gap-2">
           <input
             type="number"
@@ -121,7 +121,7 @@ export function GmailSyncForm({
         </div>
       </div>
       <p className="text-xs text-stone-500">
-        Leads scoring at or above this go to Slack once enrichment finishes — with the description, proposal, and links. Default 40%.
+        Every lead is posted to Slack once enrichment finishes. Leads scoring at or above this are flagged 🟢 hot (others ⚪) so the channel stays scannable. Default 40%.
       </p>
 
       {/* Action buttons */}

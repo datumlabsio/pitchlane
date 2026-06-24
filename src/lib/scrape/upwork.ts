@@ -1,10 +1,15 @@
 import { env } from '@/lib/env';
 
-// Normalized job enrichment scraped from the public Upwork job page.
+// Normalized job enrichment, from either the official Upwork API or the scraper.
+export type EnrichmentSource = 'upwork_api' | 'bright_data';
+
 export type JobEnrichment = {
+  // How the description was obtained — surfaced as a badge in the lead panel.
+  source?: EnrichmentSource;
   description?: string;
   budget?: string;
   paymentType?: string;
+  experienceLevel?: string;
   skills: string[];
   proposalsCount?: number;
   client: {
@@ -227,6 +232,7 @@ export function parseUpworkJobHtml(html: string): JobEnrichment {
   const toNum = (v: string | undefined) => (v ? Number(v.replace(/,/g, '')) : undefined);
 
   return {
+    source: 'bright_data',
     description,
     budget,
     paymentType,

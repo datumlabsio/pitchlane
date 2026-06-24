@@ -54,6 +54,8 @@ export type LeadSummary = {
 
 export type LeadEnrichment = {
   status: 'enriched' | 'private' | 'failed' | null;
+  // How the description was obtained, when enriched.
+  source: 'upwork_api' | 'bright_data' | null;
   description: string | null;
   budget: string | null;
   paymentType: string | null;

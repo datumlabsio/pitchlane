@@ -13,8 +13,10 @@ function mapEnrichment(value: unknown): LeadEnrichment | null {
   const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
   const status = e.status === 'enriched' || e.status === 'private' || e.status === 'failed' ? e.status : null;
+  const source = e.source === 'upwork_api' || e.source === 'bright_data' ? e.source : null;
   return {
     status,
+    source,
     description: str(e.description),
     budget: str(e.budget),
     paymentType: str(e.paymentType),

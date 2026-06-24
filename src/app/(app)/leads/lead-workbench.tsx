@@ -136,6 +136,20 @@ function EnrichmentBadge({ status }: { status: LeadEnrichment['status'] }) {
   );
 }
 
+// How the description was fetched — official Upwork API vs. web scrape.
+function SourceBadge({ source }: { source: LeadEnrichment['source'] }) {
+  if (!source) return null;
+  const m =
+    source === 'upwork_api'
+      ? { cls: 'bg-sky-100 text-sky-700', label: 'via Upwork API' }
+      : { cls: 'bg-violet-100 text-violet-700', label: 'via web scrape' };
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium', m.cls)}>
+      {m.label}
+    </span>
+  );
+}
+
 // Shown in the proposal tab when a lead has no proposal yet. The proposal is
 // only written once the full job description is enriched, so this explains the
 // current state — and, when it can't be fetched, why.
@@ -995,6 +1009,9 @@ export function LeadWorkbench({
                   </Badge>
                   <span className="text-xs text-stone-500">{selectedLead.budget}</span>
                   <EnrichmentBadge status={selectedLead.enrichment?.status ?? null} />
+                  {selectedLead.enrichment?.status === 'enriched' && (
+                    <SourceBadge source={selectedLead.enrichment?.source ?? null} />
+                  )}
                   <div className="ml-auto flex items-center gap-2">
                     {enrichmentEnabled && selectedLead.sourceUrl && (
                       <button

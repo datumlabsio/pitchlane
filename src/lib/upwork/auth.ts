@@ -8,9 +8,9 @@ export function isUpworkConfigured(): boolean {
   return Boolean(env.UPWORK_CLIENT_ID && env.UPWORK_CLIENT_SECRET);
 }
 
-/** Must exactly match a Callback URL registered on the Upwork app. */
+/** Must exactly match the Callback URL registered on the Upwork app. */
 export function getUpworkRedirectUri(): string {
-  return `${env.NEXT_PUBLIC_APP_URL}/api/integrations/upwork/callback`;
+  return env.UPWORK_REDIRECT_URI || `${env.NEXT_PUBLIC_APP_URL}/api/integrations/upwork/callback`;
 }
 
 export function getUpworkAuthorizeUrl(state?: string): string {

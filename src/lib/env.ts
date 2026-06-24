@@ -10,6 +10,9 @@ const envSchema = z.object({
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-4-6"),
   UPWORK_CLIENT_ID: z.string().optional(),
   UPWORK_CLIENT_SECRET: z.string().optional(),
+  // Must exactly match the single Callback URL registered on the Upwork app.
+  // Falls back to NEXT_PUBLIC_APP_URL + the callback path when unset.
+  UPWORK_REDIRECT_URI: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),
@@ -33,6 +36,7 @@ export const env = envSchema.parse({
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
   UPWORK_CLIENT_ID: process.env.UPWORK_CLIENT_ID,
   UPWORK_CLIENT_SECRET: process.env.UPWORK_CLIENT_SECRET,
+  UPWORK_REDIRECT_URI: process.env.UPWORK_REDIRECT_URI,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,

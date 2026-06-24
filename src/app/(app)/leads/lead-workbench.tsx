@@ -153,7 +153,17 @@ function SourceBadge({ source }: { source: LeadEnrichment['source'] }) {
 // Shown in the proposal tab when a lead has no proposal yet, explaining why and
 // what to do. A proposal is auto-written only for enriched leads above the qualify
 // score; everything else lands here (fetched-but-not-drafted, pending, or unfetchable).
-function ProposalEmptyState({ status, hasUrl }: { status: LeadEnrichment['status']; hasUrl: boolean }) {
+function ProposalEmptyState({
+  status,
+  hasUrl,
+  onGenerate,
+  generating,
+}: {
+  status: LeadEnrichment['status'];
+  hasUrl: boolean;
+  onGenerate: () => void;
+  generating: boolean;
+}) {
   // status null + a job URL => enrichment simply hasn't run yet (pending).
   const pending = status === null && hasUrl;
 
@@ -202,6 +212,18 @@ function ProposalEmptyState({ status, hasUrl }: { status: LeadEnrichment['status
         <p className="text-sm font-semibold text-stone-800">{title}</p>
       </div>
       <p className="mt-1.5 text-xs leading-5 text-stone-600">{reason}</p>
+      {/* No point offering "generate" while enrichment is still in flight. */}
+      {!pending && (
+        <button
+          type="button"
+          onClick={onGenerate}
+          disabled={generating}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Sparkles className="size-3.5" />
+          {generating ? 'Generating…' : 'Generate a proposal'}
+        </button>
+      )}
     </div>
   );
 }
@@ -1227,24 +1249,30 @@ export function LeadWorkbench({
                         <ProposalEmptyState
                           status={selectedLead.enrichment?.status ?? null}
                           hasUrl={Boolean(selectedLead.sourceUrl)}
+                          onGenerate={() => saveProposal('regenerate')}
+                          generating={isPending}
                         />
                       )}
-                      <Textarea
-                        className="min-h-52 w-full rounded-xl border border-stone-300 bg-stone-950 p-4 text-sm leading-6 text-stone-100 outline-none transition focus:border-stone-500 focus-visible:ring-0"
-                        value={proposalDraft}
-                        onChange={(e) => setProposalDraft(e.target.value)}
-                        placeholder="Write your proposal here..."
-                      />
+                      <div className="relative">
+                        <Textarea
+                          className="min-h-52 w-full rounded-xl border border-stone-300 bg-stone-950 p-4 pr-20 text-sm leading-6 text-stone-100 outline-none transition focus:border-stone-500 focus-visible:ring-0"
+                          value={proposalDraft}
+                          onChange={(e) => setProposalDraft(e.target.value)}
+                          placeholder="Write your proposal here..."
+                        />
+                        {proposalDraft.trim() && (
+                          <button
+                            type="button"
+                            onClick={copyProposal}
+                            title="Copy proposal"
+                            className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-medium text-stone-200 backdrop-blur transition hover:bg-white/20"
+                          >
+                            {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                            {copied ? 'Copied' : 'Copy'}
+                          </button>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!proposalDraft.trim()}
-                          onClick={copyProposal}
-                        >
-                          {copied ? <Check className="mr-1.5 size-3.5" /> : <Copy className="mr-1.5 size-3.5" />}
-                          {copied ? 'Copied' : 'Copy'}
-                        </Button>
                         <Button
                           size="sm"
                           disabled={isPending}
@@ -1259,7 +1287,7 @@ export function LeadWorkbench({
                           onClick={() => saveProposal('regenerate')}
                         >
                           <RefreshCw className="mr-1.5 size-3.5" />
-                          {selectedLead.proposals.length === 0 ? 'Generate from email' : 'Regenerate from scratch'}
+                          {selectedLead.proposals.length === 0 ? 'Generate a proposal' : 'Regenerate from scratch'}
                         </Button>
                       </div>
 

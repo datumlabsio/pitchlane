@@ -1088,6 +1088,38 @@ export function LeadWorkbench({
 
               <ScrollArea className="flex-1 min-h-0">
                 <div className="px-6 py-4">
+                  {/* Lifecycle — pulled out of the tabs so status is reachable from any tab */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Lifecycle</p>
+                    <div className="flex flex-wrap gap-2">
+                      {leadLifecycleStatuses.map((status) => {
+                        const isCurrent = selectedLead.statusCode === status;
+                        return (
+                          <button
+                            key={status}
+                            type="button"
+                            disabled={isPending || isCurrent}
+                            onClick={() => submitStatus(status)}
+                            className={cn(
+                              'rounded-full px-3.5 py-1.5 text-xs font-medium transition',
+                              isCurrent
+                                ? 'bg-stone-950 text-white'
+                                : 'border border-stone-200 bg-white text-stone-700 hover:border-stone-400',
+                              isPending && 'cursor-not-allowed opacity-70',
+                            )}
+                          >
+                            {leadStatusLabelMap[status]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {statusMessage && (
+                      <p className="text-xs text-stone-500">{statusMessage}</p>
+                    )}
+                  </div>
+
+                  <Separator className="my-4" />
+
                   <Tabs defaultValue="overview">
                     <TabsList className="mb-4">
                       <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -1211,36 +1243,6 @@ export function LeadWorkbench({
                         )}
                       </div>
 
-                      <Separator />
-
-                      <div className="space-y-3">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Lifecycle</p>
-                        <div className="flex flex-wrap gap-2">
-                          {leadLifecycleStatuses.map((status) => {
-                            const isCurrent = selectedLead.statusCode === status;
-                            return (
-                              <button
-                                key={status}
-                                type="button"
-                                disabled={isPending || isCurrent}
-                                onClick={() => submitStatus(status)}
-                                className={cn(
-                                  'rounded-full px-3.5 py-1.5 text-xs font-medium transition',
-                                  isCurrent
-                                    ? 'bg-stone-950 text-white'
-                                    : 'border border-stone-200 bg-white text-stone-700 hover:border-stone-400',
-                                  isPending && 'cursor-not-allowed opacity-70',
-                                )}
-                              >
-                                {leadStatusLabelMap[status]}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {statusMessage && (
-                          <p className="text-xs text-stone-500">{statusMessage}</p>
-                        )}
-                      </div>
                     </TabsContent>
 
                     {/* ── Proposal ── */}

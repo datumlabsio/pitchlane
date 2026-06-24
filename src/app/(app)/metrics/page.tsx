@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Topbar } from '@/components/layout/topbar';
 import { DateRangeFilter } from '@/components/filters/date-range-filter';
+import { MultiSelectFilter } from '@/components/filters/multi-select';
+import { listActiveAccounts } from '@/domain/accounts/repository';
 import {
   getDashboardMetrics,
   getPipelineFunnel,
@@ -26,12 +28,14 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
   const sp = await searchParams;
   const str = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
   const dateWindow = { since: str('since'), from: str('from'), to: str('to') };
+  const accountId = str('accountId'); // comma-separated profile filter (multi-select)
 
-  const [metrics, funnel, profileRows, statusBreakdown] = await Promise.all([
-    getDashboardMetrics(dateWindow),
-    getPipelineFunnel(dateWindow),
-    getProfilePerformanceRows(dateWindow),
-    getStatusBreakdown(dateWindow),
+  const [accounts, metrics, funnel, profileRows, statusBreakdown] = await Promise.all([
+    listActiveAccounts(),
+    getDashboardMetrics(dateWindow, accountId),
+    getPipelineFunnel(dateWindow, accountId),
+    getProfilePerformanceRows(dateWindow, accountId),
+    getStatusBreakdown(dateWindow, accountId),
   ]);
 
   const totals = profileRows.reduce(
@@ -53,7 +57,16 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
       <Topbar
         title="Metrics"
         subtitle="Pipeline performance across all profiles — qualification rates, application tracking, and win rate."
-        actions={<DateRangeFilter />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <MultiSelectFilter
+              param="accountId"
+              label="Profiles"
+              options={accounts.map((a) => ({ value: a.id, label: a.personName }))}
+            />
+            <DateRangeFilter />
+          </div>
+        }
       />
 
       {/* ── Metric cards ── */}

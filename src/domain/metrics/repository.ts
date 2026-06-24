@@ -1,7 +1,18 @@
-import { LeadStatus } from '@prisma/client';
+import { LeadStatus, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { buildCreatedAtRange, type DateWindow } from '@/lib/date-window';
+
+// Shared lead filter: date window + the comma-separated `accountId` profile filter
+// (same multi-select convention the leads list uses).
+function leadWhere(window: DateWindow, accountId?: string): Prisma.LeadWhereInput {
+  const createdAt = buildCreatedAtRange(window);
+  const accountIds = (accountId ?? '').split(',').filter(Boolean);
+  return {
+    ...(createdAt ? { createdAt } : {}),
+    ...(accountIds.length ? { accountId: { in: accountIds } } : {}),
+  };
+}
 
 // Statuses that mean the lead was ever qualified (i.e. it moved past the initial screening)
 const QUALIFIED_STATUSES: LeadStatus[] = [
@@ -31,9 +42,8 @@ const APPLIED_STATUSES: LeadStatus[] = [
   LeadStatus.LOST,
 ];
 
-export async function getPipelineFunnel(window: DateWindow = {}) {
-  const createdAt = buildCreatedAtRange(window);
-  const base = createdAt ? { createdAt } : {};
+export async function getPipelineFunnel(window: DateWindow = {}, accountId?: string) {
+  const base = leadWhere(window, accountId);
   const [total, qualified, applied, won] = await Promise.all([
     prisma.lead.count({ where: base }),
     prisma.lead.count({ where: { ...base, status: { in: QUALIFIED_STATUSES } } }),
@@ -43,11 +53,10 @@ export async function getPipelineFunnel(window: DateWindow = {}) {
   return { total, qualified, applied, won };
 }
 
-export async function getStatusBreakdown(window: DateWindow = {}) {
-  const createdAt = buildCreatedAtRange(window);
+export async function getStatusBreakdown(window: DateWindow = {}, accountId?: string) {
   const groups = await prisma.lead.groupBy({
     by: ['status'],
-    where: createdAt ? { createdAt } : undefined,
+    where: leadWhere(window, accountId),
     _count: { _all: true },
     orderBy: { _count: { status: 'desc' } },
   });
@@ -77,9 +86,8 @@ export async function getRecentQualifiedLeads(window: DateWindow = {}) {
   }));
 }
 
-export async function getDashboardMetrics(window: DateWindow = {}) {
-  const createdAt = buildCreatedAtRange(window);
-  const base = createdAt ? { createdAt } : {};
+export async function getDashboardMetrics(window: DateWindow = {}, accountId?: string) {
+  const base = leadWhere(window, accountId);
   const [totalLeads, won, applied, qualified] = await Promise.all([
     prisma.lead.count({ where: base }),
     prisma.lead.count({ where: { ...base, status: LeadStatus.WON } }),
@@ -98,10 +106,11 @@ export async function getDashboardMetrics(window: DateWindow = {}) {
   ];
 }
 
-export async function getProfilePerformanceRows(window: DateWindow = {}) {
+export async function getProfilePerformanceRows(window: DateWindow = {}, accountId?: string) {
   const createdAt = buildCreatedAtRange(window);
+  const accountIds = (accountId ?? '').split(',').filter(Boolean);
   const accounts = await prisma.account.findMany({
-    where: { isActive: true },
+    where: { isActive: true, ...(accountIds.length ? { id: { in: accountIds } } : {}) },
     include: {
       leads: { where: createdAt ? { createdAt } : undefined, select: { status: true } },
       applications: { where: createdAt ? { createdAt } : undefined, select: { connectsSpent: true } },

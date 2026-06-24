@@ -421,7 +421,7 @@ function FilterBar({
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search titles…"
+            placeholder="Search title, text, or paste a job URL…"
             className="h-8 w-52 rounded-md border border-stone-200 bg-white pl-8 pr-3 text-xs outline-none transition focus:border-stone-400 focus:ring-1 focus:ring-stone-300"
           />
         </div>

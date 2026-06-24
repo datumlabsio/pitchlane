@@ -1,4 +1,4 @@
-import type { LeadStatus } from '@prisma/client';
+import type { LeadStatus, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { buildCreatedAtRange } from '@/lib/date-window';
@@ -90,12 +90,30 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   // accountId/status are comma-separated lists (multi-select filters).
   const accountIds = (opts.accountId ?? '').split(',').filter(Boolean);
   const statuses = (opts.status ?? '').split(',').filter(Boolean) as LeadStatus[];
-  const where = {
+
+  // Free-text search across title, subject, body, sender, the job URL and the
+  // enriched description — not just the title. If the term carries an Upwork job
+  // ciphertext (e.g. a pasted job URL like .../jobs/~022069…), match the stored
+  // sourceUrl on just that id, so the email's trailing query string doesn't matter.
+  const term = opts.search?.trim();
+  const cipher = term?.match(/~[0-9]+/)?.[0];
+  const searchClause: Prisma.LeadWhereInput = term
+    ? {
+        OR: [
+          { title: { contains: term, mode: 'insensitive' } },
+          { emailSubject: { contains: term, mode: 'insensitive' } },
+          { rawEmailBody: { contains: term, mode: 'insensitive' } },
+          { sender: { contains: term, mode: 'insensitive' } },
+          { sourceUrl: { contains: cipher ?? term, mode: 'insensitive' } },
+          { enrichment: { path: ['description'], string_contains: term } },
+        ],
+      }
+    : {};
+
+  const where: Prisma.LeadWhereInput = {
     ...(accountIds.length ? { accountId: { in: accountIds } } : {}),
     ...(statuses.length ? { status: { in: statuses } } : {}),
-    ...(opts.search
-      ? { title: { contains: opts.search, mode: 'insensitive' as const } }
-      : {}),
+    ...searchClause,
     ...(createdAt ? { createdAt } : {}),
   };
 

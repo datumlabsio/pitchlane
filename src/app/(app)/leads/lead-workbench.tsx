@@ -31,6 +31,8 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangeFilter } from '@/components/filters/date-range-filter';
+import { MultiSelectFilter } from '@/components/filters/multi-select';
+import { Topbar } from '@/components/layout/topbar';
 import {
   leadLifecycleStatuses,
   leadStatusLabelMap,
@@ -349,41 +351,17 @@ function FilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Select
-        value={currentFilters.accountId ?? 'all'}
-        onValueChange={(v: string | null) => router.push(buildUrl({ accountId: !v || v === 'all' ? null : v }))}
-        items={{ all: 'All profiles', ...Object.fromEntries(accounts.map((a) => [a.id, a.personName])) }}
-      >
-        <SelectTrigger className="h-8 w-44 text-xs">
-          <SelectValue placeholder="All profiles" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All profiles</SelectItem>
-          {accounts.map((a) => (
-            <SelectItem key={a.id} value={a.id}>
-              {a.personName}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <MultiSelectFilter
+        param="accountId"
+        label="Profiles"
+        options={accounts.map((a) => ({ value: a.id, label: a.personName }))}
+      />
 
-      <Select
-        value={currentFilters.status ?? 'all'}
-        onValueChange={(v: string | null) => router.push(buildUrl({ status: !v || v === 'all' ? null : v }))}
-        items={{ all: 'All statuses', ...leadStatusLabelMap }}
-      >
-        <SelectTrigger className="h-8 w-44 text-xs">
-          <SelectValue placeholder="All statuses" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All statuses</SelectItem>
-          {Object.entries(leadStatusLabelMap).map(([code, label]) => (
-            <SelectItem key={code} value={code}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <MultiSelectFilter
+        param="status"
+        label="Status"
+        options={Object.entries(leadStatusLabelMap).map(([value, lbl]) => ({ value, label: lbl }))}
+      />
 
       <DateRangeFilter />
 
@@ -870,33 +848,34 @@ export function LeadWorkbench({
 
   return (
     <>
-      {/* Header row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <FilterBar accounts={accounts} currentFilters={currentFilters} />
-        <div className="flex items-center gap-3">
-          <LiveIndicator paused={Boolean(selectedLeadId)} />
-          <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
-          <DialogTrigger
-            render={<Button size="sm" className="gap-1.5" />}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add lead
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Add lead manually</DialogTitle>
-            </DialogHeader>
-            <ManualIngestDialogContent
-              labels={labels}
-              onSuccess={() => {
-                setIngestOpen(false);
-                router.refresh();
-              }}
-            />
-          </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      <Topbar
+        title="Lead inbox"
+        subtitle="All leads from forwarded Upwork emails, scored and ranked by profile rules."
+        actions={
+          <>
+            <FilterBar accounts={accounts} currentFilters={currentFilters} />
+            <LiveIndicator paused={Boolean(selectedLeadId)} />
+            <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
+              <DialogTrigger render={<Button size="sm" className="gap-1.5" />}>
+                <Plus className="h-3.5 w-3.5" />
+                Add lead
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Add lead manually</DialogTitle>
+                </DialogHeader>
+                <ManualIngestDialogContent
+                  labels={labels}
+                  onSuccess={() => {
+                    setIngestOpen(false);
+                    router.refresh();
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      />
 
       {/* Table */}
       <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">

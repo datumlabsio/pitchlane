@@ -53,11 +53,8 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
       <Topbar
         title="Metrics"
         subtitle="Pipeline performance across all profiles — qualification rates, application tracking, and win rate."
+        actions={<DateRangeFilter />}
       />
-
-      <div className="-mt-3 flex justify-end">
-        <DateRangeFilter />
-      </div>
 
       {/* ── Metric cards ── */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

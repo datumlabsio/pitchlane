@@ -85,9 +85,12 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   const skip = (page - 1) * limit;
 
   const createdAt = buildCreatedAtRange(opts);
+  // accountId/status are comma-separated lists (multi-select filters).
+  const accountIds = (opts.accountId ?? '').split(',').filter(Boolean);
+  const statuses = (opts.status ?? '').split(',').filter(Boolean) as LeadStatus[];
   const where = {
-    ...(opts.accountId ? { accountId: opts.accountId } : {}),
-    ...(opts.status ? { status: opts.status as LeadStatus } : {}),
+    ...(accountIds.length ? { accountId: { in: accountIds } } : {}),
+    ...(statuses.length ? { status: { in: statuses } } : {}),
     ...(opts.search
       ? { title: { contains: opts.search, mode: 'insensitive' as const } }
       : {}),

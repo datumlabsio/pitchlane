@@ -33,11 +33,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
   return (
     <div className="space-y-8">
-      <Topbar title="Dashboard" subtitle="Overview of lead activity across all profiles." />
-
-      <div className="-mt-3 flex justify-end">
-        <DateRangeFilter />
-      </div>
+      <Topbar
+        title="Dashboard"
+        subtitle="Overview of lead activity across all profiles."
+        actions={<DateRangeFilter />}
+      />
 
       {/* Metric cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

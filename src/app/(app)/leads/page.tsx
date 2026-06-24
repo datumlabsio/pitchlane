@@ -1,6 +1,5 @@
 export const dynamic = 'force-dynamic';
 
-import { Topbar } from '@/components/layout/topbar';
 import { getLeadDetail, listLeadSummaries } from '@/domain/leads/repository';
 import { listActiveAccounts } from '@/domain/accounts/repository';
 import { env } from '@/lib/env';
@@ -34,10 +33,6 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
 
   return (
     <div className="space-y-6">
-      <Topbar
-        title="Lead inbox"
-        subtitle="All leads from forwarded Upwork emails, scored and ranked by profile rules."
-      />
       <LeadWorkbench
         leads={leadsData.items}
         total={leadsData.total}

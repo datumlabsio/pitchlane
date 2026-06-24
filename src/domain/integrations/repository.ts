@@ -38,6 +38,37 @@ export async function getGoogleConnection() {
   });
 }
 
+export async function upsertUpworkConnection(input: {
+  accessToken?: string;
+  refreshToken?: string;
+  expiryDate?: Date | null;
+}) {
+  return prisma.integrationConnection.upsert({
+    where: { provider: IntegrationProvider.UPWORK },
+    update: {
+      accessToken: input.accessToken,
+      refreshToken: input.refreshToken,
+      expiryDate: input.expiryDate ?? null,
+    },
+    create: {
+      provider: IntegrationProvider.UPWORK,
+      accessToken: input.accessToken,
+      refreshToken: input.refreshToken,
+      expiryDate: input.expiryDate ?? null,
+      scopes: [],
+    },
+  });
+}
+
+export async function getUpworkConnection() {
+  return prisma.integrationConnection.findUnique({ where: { provider: IntegrationProvider.UPWORK } });
+}
+
+export async function getUpworkConnectionStatus() {
+  const c = await getUpworkConnection();
+  return { connected: Boolean(c?.refreshToken || c?.accessToken), updatedAt: c?.updatedAt ?? null };
+}
+
 export function getMetaSyncInterval(metadata: unknown): number {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
     const m = metadata as Record<string, unknown>;

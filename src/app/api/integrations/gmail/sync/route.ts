@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { syncGmailInbox } from '@/domain/integrations/gmail-sync';
-import { shouldRunGmailSync } from '@/domain/integrations/repository';
 
 // Each new lead may trigger a scrape-enrichment call (up to ~70s); allow the
 // batch room to finish. Vercel caps this to the plan limit (300s on Pro).
@@ -37,16 +36,13 @@ async function runSync() {
   return NextResponse.json({ ok: true, ...result });
 }
 
-// Vercel Cron calls every minute — checks DB interval before actually syncing
+// The external cron hits this on its own cadence (every ~1 min); we run each
+// time it fires — no in-app throttle. Dedupe on dedupeKey makes re-runs safe.
 export async function GET(request: NextRequest) {
   if (!cronAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
-    const { should, nextInSeconds } = await shouldRunGmailSync();
-    if (!should) {
-      return NextResponse.json({ ok: true, skipped: true, nextInSeconds });
-    }
     return await runSync();
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown Gmail sync failure';

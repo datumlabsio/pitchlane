@@ -47,6 +47,7 @@ enum ProposalTone {
 
 enum IntegrationProvider {
   GOOGLE_GMAIL
+  UPWORK
 }
 
 model Account {

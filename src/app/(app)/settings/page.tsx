@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { Topbar } from '@/components/layout/topbar';
 import { GmailSyncForm } from '@/components/settings/gmail-sync-form';
 import { listActiveAccounts } from '@/domain/accounts/repository';
-import { getGoogleConnectionStatus } from '@/domain/integrations/repository';
+import { getGoogleConnectionStatus, getUpworkConnectionStatus } from '@/domain/integrations/repository';
 import { env } from '@/lib/env';
 
 type SettingsPageProps = {
-  searchParams?: Promise<{ gmail?: string }>;
+  searchParams?: Promise<{ gmail?: string; upwork?: string }>;
 };
 
 function formatTimestamp(date: Date) {
@@ -22,18 +22,20 @@ function formatTimestamp(date: Date) {
 }
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
-  const [accounts, google] = await Promise.all([
+  const [accounts, google, upwork] = await Promise.all([
     listActiveAccounts(),
     getGoogleConnectionStatus(),
+    getUpworkConnectionStatus(),
   ]);
   const params = searchParams ? await searchParams : undefined;
   const gmailStatus = params?.gmail;
+  const upworkStatus = params?.upwork;
 
   return (
     <div className="space-y-8">
-      <Topbar title="Settings" subtitle="Gmail integration, profile routing, and environment." />
+      <Topbar title="Settings" subtitle="Integrations, profile routing, and environment." />
 
-      {/* OAuth callback banner */}
+      {/* OAuth callback banners */}
       {gmailStatus === 'connected' && (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           Gmail connected successfully.
@@ -42,6 +44,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       {gmailStatus === 'error' && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
           Google rejected the callback — the code may have expired. Start the connect flow again.
+        </div>
+      )}
+      {upworkStatus === 'connected' && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          Upwork connected successfully.
+        </div>
+      )}
+      {upworkStatus === 'error' && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          Upwork rejected the callback — confirm the app&apos;s redirect URL matches and try again.
         </div>
       )}
 
@@ -57,7 +69,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </h2>
             <p className="mt-1 text-sm text-stone-400">
               {google.connected
-                ? `Synced automatically by a scheduled cron. Leads enrich in the background. The interval below is the minimum gap between runs (currently ${google.syncIntervalMinutes} min).`
+                ? 'Synced automatically every minute by a scheduled cron; new leads are enriched in the background.'
                 : 'Connect the shared forwarding inbox to enable Gmail sync.'}
             </p>
           </div>
@@ -111,9 +123,34 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <GmailSyncForm
             connected={google.connected}
             hasModifyScope={google.scopes.includes('https://www.googleapis.com/auth/gmail.modify')}
-            syncIntervalMinutes={google.syncIntervalMinutes}
             slackMinScore={google.slackMinScore}
           />
+        </div>
+      </div>
+
+      {/* ── Upwork integration ── */}
+      <div className="rounded-3xl bg-stone-950 p-6 text-stone-50">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Upwork integration</p>
+            <h2 className="mt-2 text-xl font-semibold">{upwork.connected ? 'Connected' : 'Not connected'}</h2>
+            <p className="mt-1 text-sm text-stone-400">
+              {upwork.connected
+                ? 'Job descriptions and client details come from the official Upwork API (Bright Data is the fallback).'
+                : 'Connect Upwork to enrich public jobs via the official API instead of scraping.'}
+            </p>
+          </div>
+          <span className={`mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-medium ${upwork.connected ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'}`}>
+            {upwork.connected ? 'Connected' : 'Pending'}
+          </span>
+        </div>
+        <div className="mt-5 border-t border-white/8 pt-5">
+          <Link
+            href="/api/integrations/upwork/connect"
+            className="rounded-full bg-white px-4 py-2 text-sm font-medium text-stone-950 transition hover:bg-stone-100"
+          >
+            {upwork.connected ? 'Reconnect Upwork' : 'Connect Upwork'}
+          </Link>
         </div>
       </div>
 
@@ -160,6 +197,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             { label: 'Google OAuth', ok: !!env.GOOGLE_CLIENT_ID },
             { label: 'Vercel Cron', ok: !!env.CRON_SECRET },
             { label: 'Slack', ok: !!env.SLACK_WEBHOOK_URL },
+            { label: 'Upwork', ok: !!env.UPWORK_CLIENT_ID },
           ].map(({ label, ok }) => (
             <span
               key={label}

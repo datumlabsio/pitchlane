@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import {
   ArrowRight,
   Check,
@@ -16,66 +16,90 @@ import {
   Sparkles,
   StickyNote,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DateRangeFilter } from '@/components/filters/date-range-filter';
-import { MultiSelectFilter } from '@/components/filters/multi-select';
-import { Topbar } from '@/components/layout/topbar';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DateRangeFilter } from "@/components/filters/date-range-filter";
+import { MultiSelectFilter } from "@/components/filters/multi-select";
+import { Topbar } from "@/components/layout/topbar";
 import {
   leadLifecycleStatuses,
   leadStatusLabelMap,
   type LeadDetail,
   type LeadEnrichment,
   type LeadSummary,
-} from '@/domain/leads/types';
-import { cn } from '@/lib/utils';
+} from "@/domain/leads/types";
+import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function formatDateTimeInput(value: string | null) {
-  if (!value) return '';
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function statusBadgeVariant(statusCode: LeadSummary['statusCode']) {
+function statusBadgeVariant(statusCode: LeadSummary["statusCode"]) {
   switch (statusCode) {
-    case 'QUALIFIED':
-      return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    case 'REJECTED':
-    case 'LOST':
-    case 'QUALIFIED_LOST':
-      return 'bg-rose-100 text-rose-700 border-rose-200';
-    case 'APPLIED':
-    case 'CLIENT_REPLIED':
-    case 'INTRO_CALL':
-    case 'FOLLOW_UP':
-    case 'ONGOING_DISCUSSION':
-      return 'bg-amber-100 text-amber-700 border-amber-200';
-    case 'WON':
-      return 'bg-sky-100 text-sky-700 border-sky-200';
-    case 'HIRES_OTHER':
-    case 'JOB_CLOSED':
-    case 'CLOSED':
-      return 'bg-slate-100 text-slate-600 border-slate-200';
+    case "QUALIFIED":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    case "REJECTED":
+    case "LOST":
+    case "QUALIFIED_LOST":
+      return "bg-rose-100 text-rose-700 border-rose-200";
+    case "APPLIED":
+    case "CLIENT_REPLIED":
+    case "INTRO_CALL":
+    case "FOLLOW_UP":
+    case "ONGOING_DISCUSSION":
+      return "bg-amber-100 text-amber-700 border-amber-200";
+    case "WON":
+      return "bg-sky-100 text-sky-700 border-sky-200";
+    case "HIRES_OTHER":
+    case "JOB_CLOSED":
+    case "CLOSED":
+      return "bg-slate-100 text-slate-600 border-slate-200";
     default:
-      return 'bg-stone-100 text-stone-600 border-stone-200';
+      return "bg-stone-100 text-stone-600 border-stone-200";
   }
 }
 
@@ -84,8 +108,8 @@ function relativeTime(value: string): string {
   if (Number.isNaN(date.getTime())) return value;
   const diffMs = Date.now() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
   if (diffDays < 30) return `${diffDays}d ago`;
   const diffMonths = Math.floor(diffDays / 30);
   if (diffMonths < 12) return `${diffMonths}mo ago`;
@@ -120,31 +144,53 @@ function LinkifiedText({ text }: { text: string }) {
 // Upwork enrichment panel
 // ---------------------------------------------------------------------------
 
-function EnrichmentBadge({ status }: { status: LeadEnrichment['status'] }) {
+function EnrichmentBadge({ status }: { status: LeadEnrichment["status"] }) {
   if (!status) return null;
   const map = {
-    enriched: { dot: 'bg-emerald-500', cls: 'bg-emerald-100 text-emerald-700', label: 'Full description' },
-    private: { dot: 'bg-amber-500', cls: 'bg-amber-100 text-amber-700', label: 'Private / invite-only' },
-    failed: { dot: 'bg-amber-500', cls: 'bg-amber-100 text-amber-700', label: 'Private / closed' },
+    enriched: {
+      dot: "bg-emerald-500",
+      cls: "bg-emerald-100 text-emerald-700",
+      label: "Full description",
+    },
+    private: {
+      dot: "bg-amber-500",
+      cls: "bg-amber-100 text-amber-700",
+      label: "Private / invite-only",
+    },
+    failed: {
+      dot: "bg-amber-500",
+      cls: "bg-amber-100 text-amber-700",
+      label: "Private / closed",
+    },
   } as const;
   const m = map[status];
   return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium', m.cls)}>
-      <span className={cn('size-1.5 rounded-full', m.dot)} />
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        m.cls,
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full", m.dot)} />
       {m.label}
     </span>
   );
 }
 
 // How the description was fetched — official Upwork API vs. web scrape.
-function SourceBadge({ source }: { source: LeadEnrichment['source'] }) {
+function SourceBadge({ source }: { source: LeadEnrichment["source"] }) {
   if (!source) return null;
   const m =
-    source === 'upwork_api'
-      ? { cls: 'bg-sky-100 text-sky-700', label: 'via Upwork API' }
-      : { cls: 'bg-violet-100 text-violet-700', label: 'via web scrape' };
+    source === "upwork_api"
+      ? { cls: "bg-sky-100 text-sky-700", label: "via Upwork API" }
+      : { cls: "bg-violet-100 text-violet-700", label: "via web scrape" };
   return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium', m.cls)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        m.cls,
+      )}
+    >
       {m.label}
     </span>
   );
@@ -159,7 +205,7 @@ function ProposalEmptyState({
   onGenerate,
   generating,
 }: {
-  status: LeadEnrichment['status'];
+  status: LeadEnrichment["status"];
   hasUrl: boolean;
   onGenerate: () => void;
   generating: boolean;
@@ -167,47 +213,47 @@ function ProposalEmptyState({
   // status null + a job URL => enrichment simply hasn't run yet (pending).
   const pending = status === null && hasUrl;
 
-  let tone: 'pending' | 'info' | 'warn' = 'warn';
+  let tone: "pending" | "info" | "warn" = "warn";
   let title: string;
   let reason: string;
   if (pending) {
-    tone = 'pending';
-    title = 'Fetching the job description…';
+    tone = "pending";
+    title = "Fetching the job description…";
     reason =
-      'The proposal is written automatically once enrichment pulls the full Upwork job — usually within seconds of the lead arriving.';
-  } else if (status === 'enriched') {
+      "The proposal is written automatically once enrichment pulls the full Upwork job — usually within seconds of the lead arriving.";
+  } else if (status === "enriched") {
     // Description fetched, but no proposal: it scored below the auto-draft bar.
-    tone = 'info';
-    title = 'Description fetched — no proposal yet';
+    tone = "info";
+    title = "Description fetched — no proposal yet";
     reason =
       "We only auto-draft proposals for leads above your qualify score, to save on AI cost. The full job description is below — generate a proposal whenever you want one.";
-  } else if (status === 'private') {
-    title = 'Description not fetched — private / invite-only job';
+  } else if (status === "private") {
+    title = "Description not fetched — private / invite-only job";
     reason =
       "Upwork only shows invite-only jobs to the invited account, so the description can't be fetched automatically. Generate from the email below if it contains the brief.";
-  } else if (status === 'failed') {
-    title = 'Job is private or no longer available';
+  } else if (status === "failed") {
+    title = "Job is private or no longer available";
     reason =
       "Upwork isn't showing this job publicly — it's invite-only or has been closed — so the full description can't be fetched. Generate from the email below if it has the brief.";
   } else {
-    title = 'Description not fetched — no job link';
+    title = "Description not fetched — no job link";
     reason =
       "There's no Upwork job link on this lead, so there's nothing to fetch automatically. Generate from the email below if you want a draft.";
   }
 
   const styles = {
-    pending: { box: 'border-sky-200 bg-sky-50/70', dot: 'bg-sky-500' },
-    info: { box: 'border-emerald-200 bg-emerald-50/70', dot: 'bg-emerald-500' },
-    warn: { box: 'border-amber-200 bg-amber-50/70', dot: 'bg-amber-500' },
+    pending: { box: "border-sky-200 bg-sky-50/70", dot: "bg-sky-500" },
+    info: { box: "border-emerald-200 bg-emerald-50/70", dot: "bg-emerald-500" },
+    warn: { box: "border-amber-200 bg-amber-50/70", dot: "bg-amber-500" },
   }[tone];
 
   return (
-    <div className={cn('rounded-xl border p-4', styles.box)}>
+    <div className={cn("rounded-xl border p-4", styles.box)}>
       <div className="flex items-center gap-2">
         {pending ? (
           <RefreshCw className="size-4 animate-spin text-sky-600" />
         ) : (
-          <span className={cn('size-2 rounded-full', styles.dot)} />
+          <span className={cn("size-2 rounded-full", styles.dot)} />
         )}
         <p className="text-sm font-semibold text-stone-800">{title}</p>
       </div>
@@ -221,7 +267,7 @@ function ProposalEmptyState({
           className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Sparkles className="size-3.5" />
-          {generating ? 'Generating…' : 'Generate a proposal'}
+          {generating ? "Generating…" : "Generate a proposal"}
         </button>
       )}
     </div>
@@ -230,41 +276,69 @@ function ProposalEmptyState({
 
 function EnrichmentPanel({ enrichment }: { enrichment: LeadEnrichment }) {
   const c = enrichment.client;
-  const location = [c.location, c.country].filter(Boolean).join(', ');
+  const location = [c.location, c.country].filter(Boolean).join(", ");
   const rows: Array<{ label: string; value: string; strong?: boolean }> = [];
   if (c.paymentVerified !== null)
-    rows.push({ label: 'Payment', value: c.paymentVerified ? 'Verified ✓' : 'Unverified', strong: c.paymentVerified });
-  if (c.totalSpent) rows.push({ label: 'Client spent', value: c.totalSpent });
+    rows.push({
+      label: "Payment",
+      value: c.paymentVerified ? "Verified ✓" : "Unverified",
+      strong: c.paymentVerified,
+    });
+  if (c.totalSpent) rows.push({ label: "Client spent", value: c.totalSpent });
   if (c.totalHires !== null)
-    rows.push({ label: 'Total hires', value: c.activeHires !== null ? `${c.totalHires} (${c.activeHires} active)` : String(c.totalHires) });
-  if (c.hours !== null) rows.push({ label: 'Hours billed', value: `${c.hours} hrs` });
-  if (c.rating !== null) rows.push({ label: 'Client rating', value: `${c.rating.toFixed(2)} / 5` });
-  if (location) rows.push({ label: 'Location', value: location });
-  if (enrichment.proposalsCount !== null) rows.push({ label: 'Proposals', value: String(enrichment.proposalsCount) });
-  if (enrichment.paymentType) rows.push({ label: 'Job type', value: enrichment.paymentType });
-  if (c.industry) rows.push({ label: 'Industry', value: c.industry });
-  if (c.companySize) rows.push({ label: 'Company', value: c.companySize });
-  if (c.memberSince) rows.push({ label: 'Member since', value: c.memberSince });
+    rows.push({
+      label: "Total hires",
+      value:
+        c.activeHires !== null
+          ? `${c.totalHires} (${c.activeHires} active)`
+          : String(c.totalHires),
+    });
+  if (c.hours !== null)
+    rows.push({ label: "Hours billed", value: `${c.hours} hrs` });
+  if (c.rating !== null)
+    rows.push({ label: "Client rating", value: `${c.rating.toFixed(2)} / 5` });
+  if (location) rows.push({ label: "Location", value: location });
+  if (enrichment.proposalsCount !== null)
+    rows.push({ label: "Proposals", value: String(enrichment.proposalsCount) });
+  if (enrichment.paymentType)
+    rows.push({ label: "Job type", value: enrichment.paymentType });
+  if (c.industry) rows.push({ label: "Industry", value: c.industry });
+  if (c.companySize) rows.push({ label: "Company", value: c.companySize });
+  if (c.memberSince) rows.push({ label: "Member since", value: c.memberSince });
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
         <Sparkles className="size-3.5 text-emerald-500" />
-        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Upwork client &amp; job</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+          Upwork client &amp; job
+        </p>
       </div>
       {rows.length > 0 ? (
         <div className="grid grid-cols-2 gap-2">
           {rows.map((r) => (
-            <div key={r.label} className="rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-widest text-stone-400">{r.label}</p>
-              <p className={cn('mt-0.5 text-sm font-medium', r.strong ? 'text-emerald-700' : 'text-stone-800')}>
+            <div
+              key={r.label}
+              className="rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2"
+            >
+              <p className="text-[10px] uppercase tracking-widest text-stone-400">
+                {r.label}
+              </p>
+              <p
+                className={cn(
+                  "mt-0.5 text-sm font-medium",
+                  r.strong ? "text-emerald-700" : "text-stone-800",
+                )}
+              >
                 {r.value}
               </p>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-stone-400">Enriched, but no public client details were available for this job.</p>
+        <p className="text-sm text-stone-400">
+          Enriched, but no public client details were available for this job.
+        </p>
       )}
     </div>
   );
@@ -274,15 +348,15 @@ function EnrichmentPanel({ enrichment }: { enrichment: LeadEnrichment }) {
 // Activity timeline
 // ---------------------------------------------------------------------------
 
-type LeadEvent = LeadDetail['events'][number];
+type LeadEvent = LeadDetail["events"][number];
 
 function StatusChip({ code }: { code: string }) {
-  const label = leadStatusLabelMap[code as LeadSummary['statusCode']] ?? code;
+  const label = leadStatusLabelMap[code as LeadSummary["statusCode"]] ?? code;
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium',
-        statusBadgeVariant(code as LeadSummary['statusCode']),
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
+        statusBadgeVariant(code as LeadSummary["statusCode"]),
       )}
     >
       {label}
@@ -290,23 +364,53 @@ function StatusChip({ code }: { code: string }) {
   );
 }
 
-function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) {
+function ActivityItem({
+  event,
+  isLast,
+}: {
+  event: LeadEvent;
+  isLast: boolean;
+}) {
   const payload = (event.payload ?? {}) as Record<string, unknown>;
 
   const meta: { icon: typeof Mail; title: string; tint: string } = (() => {
     switch (event.type) {
-      case 'lead.ingested_from_email':
-        return { icon: Mail, title: 'Captured from email', tint: 'bg-sky-100 text-sky-700' };
-      case 'lead.status_updated':
-        return { icon: ArrowRight, title: 'Status changed', tint: 'bg-amber-100 text-amber-700' };
-      case 'lead.enriched':
-        return { icon: Sparkles, title: 'Enriched from Upwork', tint: 'bg-emerald-100 text-emerald-700' };
-      case 'proposal.regenerated':
-        return { icon: RefreshCw, title: 'Proposal regenerated', tint: 'bg-violet-100 text-violet-700' };
-      case 'proposal.edited':
-        return { icon: FileEdit, title: 'Proposal edited', tint: 'bg-stone-100 text-stone-700' };
+      case "lead.ingested_from_email":
+        return {
+          icon: Mail,
+          title: "Captured from email",
+          tint: "bg-sky-100 text-sky-700",
+        };
+      case "lead.status_updated":
+        return {
+          icon: ArrowRight,
+          title: "Status changed",
+          tint: "bg-amber-100 text-amber-700",
+        };
+      case "lead.enriched":
+        return {
+          icon: Sparkles,
+          title: "Enriched from Upwork",
+          tint: "bg-emerald-100 text-emerald-700",
+        };
+      case "proposal.regenerated":
+        return {
+          icon: RefreshCw,
+          title: "Proposal regenerated",
+          tint: "bg-violet-100 text-violet-700",
+        };
+      case "proposal.edited":
+        return {
+          icon: FileEdit,
+          title: "Proposal edited",
+          tint: "bg-stone-100 text-stone-700",
+        };
       default:
-        return { icon: Sparkles, title: event.type.replace(/[._]/g, ' '), tint: 'bg-stone-100 text-stone-700' };
+        return {
+          icon: Sparkles,
+          title: event.type.replace(/[._]/g, " "),
+          tint: "bg-stone-100 text-stone-700",
+        };
     }
   })();
 
@@ -315,7 +419,12 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
-        <div className={cn('flex size-7 shrink-0 items-center justify-center rounded-full', meta.tint)}>
+        <div
+          className={cn(
+            "flex size-7 shrink-0 items-center justify-center rounded-full",
+            meta.tint,
+          )}
+        >
           <Icon className="size-3.5" />
         </div>
         {!isLast && <div className="mt-1 w-px flex-1 bg-stone-200" />}
@@ -326,23 +435,57 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
           <p className="shrink-0 text-xs text-stone-400">{event.createdAt}</p>
         </div>
         <div className="mt-1.5 text-sm text-stone-600">
-          {event.type === 'lead.status_updated' && payload.to ? (
+          {event.type === "lead.status_updated" && payload.to ? (
             <div className="flex items-center gap-2">
-              {payload.from ? <StatusChip code={String(payload.from)} /> : <span className="text-xs text-stone-400">New lead</span>}
+              {payload.from ? (
+                <StatusChip code={String(payload.from)} />
+              ) : (
+                <span className="text-xs text-stone-400">New lead</span>
+              )}
               <ArrowRight className="size-3.5 text-stone-400" />
               <StatusChip code={String(payload.to)} />
             </div>
-          ) : event.type === 'lead.ingested_from_email' ? (
+          ) : event.type === "lead.ingested_from_email" ? (
             <p className="text-xs text-stone-500">
-              {payload.from ? <>From <span className="text-stone-700">{String(payload.from)}</span></> : 'Forwarded email'}
-              {payload.gmailLabel ? <> · routed via <code className="rounded bg-stone-100 px-1 py-0.5 text-[11px]">{String(payload.gmailLabel)}</code></> : null}
+              {payload.from ? (
+                <>
+                  From{" "}
+                  <span className="text-stone-700">{String(payload.from)}</span>
+                </>
+              ) : (
+                "Forwarded email"
+              )}
+              {payload.gmailLabel ? (
+                <>
+                  {" "}
+                  · routed via{" "}
+                  <code className="rounded bg-stone-100 px-1 py-0.5 text-[11px]">
+                    {String(payload.gmailLabel)}
+                  </code>
+                </>
+              ) : null}
             </p>
-          ) : (event.type === 'proposal.regenerated' || event.type === 'proposal.edited') && payload.versionCount ? (
-            <p className="text-xs text-stone-500">Now on version {String(payload.versionCount)}</p>
-          ) : event.type === 'lead.enriched' ? (
+          ) : (event.type === "proposal.regenerated" ||
+              event.type === "proposal.edited") &&
+            payload.versionCount ? (
             <p className="text-xs text-stone-500">
-              {payload.score != null ? <>Re-scored to <span className="text-stone-700">{String(payload.score)}%</span></> : 'Full job + client details fetched'}
-              {payload.proposalsCount != null ? <> · {String(payload.proposalsCount)} proposals on the job</> : null}
+              Now on version {String(payload.versionCount)}
+            </p>
+          ) : event.type === "lead.enriched" ? (
+            <p className="text-xs text-stone-500">
+              {payload.score != null ? (
+                <>
+                  Re-scored to{" "}
+                  <span className="text-stone-700">
+                    {String(payload.score)}%
+                  </span>
+                </>
+              ) : (
+                "Full job + client details fetched"
+              )}
+              {payload.proposalsCount != null ? (
+                <> · {String(payload.proposalsCount)} proposals on the job</>
+              ) : null}
             </p>
           ) : null}
         </div>
@@ -356,7 +499,14 @@ function ActivityItem({ event, isLast }: { event: LeadEvent; isLast: boolean }) 
 // ---------------------------------------------------------------------------
 
 type FilterAccount = { id: string; personName: string; gmailLabel: string };
-type CurrentFilters = { accountId?: string; status?: string; search?: string; since?: string; from?: string; to?: string };
+type CurrentFilters = {
+  accountId?: string;
+  status?: string;
+  search?: string;
+  since?: string;
+  from?: string;
+  to?: string;
+};
 
 function FilterBar({
   accounts,
@@ -366,7 +516,9 @@ function FilterBar({
   currentFilters: CurrentFilters;
 }) {
   const router = useRouter();
-  const [searchInput, setSearchInput] = useState<string>(currentFilters.search ?? '');
+  const [searchInput, setSearchInput] = useState<string>(
+    currentFilters.search ?? "",
+  );
   const hasFilters = !!(
     currentFilters.accountId ||
     currentFilters.status ||
@@ -378,20 +530,21 @@ function FilterBar({
 
   function buildUrl(updates: Record<string, string | null>) {
     const params = new URLSearchParams();
-    if (currentFilters.accountId) params.set('accountId', currentFilters.accountId);
-    if (currentFilters.status) params.set('status', currentFilters.status);
-    if (currentFilters.search) params.set('search', currentFilters.search);
-    if (currentFilters.since) params.set('since', currentFilters.since);
-    if (currentFilters.from) params.set('from', currentFilters.from);
-    if (currentFilters.to) params.set('to', currentFilters.to);
+    if (currentFilters.accountId)
+      params.set("accountId", currentFilters.accountId);
+    if (currentFilters.status) params.set("status", currentFilters.status);
+    if (currentFilters.search) params.set("search", currentFilters.search);
+    if (currentFilters.since) params.set("since", currentFilters.since);
+    if (currentFilters.from) params.set("from", currentFilters.from);
+    if (currentFilters.to) params.set("to", currentFilters.to);
     for (const [k, v] of Object.entries(updates)) {
-      if (v === null || v === '') params.delete(k);
+      if (v === null || v === "") params.delete(k);
       else params.set(k, v);
     }
-    params.delete('page');
-    params.delete('leadId');
+    params.delete("page");
+    params.delete("leadId");
     const qs = params.toString();
-    return qs ? `/leads?${qs}` : '/leads';
+    return qs ? `/leads?${qs}` : "/leads";
   }
 
   function handleSearchSubmit(e: React.FormEvent) {
@@ -410,7 +563,10 @@ function FilterBar({
       <MultiSelectFilter
         param="status"
         label="Status"
-        options={Object.entries(leadStatusLabelMap).map(([value, lbl]) => ({ value, label: lbl }))}
+        options={Object.entries(leadStatusLabelMap).map(([value, lbl]) => ({
+          value,
+          label: lbl,
+        }))}
       />
 
       <DateRangeFilter />
@@ -421,7 +577,7 @@ function FilterBar({
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search title, text, or paste a job URL…"
+            placeholder="Search title, text, job URL"
             className="h-8 w-52 rounded-md border border-stone-200 bg-white pl-8 pr-3 text-xs outline-none transition focus:border-stone-400 focus:ring-1 focus:ring-stone-300"
           />
         </div>
@@ -429,7 +585,7 @@ function FilterBar({
           <button
             type="button"
             onClick={() => {
-              setSearchInput('');
+              setSearchInput("");
               router.push(buildUrl({ search: null }));
             }}
             className="flex h-8 w-8 items-center justify-center rounded-md text-stone-400 hover:text-stone-600"
@@ -468,13 +624,14 @@ function Pagination({
 }) {
   function buildPageUrl(targetPage: number) {
     const params = new URLSearchParams();
-    if (currentFilters.accountId) params.set('accountId', currentFilters.accountId);
-    if (currentFilters.status) params.set('status', currentFilters.status);
-    if (currentFilters.search) params.set('search', currentFilters.search);
-    if (currentFilters.since) params.set('since', currentFilters.since);
-    if (currentFilters.from) params.set('from', currentFilters.from);
-    if (currentFilters.to) params.set('to', currentFilters.to);
-    params.set('page', String(targetPage));
+    if (currentFilters.accountId)
+      params.set("accountId", currentFilters.accountId);
+    if (currentFilters.status) params.set("status", currentFilters.status);
+    if (currentFilters.search) params.set("search", currentFilters.search);
+    if (currentFilters.since) params.set("since", currentFilters.since);
+    if (currentFilters.from) params.set("from", currentFilters.from);
+    if (currentFilters.to) params.set("to", currentFilters.to);
+    params.set("page", String(targetPage));
     return `/leads?${params.toString()}`;
   }
 
@@ -483,7 +640,8 @@ function Pagination({
   return (
     <div className="flex items-center justify-between gap-4 pt-1">
       <p className="text-xs text-stone-500">
-        {total} lead{total !== 1 ? 's' : ''}{totalPages > 1 ? ` · page ${page} of ${totalPages}` : ''}
+        {total} lead{total !== 1 ? "s" : ""}
+        {totalPages > 1 ? ` · page ${page} of ${totalPages}` : ""}
       </p>
       {totalPages > 1 && (
         <div className="flex gap-1.5">
@@ -491,8 +649,8 @@ function Pagination({
             href={buildPageUrl(page - 1)}
             aria-disabled={page <= 1}
             className={cn(
-              'rounded-lg border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-400',
-              page <= 1 && 'pointer-events-none opacity-40',
+              "rounded-lg border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-400",
+              page <= 1 && "pointer-events-none opacity-40",
             )}
           >
             Previous
@@ -501,8 +659,8 @@ function Pagination({
             href={buildPageUrl(page + 1)}
             aria-disabled={page >= totalPages}
             className={cn(
-              'rounded-lg border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-400',
-              page >= totalPages && 'pointer-events-none opacity-40',
+              "rounded-lg border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-400",
+              page >= totalPages && "pointer-events-none opacity-40",
             )}
           >
             Next
@@ -518,12 +676,12 @@ function Pagination({
 // ---------------------------------------------------------------------------
 
 const DEFAULT_BODY =
-  'We need a Power BI specialist with SQL and dashboard design experience to improve weekly executive reporting. Budget is $1,500 fixed.';
+  "We need a Power BI specialist with SQL and dashboard design experience to improve weekly executive reporting. Budget is $1,500 fixed.";
 
 const LEAD_SOURCES = [
-  { value: 'EMAIL_FORWARD', label: 'Email forward' },
-  { value: 'INVITE', label: 'Invite (client-initiated)' },
-  { value: 'MANUAL', label: 'Manual entry' },
+  { value: "EMAIL_FORWARD", label: "Email forward" },
+  { value: "INVITE", label: "Invite (client-initiated)" },
+  { value: "MANUAL", label: "Manual entry" },
 ] as const;
 
 function ManualIngestDialogContent({
@@ -533,27 +691,31 @@ function ManualIngestDialogContent({
   labels: string[];
   onSuccess: () => void;
 }) {
-  const [ingestStatus, setIngestStatus] = useState('');
+  const [ingestStatus, setIngestStatus] = useState("");
   const [ingestPending, setIngestPending] = useState(false);
-  const [gmailLabel, setGmailLabel] = useState(labels[0] ?? '');
-  const [source, setSource] = useState<string>('EMAIL_FORWARD');
-  const [sender, setSender] = useState('alerts@upwork.com');
-  const [subject, setSubject] = useState('Power BI Dashboard Optimization for Executive Team');
+  const [gmailLabel, setGmailLabel] = useState(labels[0] ?? "");
+  const [source, setSource] = useState<string>("EMAIL_FORWARD");
+  const [sender, setSender] = useState("alerts@upwork.com");
+  const [subject, setSubject] = useState(
+    "Power BI Dashboard Optimization for Executive Team",
+  );
   const [body, setBody] = useState(DEFAULT_BODY);
-  const [sourceUrl, setSourceUrl] = useState('https://www.upwork.com/jobs/~manual-test-lead');
-  const [budget, setBudget] = useState('$1,500 fixed');
-  const [skills, setSkills] = useState('power bi, sql, dashboard');
+  const [sourceUrl, setSourceUrl] = useState(
+    "https://www.upwork.com/jobs/~manual-test-lead",
+  );
+  const [budget, setBudget] = useState("$1,500 fixed");
+  const [skills, setSkills] = useState("power bi, sql, dashboard");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (source === 'INVITE' && !sourceUrl.trim()) {
-      setIngestStatus('Upwork job URL is required for invites.');
+    if (source === "INVITE" && !sourceUrl.trim()) {
+      setIngestStatus("Upwork job URL is required for invites.");
       return;
     }
 
     setIngestPending(true);
-    setIngestStatus('');
+    setIngestStatus("");
 
     const payload = {
       gmailLabel,
@@ -564,20 +726,20 @@ function ManualIngestDialogContent({
       sourceUrl,
       extractedBudget: budget,
       extractedSkills: skills
-        .split(',')
+        .split(",")
         .map((v) => v.trim())
         .filter(Boolean),
     };
 
     try {
-      const response = await fetch('/api/ingest/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ingest/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const result = await response.json();
       if (!response.ok || !result.ok) {
-        setIngestStatus(result.error ?? 'Ingestion failed.');
+        setIngestStatus(result.error ?? "Ingestion failed.");
       } else {
         setIngestStatus(
           result.duplicate
@@ -587,7 +749,9 @@ function ManualIngestDialogContent({
         onSuccess();
       }
     } catch (error) {
-      setIngestStatus(error instanceof Error ? error.message : 'Unknown error.');
+      setIngestStatus(
+        error instanceof Error ? error.message : "Unknown error.",
+      );
     } finally {
       setIngestPending(false);
     }
@@ -598,7 +762,10 @@ function ManualIngestDialogContent({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="ingest-label">Profile label</Label>
-          <Select value={gmailLabel} onValueChange={(value: string | null) => setGmailLabel(value ?? '')}>
+          <Select
+            value={gmailLabel}
+            onValueChange={(value: string | null) => setGmailLabel(value ?? "")}
+          >
             <SelectTrigger id="ingest-label">
               <SelectValue placeholder="Select label" />
             </SelectTrigger>
@@ -615,8 +782,12 @@ function ManualIngestDialogContent({
           <Label htmlFor="ingest-source">Source</Label>
           <Select
             value={source}
-            onValueChange={(v: string | null) => setSource(v ?? 'EMAIL_FORWARD')}
-            items={Object.fromEntries(LEAD_SOURCES.map((s) => [s.value, s.label]))}
+            onValueChange={(v: string | null) =>
+              setSource(v ?? "EMAIL_FORWARD")
+            }
+            items={Object.fromEntries(
+              LEAD_SOURCES.map((s) => [s.value, s.label]),
+            )}
           >
             <SelectTrigger id="ingest-source">
               <SelectValue />
@@ -669,14 +840,14 @@ function ManualIngestDialogContent({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="ingest-source-url">
-            Upwork job URL{source === 'INVITE' ? ' *' : ''}
+            Upwork job URL{source === "INVITE" ? " *" : ""}
           </Label>
           <Input
             id="ingest-source-url"
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
             placeholder="https://www.upwork.com/jobs/~..."
-            required={source === 'INVITE'}
+            required={source === "INVITE"}
           />
         </div>
         <div className="space-y-1.5">
@@ -691,7 +862,7 @@ function ManualIngestDialogContent({
       </div>
       <div className="flex items-center justify-between gap-4 pt-1">
         <Button type="submit" disabled={ingestPending}>
-          {ingestPending ? 'Submitting...' : 'Create lead'}
+          {ingestPending ? "Submitting..." : "Create lead"}
         </Button>
         {ingestStatus && (
           <p className="text-sm text-stone-500">{ingestStatus}</p>
@@ -709,16 +880,25 @@ function ManualIngestDialogContent({
 function LiveIndicator({ paused }: { paused: boolean }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-xs text-stone-500"
-      title={paused ? 'Auto-refresh paused while a lead is open' : 'Auto-updating every 60s'}
+      className="!hidden inline-flex items-center gap-1.5 text-xs text-stone-500"
+      title={
+        paused
+          ? "Auto-refresh paused while a lead is open"
+          : "Auto-updating every 60s"
+      }
     >
       <span className="relative flex size-2">
         {!paused && (
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
         )}
-        <span className={cn('relative inline-flex size-2 rounded-full', paused ? 'bg-stone-300' : 'bg-emerald-500')} />
+        <span
+          className={cn(
+            "relative inline-flex size-2 rounded-full",
+            paused ? "bg-stone-300" : "bg-emerald-500",
+          )}
+        />
       </span>
-      {paused ? 'Paused' : 'Live'}
+      {paused ? "Paused" : "Live"}
     </span>
   );
 }
@@ -747,25 +927,31 @@ export function LeadWorkbench({
   enrichmentEnabled?: boolean;
 }) {
   const router = useRouter();
-  const [statusMessage, setStatusMessage] = useState('');
+  const [statusMessage, setStatusMessage] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [proposalDraft, setProposalDraft] = useState('');
+  const [proposalDraft, setProposalDraft] = useState("");
   const [copied, setCopied] = useState(false);
-  const [proposalFeedback, setProposalFeedback] = useState('');
-  const [connectsSpent, setConnectsSpent] = useState('');
-  const [appliedAt, setAppliedAt] = useState('');
-  const [lastFollowUpAt, setLastFollowUpAt] = useState('');
-  const [notes, setNotes] = useState('');
+  const [proposalFeedback, setProposalFeedback] = useState("");
+  const [connectsSpent, setConnectsSpent] = useState("");
+  const [appliedAt, setAppliedAt] = useState("");
+  const [lastFollowUpAt, setLastFollowUpAt] = useState("");
+  const [notes, setNotes] = useState("");
   const [ingestOpen, setIngestOpen] = useState(false);
 
   useEffect(() => {
-    setProposalDraft(selectedLead?.proposals[0]?.content ?? '');
-    setProposalFeedback('');
-    setConnectsSpent(selectedLead?.application?.connectsSpent?.toString() ?? '');
-    setAppliedAt(formatDateTimeInput(selectedLead?.application?.appliedAt ?? null));
-    setLastFollowUpAt(formatDateTimeInput(selectedLead?.application?.lastFollowUpAt ?? null));
-    setNotes(selectedLead?.application?.notes ?? '');
-    setStatusMessage('');
+    setProposalDraft(selectedLead?.proposals[0]?.content ?? "");
+    setProposalFeedback("");
+    setConnectsSpent(
+      selectedLead?.application?.connectsSpent?.toString() ?? "",
+    );
+    setAppliedAt(
+      formatDateTimeInput(selectedLead?.application?.appliedAt ?? null),
+    );
+    setLastFollowUpAt(
+      formatDateTimeInput(selectedLead?.application?.lastFollowUpAt ?? null),
+    );
+    setNotes(selectedLead?.application?.notes ?? "");
+    setStatusMessage("");
   }, [selectedLead]);
 
   // Auto-refresh the list so leads from the sync/enrich crons appear without a
@@ -775,7 +961,10 @@ export function LeadWorkbench({
   useEffect(() => {
     if (selectedLeadId) return;
     const id = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
         router.refresh();
       }
     }, 60_000);
@@ -787,19 +976,25 @@ export function LeadWorkbench({
     init: RequestInit,
     successMessage: string | ((result: { outcome?: string }) => string),
   ) {
-    setStatusMessage('');
+    setStatusMessage("");
     startTransition(async () => {
       try {
         const response = await fetch(url, init);
         const result = await response.json();
         if (!response.ok || !result.ok) {
-          setStatusMessage(result.error ?? 'Request failed.');
+          setStatusMessage(result.error ?? "Request failed.");
           return;
         }
-        setStatusMessage(typeof successMessage === 'function' ? successMessage(result) : successMessage);
+        setStatusMessage(
+          typeof successMessage === "function"
+            ? successMessage(result)
+            : successMessage,
+        );
         router.refresh();
       } catch (error) {
-        setStatusMessage(error instanceof Error ? error.message : 'Unknown request error.');
+        setStatusMessage(
+          error instanceof Error ? error.message : "Unknown request error.",
+        );
       }
     });
   }
@@ -809,8 +1004,8 @@ export function LeadWorkbench({
     void runRequest(
       `/api/leads/${selectedLead.id}/status`,
       {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       },
       `Lead moved to ${leadStatusLabelMap[status]}.`,
@@ -819,16 +1014,20 @@ export function LeadWorkbench({
 
   function submitApplication() {
     if (!selectedLead) return;
-    const parsedConnects = connectsSpent.trim().length > 0 ? Number(connectsSpent) : null;
-    if (parsedConnects !== null && (!Number.isInteger(parsedConnects) || parsedConnects < 0)) {
-      setStatusMessage('Connects spent must be a non-negative integer.');
+    const parsedConnects =
+      connectsSpent.trim().length > 0 ? Number(connectsSpent) : null;
+    if (
+      parsedConnects !== null &&
+      (!Number.isInteger(parsedConnects) || parsedConnects < 0)
+    ) {
+      setStatusMessage("Connects spent must be a non-negative integer.");
       return;
     }
     void runRequest(
-      '/api/applications',
+      "/api/applications",
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           leadId: selectedLead.id,
           connectsSpent: parsedConnects,
@@ -837,7 +1036,7 @@ export function LeadWorkbench({
           notes,
         }),
       },
-      'Application details saved.',
+      "Application details saved.",
     );
   }
 
@@ -845,10 +1044,10 @@ export function LeadWorkbench({
     if (!selectedLead) return;
     void runRequest(
       `/api/leads/${selectedLead.id}/enrich`,
-      { method: 'POST' },
+      { method: "POST" },
       (result) =>
-        result.outcome === 'enriched'
-          ? 'Refreshed from Upwork — job details and score updated.'
+        result.outcome === "enriched"
+          ? "Refreshed from Upwork — job details and score updated."
           : "This job isn't publicly viewable (private or closed), so there's nothing to fetch.",
     );
   }
@@ -860,47 +1059,48 @@ export function LeadWorkbench({
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       })
-      .catch(() => setStatusMessage('Could not copy to clipboard.'));
+      .catch(() => setStatusMessage("Could not copy to clipboard."));
   }
 
-  function saveProposal(mode: 'edit' | 'regenerate') {
+  function saveProposal(mode: "edit" | "regenerate") {
     if (!selectedLead) return;
-    if (mode === 'edit' && proposalDraft.trim().length === 0) {
-      setStatusMessage('Proposal content is required.');
+    if (mode === "edit" && proposalDraft.trim().length === 0) {
+      setStatusMessage("Proposal content is required.");
       return;
     }
     const feedback = proposalFeedback.trim();
     void runRequest(
       `/api/leads/${selectedLead.id}/proposals`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          mode === 'edit'
+          mode === "edit"
             ? { mode, content: proposalDraft }
             : { mode, ...(feedback ? { feedback } : {}) },
         ),
       },
-      mode === 'edit'
-        ? 'Proposal version saved.'
+      mode === "edit"
+        ? "Proposal version saved."
         : feedback
-          ? 'Proposal regenerated with your feedback.'
-          : 'Proposal regenerated.',
+          ? "Proposal regenerated with your feedback."
+          : "Proposal regenerated.",
     );
-    if (mode === 'regenerate') setProposalFeedback('');
+    if (mode === "regenerate") setProposalFeedback("");
   }
 
   function buildCloseUrl() {
     const params = new URLSearchParams();
-    if (currentFilters.accountId) params.set('accountId', currentFilters.accountId);
-    if (currentFilters.status) params.set('status', currentFilters.status);
-    if (currentFilters.search) params.set('search', currentFilters.search);
-    if (currentFilters.since) params.set('since', currentFilters.since);
-    if (currentFilters.from) params.set('from', currentFilters.from);
-    if (currentFilters.to) params.set('to', currentFilters.to);
-    if (page > 1) params.set('page', String(page));
+    if (currentFilters.accountId)
+      params.set("accountId", currentFilters.accountId);
+    if (currentFilters.status) params.set("status", currentFilters.status);
+    if (currentFilters.search) params.set("search", currentFilters.search);
+    if (currentFilters.since) params.set("since", currentFilters.since);
+    if (currentFilters.from) params.set("from", currentFilters.from);
+    if (currentFilters.to) params.set("to", currentFilters.to);
+    if (page > 1) params.set("page", String(page));
     const qs = params.toString();
-    return qs ? `/leads?${qs}` : '/leads';
+    return qs ? `/leads?${qs}` : "/leads";
   }
 
   return (
@@ -950,7 +1150,10 @@ export function LeadWorkbench({
           <TableBody>
             {leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-sm text-stone-500">
+                <TableCell
+                  colSpan={6}
+                  className="py-10 text-center text-sm text-stone-500"
+                >
                   No leads found. Try adjusting your filters or add a new lead.
                 </TableCell>
               </TableRow>
@@ -961,14 +1164,16 @@ export function LeadWorkbench({
                   <TableRow
                     key={lead.id}
                     className={cn(
-                      'cursor-pointer transition-colors hover:bg-amber-50/60',
-                      isSelected && 'bg-amber-50',
+                      "cursor-pointer transition-colors hover:bg-amber-50/60",
+                      isSelected && "bg-amber-50",
                     )}
                     onClick={() => router.push(`/leads?leadId=${lead.id}`)}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-1.5">
-                        <span className="min-w-0 flex-1 truncate">{lead.title}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {lead.title}
+                        </span>
                         {lead.sourceUrl && (
                           <a
                             href={lead.sourceUrl}
@@ -994,7 +1199,7 @@ export function LeadWorkbench({
                     <TableCell>
                       <span
                         className={cn(
-                          'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
+                          "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
                           statusBadgeVariant(lead.statusCode),
                         )}
                       >
@@ -1004,8 +1209,12 @@ export function LeadWorkbench({
                     <TableCell className="text-right tabular-nums text-stone-600">
                       {lead.matchScore}%
                     </TableCell>
-                    <TableCell className="text-stone-600">{lead.budget}</TableCell>
-                    <TableCell className="text-stone-500 text-xs">{relativeTime(lead.createdAt)}</TableCell>
+                    <TableCell className="text-stone-600">
+                      {lead.budget}
+                    </TableCell>
+                    <TableCell className="text-stone-500 text-xs">
+                      {relativeTime(lead.createdAt)}
+                    </TableCell>
                   </TableRow>
                 );
               })
@@ -1029,7 +1238,10 @@ export function LeadWorkbench({
           if (!open) router.push(buildCloseUrl());
         }}
       >
-        <SheetContent side="right" className="data-[side=right]:w-[70vw] data-[side=right]:max-w-[70vw] data-[side=right]:sm:max-w-[70vw] p-0 flex flex-col">
+        <SheetContent
+          side="right"
+          className="data-[side=right]:w-[70vw] data-[side=right]:max-w-[70vw] data-[side=right]:sm:max-w-[70vw] p-0 flex flex-col"
+        >
           {selectedLead && (
             <>
               <SheetHeader className="px-6 pt-6 pb-4 shrink-0">
@@ -1041,19 +1253,28 @@ export function LeadWorkbench({
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <span
                     className={cn(
-                      'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
+                      "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
                       statusBadgeVariant(selectedLead.statusCode),
                     )}
                   >
                     {selectedLead.status}
                   </span>
-                  <Badge variant="outline" className="bg-stone-50 text-stone-700 border-stone-200 font-normal">
+                  <Badge
+                    variant="outline"
+                    className="bg-stone-50 text-stone-700 border-stone-200 font-normal"
+                  >
                     {selectedLead.profileName}
                   </Badge>
-                  <span className="text-xs text-stone-500">{selectedLead.budget}</span>
-                  <EnrichmentBadge status={selectedLead.enrichment?.status ?? null} />
-                  {selectedLead.enrichment?.status === 'enriched' && (
-                    <SourceBadge source={selectedLead.enrichment?.source ?? null} />
+                  <span className="text-xs text-stone-500">
+                    {selectedLead.budget}
+                  </span>
+                  <EnrichmentBadge
+                    status={selectedLead.enrichment?.status ?? null}
+                  />
+                  {selectedLead.enrichment?.status === "enriched" && (
+                    <SourceBadge
+                      source={selectedLead.enrichment?.source ?? null}
+                    />
                   )}
                   <div className="ml-auto flex items-center gap-2">
                     {enrichmentEnabled && selectedLead.sourceUrl && (
@@ -1064,12 +1285,17 @@ export function LeadWorkbench({
                         title="Re-fetch the job & client details from Upwork and re-score — your proposal is left as-is"
                         className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
                       >
-                        <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
-                        {selectedLead.enrichment?.status === 'failed'
-                          ? 'Retry fetch'
+                        <RefreshCw
+                          className={cn(
+                            "h-3.5 w-3.5",
+                            isPending && "animate-spin",
+                          )}
+                        />
+                        {selectedLead.enrichment?.status === "failed"
+                          ? "Retry fetch"
                           : selectedLead.enrichment?.status
-                            ? 'Refresh from Upwork'
-                            : 'Fetch from Upwork'}
+                            ? "Refresh from Upwork"
+                            : "Fetch from Upwork"}
                       </button>
                     )}
                     {selectedLead.sourceUrl ? (
@@ -1097,7 +1323,9 @@ export function LeadWorkbench({
                 <div className="px-6 py-4">
                   {/* Lifecycle — pulled out of the tabs so status is reachable from any tab */}
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Lifecycle</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                      Lifecycle
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {leadLifecycleStatuses.map((status) => {
                         const isCurrent = selectedLead.statusCode === status;
@@ -1108,11 +1336,11 @@ export function LeadWorkbench({
                             disabled={isPending || isCurrent}
                             onClick={() => submitStatus(status)}
                             className={cn(
-                              'rounded-full px-3.5 py-1.5 text-xs font-medium transition',
+                              "rounded-full px-3.5 py-1.5 text-xs font-medium transition",
                               isCurrent
-                                ? 'bg-stone-950 text-white'
-                                : 'border border-stone-200 bg-white text-stone-700 hover:border-stone-400',
-                              isPending && 'cursor-not-allowed opacity-70',
+                                ? "bg-stone-950 text-white"
+                                : "border border-stone-200 bg-white text-stone-700 hover:border-stone-400",
+                              isPending && "cursor-not-allowed opacity-70",
                             )}
                           >
                             {leadStatusLabelMap[status]}
@@ -1139,39 +1367,52 @@ export function LeadWorkbench({
                     <TabsContent value="overview" className="space-y-5 mt-0">
                       <div className="grid grid-cols-3 gap-3">
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
-                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Match</p>
+                          <p className="text-[10px] uppercase tracking-widest text-stone-400">
+                            Match
+                          </p>
                           <p className="mt-1.5 text-lg font-semibold text-stone-950">
                             {selectedLead.matchScore}%
                           </p>
                         </div>
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
-                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Proposals</p>
+                          <p className="text-[10px] uppercase tracking-widest text-stone-400">
+                            Proposals
+                          </p>
                           <p className="mt-1.5 text-lg font-semibold text-stone-950">
                             {selectedLead.enrichment?.proposalsCount != null
                               ? selectedLead.enrichment.proposalsCount
-                              : '—'}
+                              : "—"}
                           </p>
                         </div>
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
-                          <p className="text-[10px] uppercase tracking-widest text-stone-400">Client spent</p>
+                          <p className="text-[10px] uppercase tracking-widest text-stone-400">
+                            Client spent
+                          </p>
                           <p className="mt-1.5 text-lg font-semibold text-stone-950">
-                            {selectedLead.enrichment?.client.totalSpent ?? '—'}
+                            {selectedLead.enrichment?.client.totalSpent ?? "—"}
                           </p>
                         </div>
                       </div>
 
                       {/* Upwork enrichment */}
-                      {selectedLead.enrichment?.status === 'enriched' && (
+                      {selectedLead.enrichment?.status === "enriched" && (
                         <EnrichmentPanel enrichment={selectedLead.enrichment} />
                       )}
-                      {selectedLead.enrichment?.status === 'private' && (
+                      {selectedLead.enrichment?.status === "private" && (
                         <p className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5 text-sm leading-6 text-amber-800">
-                          This is a private / invite-only job — only the invited profile can open it, so we&apos;re working from the email content below.
+                          This is a private / invite-only job — only the invited
+                          profile can open it, so we&apos;re working from the
+                          email content below.
                         </p>
                       )}
-                      {selectedLead.enrichment?.status === 'failed' && (
+                      {selectedLead.enrichment?.status === "failed" && (
                         <p className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5 text-sm leading-6 text-amber-800">
-                          This job is private or no longer available — Upwork isn&apos;t showing it publicly, so the full description can&apos;t be fetched. Working from the email content below; hit <span className="font-medium">Retry fetch</span> if you think it&apos;s still open.
+                          This job is private or no longer available — Upwork
+                          isn&apos;t showing it publicly, so the full
+                          description can&apos;t be fetched. Working from the
+                          email content below; hit{" "}
+                          <span className="font-medium">Retry fetch</span> if
+                          you think it&apos;s still open.
                         </p>
                       )}
 
@@ -1179,7 +1420,9 @@ export function LeadWorkbench({
                       <div className="space-y-2">
                         <div className="flex items-center gap-1.5">
                           <StickyNote className="size-3.5 text-amber-500" />
-                          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Notes</p>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                            Notes
+                          </p>
                         </div>
                         {selectedLead.application?.notes ? (
                           <p className="whitespace-pre-wrap rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5 text-sm leading-6 text-stone-700">
@@ -1194,7 +1437,9 @@ export function LeadWorkbench({
 
                       <div className="space-y-2">
                         <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
-                          {selectedLead.enrichment?.description ? 'Job description' : 'Lead brief'}
+                          {selectedLead.enrichment?.description
+                            ? "Job description"
+                            : "Lead brief"}
                         </p>
                         <p className="whitespace-pre-wrap text-sm leading-6 text-stone-700">
                           <LinkifiedText
@@ -1202,9 +1447,13 @@ export function LeadWorkbench({
                               (
                                 selectedLead.enrichment?.description ||
                                 selectedLead.brief ||
-                                ''
-                              ).slice(0, selectedLead.enrichment?.description ? 4000 : 1500) ||
-                              'No lead copy captured.'
+                                ""
+                              ).slice(
+                                0,
+                                selectedLead.enrichment?.description
+                                  ? 4000
+                                  : 1500,
+                              ) || "No lead copy captured."
                             }
                           />
                         </p>
@@ -1217,21 +1466,32 @@ export function LeadWorkbench({
                         {selectedLead.summary.length > 0 ? (
                           <ul className="space-y-1.5">
                             {selectedLead.summary.map((item) => (
-                              <li key={item} className="flex gap-2 text-sm leading-6 text-stone-700">
-                                <span className="mt-0.5 text-stone-400">&#8212;</span>
+                              <li
+                                key={item}
+                                className="flex gap-2 text-sm leading-6 text-stone-700"
+                              >
+                                <span className="mt-0.5 text-stone-400">
+                                  &#8212;
+                                </span>
                                 <span>{item}</span>
                               </li>
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-sm text-stone-500">No evaluation summary available.</p>
+                          <p className="text-sm text-stone-500">
+                            No evaluation summary available.
+                          </p>
                         )}
                         {selectedLead.rejectionReasons.length > 0 && (
                           <div className="mt-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2">
-                            <p className="text-xs font-medium text-rose-700">Rejected by rules</p>
+                            <p className="text-xs font-medium text-rose-700">
+                              Rejected by rules
+                            </p>
                             <ul className="mt-1 space-y-0.5">
                               {selectedLead.rejectionReasons.map((r) => (
-                                <li key={r} className="text-xs text-rose-600">{r}</li>
+                                <li key={r} className="text-xs text-rose-600">
+                                  {r}
+                                </li>
                               ))}
                             </ul>
                           </div>
@@ -1249,7 +1509,6 @@ export function LeadWorkbench({
                           </div>
                         )}
                       </div>
-
                     </TabsContent>
 
                     {/* ── Proposal ── */}
@@ -1258,7 +1517,7 @@ export function LeadWorkbench({
                         <ProposalEmptyState
                           status={selectedLead.enrichment?.status ?? null}
                           hasUrl={Boolean(selectedLead.sourceUrl)}
-                          onGenerate={() => saveProposal('regenerate')}
+                          onGenerate={() => saveProposal("regenerate")}
                           generating={isPending}
                         />
                       )}
@@ -1276,8 +1535,12 @@ export function LeadWorkbench({
                             title="Copy proposal"
                             className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-medium text-stone-200 backdrop-blur transition hover:bg-white/20"
                           >
-                            {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                            {copied ? 'Copied' : 'Copy'}
+                            {copied ? (
+                              <Check className="size-3.5" />
+                            ) : (
+                              <Copy className="size-3.5" />
+                            )}
+                            {copied ? "Copied" : "Copy"}
                           </button>
                         )}
                       </div>
@@ -1285,7 +1548,7 @@ export function LeadWorkbench({
                         <Button
                           size="sm"
                           disabled={isPending}
-                          onClick={() => saveProposal('edit')}
+                          onClick={() => saveProposal("edit")}
                         >
                           Save as new version
                         </Button>
@@ -1293,10 +1556,12 @@ export function LeadWorkbench({
                           variant="outline"
                           size="sm"
                           disabled={isPending}
-                          onClick={() => saveProposal('regenerate')}
+                          onClick={() => saveProposal("regenerate")}
                         >
                           <RefreshCw className="mr-1.5 size-3.5" />
-                          {selectedLead.proposals.length === 0 ? 'Generate a proposal' : 'Regenerate from scratch'}
+                          {selectedLead.proposals.length === 0
+                            ? "Generate a proposal"
+                            : "Regenerate from scratch"}
                         </Button>
                       </div>
 
@@ -1317,14 +1582,20 @@ export function LeadWorkbench({
                         />
                         <Button
                           size="sm"
-                          disabled={isPending || proposalFeedback.trim().length === 0}
-                          onClick={() => saveProposal('regenerate')}
+                          disabled={
+                            isPending || proposalFeedback.trim().length === 0
+                          }
+                          onClick={() => saveProposal("regenerate")}
                         >
-                          {isPending ? 'Rewriting…' : 'Rewrite with this feedback'}
+                          {isPending
+                            ? "Rewriting…"
+                            : "Rewrite with this feedback"}
                         </Button>
                       </div>
                       {statusMessage && (
-                        <p className="text-xs text-stone-500">{statusMessage}</p>
+                        <p className="text-xs text-stone-500">
+                          {statusMessage}
+                        </p>
                       )}
                       {selectedLead.proposals.length > 0 && (
                         <div className="space-y-3">
@@ -1339,10 +1610,13 @@ export function LeadWorkbench({
                               <div className="flex items-center justify-between gap-2">
                                 <p className="text-sm font-medium text-stone-900">
                                   V{selectedLead.proposals.length - index}
-                                  {proposal.isPrimary ? ' · Primary' : ''}
+                                  {proposal.isPrimary ? " · Primary" : ""}
                                 </p>
                                 <span className="text-xs text-stone-500">
-                                  {proposal.isAiGenerated ? 'AI draft' : 'Manual edit'} · {proposal.createdAt}
+                                  {proposal.isAiGenerated
+                                    ? "AI draft"
+                                    : "Manual edit"}{" "}
+                                  · {proposal.createdAt}
                                 </span>
                               </div>
                               <p className="line-clamp-4 whitespace-pre-wrap text-xs leading-5 text-stone-600">
@@ -1376,7 +1650,9 @@ export function LeadWorkbench({
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label htmlFor="app-followup-at">Last follow-up</Label>
+                          <Label htmlFor="app-followup-at">
+                            Last follow-up
+                          </Label>
                           <Input
                             id="app-followup-at"
                             type="datetime-local"
@@ -1396,8 +1672,12 @@ export function LeadWorkbench({
                         />
                       </div>
                       <div className="flex items-center gap-4">
-                        <Button size="sm" disabled={isPending} onClick={submitApplication}>
-                          {isPending ? 'Saving...' : 'Save application'}
+                        <Button
+                          size="sm"
+                          disabled={isPending}
+                          onClick={submitApplication}
+                        >
+                          {isPending ? "Saving..." : "Save application"}
                         </Button>
                         {selectedLead.application && (
                           <p className="text-xs text-stone-500">
@@ -1406,7 +1686,9 @@ export function LeadWorkbench({
                         )}
                       </div>
                       {statusMessage && (
-                        <p className="text-xs text-stone-500">{statusMessage}</p>
+                        <p className="text-xs text-stone-500">
+                          {statusMessage}
+                        </p>
                       )}
                     </TabsContent>
 

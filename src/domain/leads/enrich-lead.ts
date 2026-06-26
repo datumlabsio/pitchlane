@@ -15,6 +15,10 @@ function confidenceLabel(c: number): string {
   return 'Low';
 }
 
+// Only Slack-alert leads scoring above this Match % — low-fit leads stay out of
+// the channel. The 🟢/⚪ dot (slackMinScore) still flags the strong ones above it.
+const SLACK_ALERT_MIN_MATCH = 30;
+
 export type EnrichLeadResult =
   | { ok: true; outcome: 'enriched'; score: number; status: LeadStatus }
   | { ok: true; outcome: 'private' }
@@ -86,7 +90,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     // email-derived meta still tells the user it landed. enrichedAt is set above, so
     // retries won't re-alert (freshLead turns false once it's been attempted).
     const existingScore = lead.evaluations[0]?.score ?? 0;
-    if (freshLead) {
+    if (freshLead && existingScore > SLACK_ALERT_MIN_MATCH) {
       void notifySlackNewLead({
         variant: outcome.status, // 'private' | 'failed'
         profileName: lead.account.personName,
@@ -219,9 +223,9 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   );
   await prisma.$transaction(ops);
 
-  // Rich meta alert on every fresh lead (first enrichment only, so re-enriching is
-  // quiet). The dot is 🟢 when the score clears the configured "hot" threshold.
-  if (freshLead) {
+  // Rich meta alert on every fresh lead above the match floor (first enrichment
+  // only, so re-enriching is quiet). The dot is 🟢 when the score clears "hot".
+  if (freshLead && evaluation.score > SLACK_ALERT_MIN_MATCH) {
     const clientLocation = [c.location, c.country].map((s) => s?.trim()).filter(Boolean).join(', ') || null;
     void notifySlackNewLead({
       variant: 'enriched',

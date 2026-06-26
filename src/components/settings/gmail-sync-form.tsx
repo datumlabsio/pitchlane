@@ -121,7 +121,7 @@ export function GmailSyncForm({
         </div>
       </div>
       <p className="text-xs text-stone-500">
-        Every lead is posted to Slack once enrichment finishes. Leads scoring at or above this are flagged 🟢 hot (others ⚪) so the channel stays scannable. Default 40%.
+        Leads scoring above 30% Match are posted to Slack once enrichment finishes; lower ones are skipped. Those at or above this threshold are flagged 🟢 hot (others ⚪). Default 40%.
       </p>
 
       {/* Action buttons */}

@@ -88,7 +88,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 {google.latestSync.finishedAt ? ` → ${formatTimestamp(google.latestSync.finishedAt)}` : ''}
               </p>
             </div>
-            <div className="mt-3 grid grid-cols-4 gap-2">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
                 { label: 'Scanned', value: google.latestSync.messagesScanned },
                 { label: 'Created', value: google.latestSync.leadsCreated },

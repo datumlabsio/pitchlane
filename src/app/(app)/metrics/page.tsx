@@ -133,7 +133,7 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
           {profileRows.length === 0 ? (
             <p className="text-sm text-muted-foreground">No profiles found.</p>
           ) : (
-            <Table>
+            <Table className="min-w-[760px]">
               <TableHeader>
                 <TableRow className="bg-stone-50/60">
                   <TableHead>Profile</TableHead>

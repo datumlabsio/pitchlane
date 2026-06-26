@@ -1136,7 +1136,7 @@ export function LeadWorkbench({
 
       {/* Table */}
       <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
-        <Table>
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow className="bg-stone-50 hover:bg-stone-50">
               <TableHead className="w-[35%]">Title</TableHead>
@@ -1240,7 +1240,7 @@ export function LeadWorkbench({
       >
         <SheetContent
           side="right"
-          className="data-[side=right]:w-[70vw] data-[side=right]:max-w-[70vw] data-[side=right]:sm:max-w-[70vw] p-0 flex flex-col"
+          className="data-[side=right]:w-full data-[side=right]:max-w-full data-[side=right]:lg:w-[70vw] data-[side=right]:lg:max-w-[70vw] p-0 flex flex-col"
         >
           {selectedLead && (
             <>
@@ -1356,7 +1356,7 @@ export function LeadWorkbench({
                   <Separator className="my-4" />
 
                   <Tabs defaultValue="overview">
-                    <TabsList className="mb-4">
+                    <TabsList className="mb-4 max-w-full overflow-x-auto">
                       <TabsTrigger value="overview">Overview</TabsTrigger>
                       <TabsTrigger value="proposal">Proposal</TabsTrigger>
                       <TabsTrigger value="application">Application</TabsTrigger>

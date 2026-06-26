@@ -614,7 +614,7 @@ export function ProfileWorkbench({ profiles, selectedProfile }: WorkbenchProps) 
 
       {/* table */}
       <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
-        <Table>
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow className="bg-stone-50/80">
               <TableHead>Profile</TableHead>
@@ -690,7 +690,7 @@ export function ProfileWorkbench({ profiles, selectedProfile }: WorkbenchProps) 
         open={selectedProfile !== null}
         onOpenChange={(open) => { if (!open) router.push('/profiles'); }}
       >
-        <SheetContent side="right" className="data-[side=right]:w-[70vw] data-[side=right]:max-w-[70vw] data-[side=right]:sm:max-w-[70vw] p-0 flex flex-col">
+        <SheetContent side="right" className="data-[side=right]:w-full data-[side=right]:max-w-full data-[side=right]:lg:w-[70vw] data-[side=right]:lg:max-w-[70vw] p-0 flex flex-col">
           {selectedProfile && (
             <ProfileSheetContent key={selectedProfile.account.id} entry={selectedProfile} />
           )}

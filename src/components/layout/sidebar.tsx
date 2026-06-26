@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { BarChart3, BriefcaseBusiness, Inbox, LogOut, Settings2, Users2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
-const items = [
+export const navItems = [
   { href: '/', label: 'Overview', icon: BriefcaseBusiness },
   { href: '/leads', label: 'Leads', icon: Inbox },
   { href: '/profiles', label: 'Profiles', icon: Users2 },
@@ -81,7 +81,7 @@ export function Sidebar({ lastSyncAt }: { lastSyncAt: string | null }) {
       </div>
 
       <nav className="space-y-1">
-        {items.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
           return (

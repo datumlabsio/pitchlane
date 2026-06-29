@@ -28,15 +28,47 @@ type EvaluateEmailInput = {
   scoringWeights?: ScoringWeights | null;
 };
 
+// Lowercase, turn punctuation (. _ / - , & ()) into spaces, collapse, and pad —
+// so "Next.js" ≈ "next js" and "Full-Stack" ≈ "full stack" all match cleanly.
+function normalize(s: string): string {
+  return ` ${s.toLowerCase().replace(/[._/\-,&()]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
+}
+
+// A single word is "present" if it starts at a word boundary. ≥3-char words allow a
+// trailing continuation (so "dashboard" matches "dashboards"); ≤2-char words ("ai")
+// must be a whole word to avoid matching "air"/"aid".
+function wordHit(normText: string, word: string): boolean {
+  return word.length <= 2 ? normText.includes(` ${word} `) : normText.includes(` ${word}`);
+}
+
+// Lenient positive match (skills/roles/keywords — we WANT to catch fits): the term
+// appears as a phrase, OR every word of a multi-word term is present (so
+// "Full Stack Developer" matches "Full-Stack Web Developer").
+function hasTerm(normText: string, term: string): boolean {
+  const t = normalize(term).trim();
+  if (!t) return false;
+  if (normText.includes(` ${t}`)) return true;
+  const words = t.split(' ');
+  return words.length > 1 && words.every((w) => wordHit(normText, w));
+}
+
+// Strict reject match: contiguous phrase only — so "mobile app" never rejects a
+// "mobile-responsive web app".
+function hasReject(normText: string, rule: string): boolean {
+  const r = normalize(rule).trim();
+  return Boolean(r) && normText.includes(` ${r}`);
+}
+
 export function evaluateEmail(input: EvaluateEmailInput): EvaluationResult {
   const text = `${input.subject}\n${input.body}`.toLowerCase();
+  const normText = normalize(text);
   const weights = { ...DEFAULT_WEIGHTS, ...(input.scoringWeights ?? {}) };
 
-  const rejectionReasons = input.rejectRules.filter((rule) => text.includes(rule.toLowerCase()));
-  const matchedSkills = input.requiredSkills.filter((skill) => text.includes(skill.toLowerCase()));
-  const matchedNiceToHave = (input.niceToHaveSkills ?? []).filter((skill) => text.includes(skill.toLowerCase()));
-  const matchedKeywords = input.targetKeywords.filter((kw) => text.includes(kw.toLowerCase()));
-  const matchedRoles = (input.targetRoles ?? []).filter((role) => text.includes(role.toLowerCase()));
+  const rejectionReasons = input.rejectRules.filter((rule) => hasReject(normText, rule));
+  const matchedSkills = input.requiredSkills.filter((skill) => hasTerm(normText, skill));
+  const matchedNiceToHave = (input.niceToHaveSkills ?? []).filter((skill) => hasTerm(normText, skill));
+  const matchedKeywords = input.targetKeywords.filter((kw) => hasTerm(normText, kw));
+  const matchedRoles = (input.targetRoles ?? []).filter((role) => hasTerm(normText, role));
 
   const hardFilterPassed = matchedSkills.length > 0 && rejectionReasons.length === 0;
 

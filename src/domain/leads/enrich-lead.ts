@@ -90,7 +90,8 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     // email-derived meta still tells the user it landed. enrichedAt is set above, so
     // retries won't re-alert (freshLead turns false once it's been attempted).
     const existingScore = lead.evaluations[0]?.score ?? 0;
-    if (freshLead && existingScore > SLACK_ALERT_MIN_MATCH) {
+    const existingRejected = (lead.evaluations[0]?.rejectionReasons?.length ?? 0) > 0;
+    if (freshLead && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected) {
       void notifySlackNewLead({
         variant: outcome.status, // 'private' | 'failed'
         profileName: lead.account.personName,
@@ -225,7 +226,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
 
   // Rich meta alert on every fresh lead above the match floor (first enrichment
   // only, so re-enriching is quiet). The dot is 🟢 when the score clears "hot".
-  if (freshLead && evaluation.score > SLACK_ALERT_MIN_MATCH) {
+  if (freshLead && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0) {
     const clientLocation = [c.location, c.country].map((s) => s?.trim()).filter(Boolean).join(', ') || null;
     void notifySlackNewLead({
       variant: 'enriched',

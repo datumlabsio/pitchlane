@@ -1375,6 +1375,32 @@ export function LeadWorkbench({
 
                     {/* ── Overview ── */}
                     <TabsContent value="overview" className="space-y-5 mt-0">
+                      {selectedLead.duplicates.length > 0 && (
+                        <div className="rounded-xl border border-violet-200 bg-violet-50/60 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">
+                            🔁 Also matched on {selectedLead.duplicates.length} other profile
+                            {selectedLead.duplicates.length > 1 ? "s" : ""}
+                          </p>
+                          <p className="mt-1 text-xs leading-5 text-stone-600">
+                            Same Upwork job — pursue from the best-fit profile only (don&apos;t send two proposals to one client).
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {selectedLead.duplicates.map((d) => (
+                              <a
+                                key={d.leadId}
+                                href={`/leads?leadId=${d.leadId}`}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-2.5 py-1 text-xs text-stone-700 transition hover:border-violet-400"
+                              >
+                                <span className="font-medium">{d.profile}</span>
+                                <span className="text-stone-500">{d.score}% · {d.status}</span>
+                                {d.score > selectedLead.matchScore && (
+                                  <span className="font-medium text-amber-700">· better fit ⤴</span>
+                                )}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="grid grid-cols-3 gap-3">
                         <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
                           <p className="text-[10px] uppercase tracking-widest text-stone-400">

@@ -6,6 +6,7 @@ import { fetchUpworkJob, isScrapeConfigured, type EnrichOutcome } from '@/lib/sc
 import { fetchUpworkJobViaApi, isUpworkApiEnabled } from '@/lib/upwork/api';
 import { generateProposalDraft } from '@/lib/ai/proposals';
 import { getSlackMinScore } from '@/domain/integrations/repository';
+import { findDuplicateSiblings } from '@/domain/leads/duplicates';
 import { notifySlackNewLead } from '@/lib/slack';
 
 // Mirror of the leads-list confidence labelling (0–100 → High/Medium/Low).
@@ -67,6 +68,12 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   const slackMinScore = await getSlackMinScore();
   const freshLead = !lead.enrichedAt && (lead.status === LeadStatus.NEW || lead.status === LeadStatus.QUALIFIED);
 
+  // Cross-account dedupe: if this same Upwork job already produced an alert-worthy
+  // lead on another profile, stay quiet here — one job shouldn't ping twice (and
+  // shouldn't be pursued by two profiles). The lead panel shows the cross-profile link.
+  const siblings = await findDuplicateSiblings({ leadId, sourceUrl: lead.sourceUrl, accountId: lead.accountId });
+  const siblingAlreadyAlerted = siblings.some((s) => s.enrichedAt && s.score > SLACK_ALERT_MIN_MATCH && !s.rejected);
+
   // API-first (fast, official public marketplace search), then fall back to the
   // Bright Data scraper for anything the API can't return (invite-only / closed /
   // not-found-in-search jobs). The scraper is the only path that can detect 'private'.
@@ -91,7 +98,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     // retries won't re-alert (freshLead turns false once it's been attempted).
     const existingScore = lead.evaluations[0]?.score ?? 0;
     const existingRejected = (lead.evaluations[0]?.rejectionReasons?.length ?? 0) > 0;
-    if (freshLead && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected) {
+    if (freshLead && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected && !siblingAlreadyAlerted) {
       void notifySlackNewLead({
         variant: outcome.status, // 'private' | 'failed'
         profileName: lead.account.personName,
@@ -226,7 +233,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
 
   // Rich meta alert on every fresh lead above the match floor (first enrichment
   // only, so re-enriching is quiet). The dot is 🟢 when the score clears "hot".
-  if (freshLead && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0) {
+  if (freshLead && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0 && !siblingAlreadyAlerted) {
     const clientLocation = [c.location, c.country].map((s) => s?.trim()).filter(Boolean).join(', ') || null;
     void notifySlackNewLead({
       variant: 'enriched',

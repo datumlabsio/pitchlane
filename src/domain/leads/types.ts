@@ -100,6 +100,8 @@ export type LeadDetail = {
   summary: string[];
   rejectionReasons: string[];
   matchedKeywords: string[];
+  // Same Upwork job on other profiles (agency multi-profile dedupe).
+  duplicates: Array<{ leadId: string; profile: string; score: number; status: LeadStatusLabel }>;
   application: {
     id: string;
     connectsSpent: number | null;

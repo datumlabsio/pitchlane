@@ -5,6 +5,7 @@ import { buildCreatedAtRange } from '@/lib/date-window';
 
 import { cleanEmailBrief } from '@/lib/utils';
 import { leadStatusLabelMap, type LeadDetail, type LeadEnrichment, type LeadSummary } from '@/domain/leads/types';
+import { findDuplicateSiblings } from '@/domain/leads/duplicates';
 
 function mapEnrichment(value: unknown): LeadEnrichment | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -194,6 +195,7 @@ export async function getLeadDetail(leadId: string) {
 
   const evaluation = lead.evaluations[0];
   const application = lead.applications[0];
+  const siblings = await findDuplicateSiblings({ leadId, sourceUrl: lead.sourceUrl, accountId: lead.accountId });
 
   return {
     id: lead.id,
@@ -221,6 +223,12 @@ export async function getLeadDetail(leadId: string) {
     summary: evaluation?.summary ?? [],
     rejectionReasons: evaluation?.rejectionReasons ?? [],
     matchedKeywords: evaluation?.matchedKeywords ?? [],
+    duplicates: siblings.map((s) => ({
+      leadId: s.leadId,
+      profile: s.profile,
+      score: s.score,
+      status: leadStatusLabelMap[s.status as LeadStatus] ?? 'New',
+    })),
     application: application
       ? {
           id: application.id,

@@ -40,6 +40,7 @@ export type LeadSummary = {
   id: string;
   title: string;
   profileName: string;
+  accountId: string;
   status: LeadStatusLabel;
   statusCode: LeadStatusCode;
   matchScore: number;
@@ -79,6 +80,7 @@ export type LeadDetail = {
   id: string;
   title: string;
   profileName: string;
+  accountId: string;
   accountName: string;
   status: LeadStatusLabel;
   statusCode: LeadStatusCode;

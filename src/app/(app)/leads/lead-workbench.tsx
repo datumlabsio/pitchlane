@@ -32,7 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -974,7 +973,9 @@ export function LeadWorkbench({
   async function runRequest(
     url: string,
     init: RequestInit,
-    successMessage: string | ((result: { outcome?: string; leadsCreated?: number }) => string),
+    successMessage:
+      | string
+      | ((result: { outcome?: string; leadsCreated?: number; profile?: string; score?: number }) => string),
   ) {
     setStatusMessage("");
     startTransition(async () => {
@@ -1049,6 +1050,16 @@ export function LeadWorkbench({
         result.outcome === "enriched"
           ? "Refreshed from Upwork — job details and score updated."
           : "This job isn't publicly viewable (private or closed), so there's nothing to fetch.",
+    );
+  }
+
+  // Move a lead to a different profile (apply from another account). Re-scores
+  // against the new profile's config; the proposal is cleared so you regenerate it.
+  function reassign(leadId: string, accountId: string) {
+    void runRequest(
+      `/api/leads/${leadId}/account`,
+      { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId }) },
+      (r) => (r.profile ? `Moved to ${r.profile} — re-scored to ${r.score}%.` : "Profile updated."),
     );
   }
 
@@ -1215,13 +1226,29 @@ export function LeadWorkbench({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className="bg-stone-50 text-stone-700 border-stone-200 font-normal"
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={lead.accountId}
+                        onValueChange={(v: string | null) => {
+                          if (v && v !== lead.accountId) reassign(lead.id, v);
+                        }}
                       >
-                        {lead.profileName}
-                      </Badge>
+                        <SelectTrigger
+                          size="sm"
+                          disabled={isPending}
+                          title="Apply from a different profile — re-scores against it"
+                          className="h-7 gap-1 border-stone-200 bg-stone-50 text-xs font-normal"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {accounts.map((a) => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.personName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <span
@@ -1286,12 +1313,28 @@ export function LeadWorkbench({
                   >
                     {selectedLead.status}
                   </span>
-                  <Badge
-                    variant="outline"
-                    className="bg-stone-50 text-stone-700 border-stone-200 font-normal"
+                  <Select
+                    value={selectedLead.accountId}
+                    onValueChange={(v: string | null) => {
+                      if (v && v !== selectedLead.accountId) reassign(selectedLead.id, v);
+                    }}
                   >
-                    {selectedLead.profileName}
-                  </Badge>
+                    <SelectTrigger
+                      size="sm"
+                      disabled={isPending}
+                      title="Apply from a different profile — re-scores against it"
+                      className="h-7 gap-1 bg-stone-50 text-xs"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {accounts.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.personName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <span className="text-xs text-stone-500">
                     {selectedLead.budget}
                   </span>
@@ -1397,9 +1440,6 @@ export function LeadWorkbench({
                           <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">
                             🔁 Also matched on {selectedLead.duplicates.length} other profile
                             {selectedLead.duplicates.length > 1 ? "s" : ""}
-                          </p>
-                          <p className="mt-1 text-xs leading-5 text-stone-600">
-                            Same Upwork job — pursue from the best-fit profile only (don&apos;t send two proposals to one client).
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {selectedLead.duplicates.map((d) => (

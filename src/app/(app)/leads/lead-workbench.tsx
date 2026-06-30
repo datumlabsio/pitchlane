@@ -974,7 +974,7 @@ export function LeadWorkbench({
   async function runRequest(
     url: string,
     init: RequestInit,
-    successMessage: string | ((result: { outcome?: string }) => string),
+    successMessage: string | ((result: { outcome?: string; leadsCreated?: number }) => string),
   ) {
     setStatusMessage("");
     startTransition(async () => {
@@ -1052,6 +1052,19 @@ export function LeadWorkbench({
     );
   }
 
+  // Force-pull: run the Gmail sync now (creates + enriches + alerts new leads
+  // immediately) instead of waiting for the ~1-min cron, then refresh the list.
+  function syncNow() {
+    void runRequest(
+      "/api/integrations/gmail/sync",
+      { method: "POST" },
+      (result) =>
+        result.leadsCreated
+          ? `Pulled ${result.leadsCreated} new lead${result.leadsCreated > 1 ? "s" : ""} — enriching now.`
+          : "Synced — no new leads right now.",
+    );
+  }
+
   function copyProposal() {
     navigator.clipboard
       .writeText(proposalDraft)
@@ -1114,13 +1127,13 @@ export function LeadWorkbench({
             <LiveIndicator paused={Boolean(selectedLeadId)} />
             <button
               type="button"
-              onClick={() => startTransition(() => router.refresh())}
+              onClick={syncNow}
               disabled={isPending}
-              title="Refresh leads"
+              title="Pull new leads from Gmail right now — don't wait for the cron"
               className="inline-flex h-8 items-center gap-1.5 rounded-md border border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
             >
               <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
-              Refresh
+              {isPending ? 'Syncing…' : 'Sync now'}
             </button>
             <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
               <DialogTrigger render={<Button size="sm" className="gap-1.5" />}>
@@ -1143,6 +1156,10 @@ export function LeadWorkbench({
           </>
         }
       />
+
+      {!selectedLeadId && statusMessage && (
+        <p className="text-xs text-stone-500">{statusMessage}</p>
+      )}
 
       {/* Table */}
       <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">

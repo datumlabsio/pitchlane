@@ -9,6 +9,21 @@ export function formatPercent(value: number, decimals = 1): string {
   return `${(value * 100).toFixed(decimals)}%`;
 }
 
+// Decode HTML entities that leak in from forwarded email subjects/bodies
+// (e.g. "AI &amp; Automation" → "AI & Automation").
+export function decodeHtmlEntities(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;|&#0?39;|&#x27;/gi, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
+}
+
 // Boilerplate lines to drop from a forwarded Upwork alert email.
 const EMAIL_BOILERPLATE = [
   /^new job alert$/i,

@@ -3,6 +3,7 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { prisma } from '@/lib/prisma';
+import { decodeHtmlEntities } from '@/lib/utils';
 
 export type IngestEmailInput = {
   gmailLabel: string;
@@ -58,7 +59,12 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   // teaser-email draft is low quality, so we wait for the enrich-pending cron
   // to write it off the full description. Private/failed leads stay draft-less
   // and the UI shows why; the user can still generate from the email manually.
-  const evaluation = evaluateEmail({ subject: input.subject, body: input.body, ...evalConfig });
+  // Decode HTML entities from the forwarded email ("AI &amp; Automation" → "AI &
+  // Automation") so titles, scoring, and Slack all use clean text.
+  const subject = decodeHtmlEntities(input.subject);
+  const body = decodeHtmlEntities(input.body);
+
+  const evaluation = evaluateEmail({ subject, body, ...evalConfig });
 
   const status = evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
     ? LeadStatus.QUALIFIED
@@ -69,15 +75,15 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     lead = await prisma.lead.create({
       data: {
         accountId: account.id,
-        title: input.subject,
+        title: subject,
         source: input.source ?? LeadSource.EMAIL_FORWARD,
         externalMessageId: input.externalMessageId,
         externalThreadId: input.externalThreadId,
         sourceUrl: input.sourceUrl,
         sender: input.from,
-        emailSubject: input.subject,
-        emailSnippet: input.body.slice(0, 500),
-        rawEmailBody: input.body,
+        emailSubject: subject,
+        emailSnippet: body.slice(0, 500),
+        rawEmailBody: body,
         extractedBudget: input.extractedBudget,
         extractedSkills: input.extractedSkills ?? [],
         sourceCompleteness: input.sourceCompleteness ?? SourceCompleteness.PARTIAL,

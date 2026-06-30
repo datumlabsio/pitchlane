@@ -1112,6 +1112,16 @@ export function LeadWorkbench({
           <>
             <FilterBar accounts={accounts} currentFilters={currentFilters} />
             <LiveIndicator paused={Boolean(selectedLeadId)} />
+            <button
+              type="button"
+              onClick={() => startTransition(() => router.refresh())}
+              disabled={isPending}
+              title="Refresh leads"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 transition hover:border-stone-400 disabled:opacity-60"
+            >
+              <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
+              Refresh
+            </button>
             <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
               <DialogTrigger render={<Button size="sm" className="gap-1.5" />}>
                 <Plus className="h-3.5 w-3.5" />

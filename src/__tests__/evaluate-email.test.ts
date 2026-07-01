@@ -104,4 +104,73 @@ describe('evaluateEmail', () => {
     expect(result.hardFilterPassed).toBe(true);
     expect(result.matchedKeywords.length).toBeGreaterThan(0);
   });
+
+  // --- Reject-rule precision (guards against false-positive hard rejects) ---
+  const STACK_INPUT = {
+    subject: 'Full-stack SaaS platform',
+    body: '',
+    requiredSkills: ['react', 'next.js', 'node.js', 'typescript'],
+    niceToHaveSkills: [],
+    rejectRules: ['no budget', 'mobile app', 'shopify', 'php', 'wordpress', 'laravel'],
+    targetKeywords: ['saas'],
+    targetRoles: ['full stack developer'],
+  };
+
+  it('downgrades a legacy-tech reject to a caution when the core match is strong', () => {
+    const result = evaluateEmail({
+      ...STACK_INPUT,
+      body: 'Replace our old PHP system with React, Next.js, Node.js.',
+    });
+    expect(result.hardFilterPassed).toBe(true); // strong match (3 skills) overrides
+    expect(result.rejectionReasons).toContain('php'); // still surfaced as a caution
+  });
+
+  it('still vetoes a legacy-tech reject when the core match is weak', () => {
+    const result = evaluateEmail({
+      ...STACK_INPUT,
+      body: 'Maintain a large PHP codebase. Minor React widget work.', // 1 of 4 = weak
+    });
+    expect(result.hardFilterPassed).toBe(false);
+    expect(result.rejectionReasons).toContain('php');
+  });
+
+  it('always vetoes a commercial dealbreaker even with a strong match', () => {
+    const result = evaluateEmail({
+      ...STACK_INPUT,
+      body: 'React, Next.js, Node.js build. We have no budget but great exposure.',
+    });
+    expect(result.hardFilterPassed).toBe(false); // "no budget" always wins
+    expect(result.rejectionReasons).toContain('no budget');
+  });
+
+  it('always vetoes a wrong-domain reject even with a strong match', () => {
+    const result = evaluateEmail({
+      ...STACK_INPUT,
+      body: 'Build an on-demand mobile app with a React, Next.js, Node.js backend.',
+    });
+    expect(result.hardFilterPassed).toBe(false); // "mobile app" is a domain, not incidental
+    expect(result.rejectionReasons).toContain('mobile app');
+  });
+
+  it('ignores reject terms in Upwork auto skill-tag lines', () => {
+    const result = evaluateEmail({
+      ...STACK_INPUT,
+      body:
+        'Build a React and Next.js app.\n' +
+        'WordPress: https://www.upwork.com/s/emails/nx/search/jobs/?utm_source=x',
+    });
+    expect(result.rejectionReasons).not.toContain('wordpress');
+    expect(result.hardFilterPassed).toBe(true);
+  });
+
+  it('ignores reject terms listed as optional ("or similar")', () => {
+    const result = evaluateEmail({
+      ...STACK_INPUT,
+      body:
+        'Frontend: React, Next.js.\n' +
+        'Backend: Node.js, Laravel, or similar. We are open to recommendations.',
+    });
+    expect(result.rejectionReasons).not.toContain('laravel');
+    expect(result.hardFilterPassed).toBe(true);
+  });
 });

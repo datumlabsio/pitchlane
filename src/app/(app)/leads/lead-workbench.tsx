@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import {
   ArrowRight,
+  CalendarDays,
   Check,
   Copy,
   ExternalLink,
@@ -39,6 +40,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -75,6 +82,21 @@ function formatDateTimeInput(value: string | null) {
   if (Number.isNaN(date.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function formatAppliedLabel(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+// A day picked from the calendar arrives at local midnight; anchor it to noon so
+// it reads as a clean date (not "12:00 AM") and dodges timezone-boundary drift.
+function dayAtNoon(day: Date) {
+  const d = new Date(day);
+  d.setHours(12, 0, 0, 0);
+  return d;
 }
 
 function statusBadgeVariant(statusCode: LeadSummary["statusCode"]) {
@@ -933,6 +955,7 @@ export function LeadWorkbench({
   const [proposalFeedback, setProposalFeedback] = useState("");
   const [connectsSpent, setConnectsSpent] = useState("");
   const [appliedAt, setAppliedAt] = useState("");
+  const [appliedPickerOpen, setAppliedPickerOpen] = useState(false);
   const [lastFollowUpAt, setLastFollowUpAt] = useState("");
   const [notes, setNotes] = useState("");
   const [ingestOpen, setIngestOpen] = useState(false);
@@ -1013,7 +1036,10 @@ export function LeadWorkbench({
     );
   }
 
-  function submitApplication() {
+  // Persist the application. `appliedAtValue` is passed explicitly so the quick
+  // "Mark applied" actions can set it without depending on the field's state
+  // (the rest of the form — connects/follow-up/notes — is preserved as-is).
+  function postApplication(appliedAtValue: string | null, message: string) {
     if (!selectedLead) return;
     const parsedConnects =
       connectsSpent.trim().length > 0 ? Number(connectsSpent) : null;
@@ -1032,13 +1058,34 @@ export function LeadWorkbench({
         body: JSON.stringify({
           leadId: selectedLead.id,
           connectsSpent: parsedConnects,
-          appliedAt: appliedAt || null,
+          appliedAt: appliedAtValue,
           lastFollowUpAt: lastFollowUpAt || null,
           notes,
         }),
       },
-      "Application details saved.",
+      message,
     );
+  }
+
+  function submitApplication() {
+    postApplication(appliedAt || null, "Application details saved.");
+  }
+
+  // One-click apply (or a custom calendar date). Setting appliedAt also moves the
+  // lead to APPLIED server-side (see upsertApplication).
+  function markApplied(date: Date) {
+    setAppliedAt(formatDateTimeInput(date.toISOString()));
+    setAppliedPickerOpen(false);
+    postApplication(
+      date.toISOString(),
+      `Marked applied — ${formatAppliedLabel(date)}.`,
+    );
+  }
+
+  function clearApplied() {
+    setAppliedAt("");
+    setAppliedPickerOpen(false);
+    postApplication(null, "Cleared the applied date.");
   }
 
   function enrichLead() {
@@ -1742,13 +1789,84 @@ export function LeadWorkbench({
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label htmlFor="app-applied-at">Applied at</Label>
-                          <Input
-                            id="app-applied-at"
-                            type="datetime-local"
-                            value={appliedAt}
-                            onChange={(e) => setAppliedAt(e.target.value)}
-                          />
+                          <Label>Applied at</Label>
+                          {appliedAt ? (
+                            <div className="flex h-9 items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5">
+                              <Check className="size-3.5 shrink-0 text-emerald-600" />
+                              <span className="flex-1 truncate text-sm text-emerald-800">
+                                {formatAppliedLabel(new Date(appliedAt))}
+                              </span>
+                              <Popover
+                                open={appliedPickerOpen}
+                                onOpenChange={(open) => setAppliedPickerOpen(open)}
+                              >
+                                <PopoverTrigger
+                                  type="button"
+                                  title="Change the applied date"
+                                  disabled={isPending}
+                                  className="rounded p-1 text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+                                >
+                                  <CalendarDays className="size-3.5" />
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={new Date(appliedAt)}
+                                    disabled={{ after: new Date() }}
+                                    onSelect={(d) => {
+                                      if (d) markApplied(dayAtNoon(d));
+                                    }}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <button
+                                type="button"
+                                title="Clear the applied date"
+                                onClick={clearApplied}
+                                disabled={isPending}
+                                className="rounded p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-600 disabled:opacity-50"
+                              >
+                                <X className="size-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={isPending}
+                                onClick={() => markApplied(new Date())}
+                                className="gap-1.5"
+                              >
+                                <Check className="size-3.5" />
+                                Mark applied
+                              </Button>
+                              <Popover
+                                open={appliedPickerOpen}
+                                onOpenChange={(open) => setAppliedPickerOpen(open)}
+                              >
+                                <PopoverTrigger
+                                  type="button"
+                                  title="Pick a specific date"
+                                  disabled={isPending}
+                                  className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs text-stone-600 transition hover:bg-stone-50 disabled:opacity-50"
+                                >
+                                  <CalendarDays className="size-3.5" />
+                                  Custom
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    disabled={{ after: new Date() }}
+                                    onSelect={(d) => {
+                                      if (d) markApplied(dayAtNoon(d));
+                                    }}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          )}
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="app-followup-at">

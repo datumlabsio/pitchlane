@@ -1284,7 +1284,7 @@ export function LeadWorkbench({
                           size="sm"
                           disabled={isPending}
                           title="Apply from a different profile — re-scores against it"
-                          className="h-6 gap-1 rounded-md border-stone-200 bg-stone-50 px-1.5 py-0 text-xs font-normal text-stone-700 hover:bg-stone-100 [&_svg]:size-3"
+                          className="h-5 gap-0.5 rounded border-stone-200 bg-stone-50 px-1 py-0 text-[11px] font-normal leading-none text-stone-700 hover:bg-stone-100 [&_svg]:size-2.5"
                         >
                           <SelectValue>
                             {(value: string | null) =>

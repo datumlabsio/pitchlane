@@ -1237,9 +1237,13 @@ export function LeadWorkbench({
                           size="sm"
                           disabled={isPending}
                           title="Apply from a different profile — re-scores against it"
-                          className="h-7 gap-1 border-stone-200 bg-stone-50 text-xs font-normal"
+                          className="h-6 gap-1 rounded-md border-stone-200 bg-stone-50 px-1.5 py-0 text-xs font-normal text-stone-700 hover:bg-stone-100 [&_svg]:size-3"
                         >
-                          <SelectValue />
+                          <SelectValue>
+                            {(value: string | null) =>
+                              accounts.find((a) => a.id === value)?.personName ?? lead.profileName
+                            }
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {accounts.map((a) => (
@@ -1323,9 +1327,13 @@ export function LeadWorkbench({
                       size="sm"
                       disabled={isPending}
                       title="Apply from a different profile — re-scores against it"
-                      className="h-7 gap-1 bg-stone-50 text-xs"
+                      className="h-6 gap-1 rounded-md border-stone-200 bg-stone-50 px-1.5 py-0 text-xs font-normal text-stone-700 hover:bg-stone-100 [&_svg]:size-3"
                     >
-                      <SelectValue />
+                      <SelectValue>
+                        {(value: string | null) =>
+                          accounts.find((a) => a.id === value)?.personName ?? selectedLead.profileName
+                        }
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {accounts.map((a) => (

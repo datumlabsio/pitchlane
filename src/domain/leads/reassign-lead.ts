@@ -1,7 +1,7 @@
 import { LeadStatus } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { evaluateEmail } from '@/domain/leads/evaluate-email';
+import { scoreLead } from '@/domain/leads/score-lead';
 
 export type ReassignResult =
   | { ok: true; unchanged?: boolean; score?: number; status?: LeadStatus; profile?: string }
@@ -30,16 +30,10 @@ export async function reassignLead(leadId: string, accountId: string): Promise<R
   // Re-score against the new profile, on the best text we have (email + enriched desc).
   const desc = (lead.enrichment as { description?: string } | null)?.description ?? '';
   const body = [lead.rawEmailBody ?? lead.emailSnippet ?? '', desc].filter(Boolean).join('\n\n');
-  const ev = evaluateEmail({
+  const ev = await scoreLead(cfg, {
     subject: lead.emailSubject ?? lead.title,
     body,
-    requiredSkills: cfg.requiredSkills,
-    niceToHaveSkills: cfg.niceToHaveSkills,
-    rejectRules: cfg.rejectRules,
-    targetKeywords: cfg.targetKeywords,
-    targetRoles: cfg.targetRoles,
-    budgetPreference: cfg.budgetPreference ?? undefined,
-    scoringWeights: cfg.scoringWeights as { skillMatch?: number; roleFit?: number; keywordMatch?: number; budgetFit?: number; confidence?: number } | null,
+    budget: lead.extractedBudget,
   });
 
   // Only auto-adjust the screening status; never override a human decision (WON, REJECTED…).

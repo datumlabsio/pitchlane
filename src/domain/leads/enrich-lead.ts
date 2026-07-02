@@ -1,7 +1,7 @@
 import { LeadStatus, Prisma, SourceCompleteness } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { evaluateEmail } from '@/domain/leads/evaluate-email';
+import { scoreLead } from '@/domain/leads/score-lead';
 import { fetchUpworkJob, isScrapeConfigured, type EnrichOutcome } from '@/lib/scrape/upwork';
 import { fetchUpworkJobViaApi, isUpworkApiEnabled } from '@/lib/upwork/api';
 import { generateProposalDraft } from '@/lib/ai/proposals';
@@ -124,26 +124,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     ? `${lead.rawEmailBody ?? lead.emailSnippet ?? ''}\n\n${enrichedDescription}`
     : (lead.rawEmailBody ?? lead.emailSnippet ?? lead.title);
 
-  const evaluation = evaluateEmail({
-    subject: lead.emailSubject ?? lead.title,
-    body: evalBody,
-    requiredSkills: profileConfig.requiredSkills,
-    niceToHaveSkills: profileConfig.niceToHaveSkills,
-    rejectRules: profileConfig.rejectRules,
-    targetKeywords: profileConfig.targetKeywords,
-    targetRoles: profileConfig.targetRoles,
-    budgetPreference: profileConfig.budgetPreference ?? undefined,
-    scoringWeights: profileConfig.scoringWeights as { skillMatch?: number; roleFit?: number; keywordMatch?: number; budgetFit?: number; confidence?: number } | null,
-  });
-
-  // Only auto-promote a still-NEW lead; never override a human decision.
-  const nextStatus =
-    lead.status === LeadStatus.NEW && evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
-      ? LeadStatus.QUALIFIED
-      : lead.status;
-
-  // Regenerate the proposal off the full job description + client facts (the
-  // email-only draft made at ingest was thinner).
+  // Client facts — feed the scorer (budget/client viability) and ground the proposal.
   const c = enrichment.client;
   const clientSummary = [
     [c.location, c.country].filter(Boolean).join(', '),
@@ -154,6 +135,21 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     c.industry || null,
   ].filter(Boolean).join(' · ') || undefined;
 
+  const evaluation = await scoreLead(profileConfig, {
+    subject: lead.emailSubject ?? lead.title,
+    body: evalBody,
+    budget: enrichment.budget,
+    clientSummary,
+  });
+
+  // Only auto-promote a still-NEW lead; never override a human decision.
+  const nextStatus =
+    lead.status === LeadStatus.NEW && evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
+      ? LeadStatus.QUALIFIED
+      : lead.status;
+
+  // Regenerate the proposal off the full job description + client facts (the
+  // email-only draft made at ingest was thinner). `c` / `clientSummary` computed above.
   // Write a proposal only when the lead has none yet AND it clears the qualify bar.
   // So: low-fit leads stay draft-less until you ask (in the UI), and a manual "Refresh
   // from Upwork" never clobbers an existing draft — it just refreshes data + re-scores.

@@ -10,6 +10,8 @@ const requestSchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal('regenerate'),
     feedback: z.string().trim().max(2000).optional(),
+    // Portfolio projects to cite; omitted → auto-pick, [] → cite none.
+    projectIds: z.array(z.string().min(1)).max(10).optional(),
   }),
   z.object({
     mode: z.literal('edit'),

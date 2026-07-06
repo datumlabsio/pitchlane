@@ -953,6 +953,7 @@ export function LeadWorkbench({
   const [proposalDraft, setProposalDraft] = useState("");
   const [copied, setCopied] = useState(false);
   const [proposalFeedback, setProposalFeedback] = useState("");
+  const [citedProjectIds, setCitedProjectIds] = useState<string[]>([]);
   const [connectsSpent, setConnectsSpent] = useState("");
   const [appliedAt, setAppliedAt] = useState("");
   const [appliedPickerOpen, setAppliedPickerOpen] = useState(false);
@@ -963,6 +964,7 @@ export function LeadWorkbench({
   useEffect(() => {
     setProposalDraft(selectedLead?.proposals[0]?.content ?? "");
     setProposalFeedback("");
+    setCitedProjectIds(selectedLead?.relevantProjects.map((p) => p.id) ?? []);
     setConnectsSpent(
       selectedLead?.application?.connectsSpent?.toString() ?? "",
     );
@@ -1148,7 +1150,12 @@ export function LeadWorkbench({
         body: JSON.stringify(
           mode === "edit"
             ? { mode, content: proposalDraft }
-            : { mode, ...(feedback ? { feedback } : {}) },
+            : {
+                mode,
+                ...(feedback ? { feedback } : {}),
+                // What the chips show is exactly what gets cited.
+                ...(selectedLead.relevantProjects.length ? { projectIds: citedProjectIds } : {}),
+              },
         ),
       },
       mode === "edit"
@@ -1692,6 +1699,42 @@ export function LeadWorkbench({
                           </button>
                         )}
                       </div>
+                      {selectedLead.relevantProjects.length > 0 && (
+                        <div className="rounded-xl border border-stone-200 bg-stone-50/70 p-3 space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                            Cite these projects
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedLead.relevantProjects.map((project) => {
+                              const cited = citedProjectIds.includes(project.id);
+                              return (
+                                <button
+                                  key={project.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setCitedProjectIds((ids) =>
+                                      cited ? ids.filter((id) => id !== project.id) : [...ids, project.id],
+                                    )
+                                  }
+                                  className={cn(
+                                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition",
+                                    cited
+                                      ? "border-amber-300 bg-amber-50 text-amber-900"
+                                      : "border-stone-200 bg-white text-stone-500 hover:border-stone-300",
+                                  )}
+                                >
+                                  {cited && <Check className="size-3" />}
+                                  {project.title}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-[11px] leading-4 text-stone-400">
+                            Highlighted projects (with their links) are woven into the next generated draft — matched
+                            by tech overlap. Manage them under Profiles → Projects.
+                          </p>
+                        </div>
+                      )}
                       <div className="flex flex-wrap gap-2">
                         <Button
                           size="sm"

@@ -64,6 +64,7 @@ model Account {
   profileConfigs      ProfileConfig[]
   leads               Lead[]
   applications        Application[]
+  projects            Project[]
 }
 
 model ProfileConfig {
@@ -212,4 +213,25 @@ model SyncRun {
   integration          IntegrationConnection? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
 
   @@index([provider, startedAt])
+}
+
+// Portfolio project for one profile — real delivered work the proposal writer can
+// cite (with links) as evidence. Per-profile on purpose: the same underlying project
+// is described differently by each persona, so reuse = copy + tailor.
+model Project {
+  id          String   @id @default(cuid())
+  accountId   String
+  title       String
+  description String   @db.Text
+  techStack   String[]
+  url         String?
+  outcome     String?
+  industry    String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, isActive])
 }

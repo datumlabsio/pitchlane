@@ -5,6 +5,7 @@ import { scoreLead } from '@/domain/leads/score-lead';
 import { fetchUpworkJob, isScrapeConfigured, type EnrichOutcome } from '@/lib/scrape/upwork';
 import { fetchUpworkJobViaApi, isUpworkApiEnabled } from '@/lib/upwork/api';
 import { generateProposalDraft } from '@/lib/ai/proposals';
+import { appendProjectsToSummary, relevantProjectsForJob } from '@/domain/projects/relevant-projects';
 import { getSlackMinScore } from '@/domain/integrations/repository';
 import { findDuplicateSiblings } from '@/domain/leads/duplicates';
 import { notifySlackNewLead } from '@/lib/slack';
@@ -159,11 +160,17 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   const shouldWriteProposal =
     !hasExistingProposal && evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold;
 
+  // Portfolio evidence: pick the profile's most relevant projects for this job so
+  // the draft can cite real work (with links) instead of generic claims.
+  const portfolioProjects = shouldWriteProposal
+    ? await relevantProjectsForJob(lead.accountId, `${lead.title}\n${evalBody}`)
+    : [];
+
   const newProposal = shouldWriteProposal
     ? await generateProposalDraft({
         profileName: lead.account.personName,
         roleFocus: profileConfig.roleFocus,
-        profileSummary: profileConfig.jdSummary,
+        profileSummary: appendProjectsToSummary(profileConfig.jdSummary, portfolioProjects),
         proposalTone: profileConfig.proposalTone,
         proposalRules: profileConfig.proposalRules,
         reusableSnippets: profileConfig.reusableSnippets,
@@ -221,6 +228,9 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
           score: evaluation.score,
           proposalsCount: enrichment.proposalsCount ?? null,
           proposalWritten: Boolean(newProposal),
+          ...(newProposal && portfolioProjects.length
+            ? { projectsUsed: portfolioProjects.map((p) => p.title) }
+            : {}),
         },
       },
     }),

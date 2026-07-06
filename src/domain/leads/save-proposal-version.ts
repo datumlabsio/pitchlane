@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { generateProposalDraft } from '@/lib/ai/proposals';
+import { appendProjectsToSummary, relevantProjectsForJob } from '@/domain/projects/relevant-projects';
 
 export type SaveProposalVersionInput =
   | {
@@ -11,6 +12,8 @@ export type SaveProposalVersionInput =
       leadId: string;
       mode: 'regenerate';
       feedback?: string;
+      /** Portfolio projects to cite. Omitted → auto-pick the most relevant. */
+      projectIds?: string[];
     };
 
 export async function saveProposalVersion(input: SaveProposalVersionInput) {
@@ -64,12 +67,27 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
       ].filter(Boolean).join(' · ') || undefined
     : undefined;
 
+  // Portfolio evidence for the draft: explicit picks from the reviewer win; else
+  // auto-rank the profile's projects against the job text. Explicit empty array
+  // means "cite nothing".
+  const jobText = `${lead.title}\n${str(e?.description) ?? lead.rawEmailBody ?? lead.emailSnippet ?? ''}`;
+  const portfolioProjects =
+    input.mode === 'regenerate'
+      ? input.projectIds !== undefined
+        ? input.projectIds.length
+          ? await prisma.project.findMany({
+              where: { id: { in: input.projectIds }, accountId: lead.accountId, isActive: true },
+            })
+          : []
+        : await relevantProjectsForJob(lead.accountId, jobText)
+      : [];
+
   const content = input.mode === 'edit'
     ? input.content
     : await generateProposalDraft({
         profileName: lead.account.personName,
         roleFocus: profileConfig.roleFocus,
-        profileSummary: profileConfig.jdSummary,
+        profileSummary: appendProjectsToSummary(profileConfig.jdSummary, portfolioProjects),
         proposalTone: profileConfig.proposalTone,
         proposalRules: profileConfig.proposalRules,
         reusableSnippets: profileConfig.reusableSnippets,
@@ -112,6 +130,7 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
         payload: {
           proposalId: proposal.id,
           versionCount: lead.proposals.length + 1,
+          ...(portfolioProjects.length ? { projectsUsed: portfolioProjects.map((p) => p.title) } : {}),
         },
       },
     });

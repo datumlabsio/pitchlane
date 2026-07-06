@@ -30,7 +30,9 @@ type EvaluateEmailInput = {
 
 // Lowercase, turn punctuation (. _ / - , & ()) into spaces, collapse, and pad —
 // so "Next.js" ≈ "next js" and "Full-Stack" ≈ "full stack" all match cleanly.
-function normalize(s: string): string {
+// Exported for reuse wherever job text needs variant-tolerant term matching
+// (e.g. ranking portfolio projects against a job description).
+export function normalize(s: string): string {
   return ` ${s.toLowerCase().replace(/[._/\-,&()]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
 }
 
@@ -44,7 +46,7 @@ function wordHit(normText: string, word: string): boolean {
 // Lenient positive match (skills/roles/keywords — we WANT to catch fits): the term
 // appears as a phrase, OR every word of a multi-word term is present (so
 // "Full Stack Developer" matches "Full-Stack Web Developer").
-function hasTerm(normText: string, term: string): boolean {
+export function hasTerm(normText: string, term: string): boolean {
   const t = normalize(term).trim();
   if (!t) return false;
   if (normText.includes(` ${t}`)) return true;

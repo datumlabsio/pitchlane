@@ -104,6 +104,8 @@ export type LeadDetail = {
   matchedKeywords: string[];
   // Same Upwork job on other profiles (agency multi-profile dedupe).
   duplicates: Array<{ leadId: string; profile: string; score: number; status: LeadStatusLabel }>;
+  // Portfolio projects ranked relevant to this job — cited (with links) in generated proposals.
+  relevantProjects: Array<{ id: string; title: string; url: string | null }>;
   application: {
     id: string;
     connectsSpent: number | null;

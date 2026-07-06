@@ -6,6 +6,7 @@ import { buildCreatedAtRange } from '@/lib/date-window';
 import { cleanEmailBrief } from '@/lib/utils';
 import { leadStatusLabelMap, type LeadDetail, type LeadEnrichment, type LeadSummary } from '@/domain/leads/types';
 import { findDuplicateSiblings } from '@/domain/leads/duplicates';
+import { relevantProjectsForJob } from '@/domain/projects/relevant-projects';
 
 function mapEnrichment(value: unknown): LeadEnrichment | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -196,7 +197,14 @@ export async function getLeadDetail(leadId: string) {
 
   const evaluation = lead.evaluations[0];
   const application = lead.applications[0];
-  const siblings = await findDuplicateSiblings({ leadId, sourceUrl: lead.sourceUrl, accountId: lead.accountId });
+  const enrichmentView = mapEnrichment(lead.enrichment);
+  const jobText = [lead.title, lead.rawEmailBody ?? lead.emailSnippet ?? '', enrichmentView?.description ?? '']
+    .filter(Boolean)
+    .join('\n');
+  const [siblings, relevantProjects] = await Promise.all([
+    findDuplicateSiblings({ leadId, sourceUrl: lead.sourceUrl, accountId: lead.accountId }),
+    relevantProjectsForJob(lead.accountId, jobText),
+  ]);
 
   return {
     id: lead.id,
@@ -214,7 +222,7 @@ export async function getLeadDetail(leadId: string) {
     createdAt: formatDateTime(lead.createdAt),
     createdAtIso: lead.createdAt.toISOString(),
     sourceUrl: lead.sourceUrl,
-    enrichment: mapEnrichment(lead.enrichment),
+    enrichment: enrichmentView,
     enrichedAt: lead.enrichedAt ? formatDateTime(lead.enrichedAt) : null,
     sender: lead.sender,
     emailSubject: lead.emailSubject,
@@ -231,6 +239,7 @@ export async function getLeadDetail(leadId: string) {
       score: s.score,
       status: leadStatusLabelMap[s.status as LeadStatus] ?? 'New',
     })),
+    relevantProjects: relevantProjects.map((p) => ({ id: p.id, title: p.title, url: p.url })),
     application: application
       ? {
           id: application.id,

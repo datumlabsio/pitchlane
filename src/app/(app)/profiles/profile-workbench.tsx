@@ -23,6 +23,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import type { AccountSettingsView } from '@/domain/accounts/types';
 import type { EditableProfileView, ProfileConfigView, ScoringWeights } from '@/domain/profiles/types';
+import type { ProjectView } from '@/domain/projects/types';
+
+import { ProjectsPanel } from './projects-panel';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -86,7 +89,15 @@ function SaveStatus({ status, pending }: { status: string; pending: boolean }) {
 
 // ─── sheet content ─────────────────────────────────────────────────────────────
 
-function ProfileSheetContent({ entry }: { entry: EditableProfileView }) {
+function ProfileSheetContent({
+  entry,
+  projects,
+  otherProfiles,
+}: {
+  entry: EditableProfileView;
+  projects: ProjectView[];
+  otherProfiles: { id: string; personName: string }[];
+}) {
   const [accountForm, setAccountForm] = useState(() => initAccountForm(entry.account));
   const [currentConfig, setCurrentConfig] = useState(entry.profileConfig);
   const [profileForm, setProfileForm] = useState(() => entry.profileConfig ? initProfileForm(entry.profileConfig) : null);
@@ -181,6 +192,7 @@ function ProfileSheetContent({ entry }: { entry: EditableProfileView }) {
           <TabsTrigger value="qualification">Qualification</TabsTrigger>
           <TabsTrigger value="scoring">Scoring</TabsTrigger>
           <TabsTrigger value="proposal">Proposal</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 min-h-0">
@@ -340,6 +352,11 @@ function ProfileSheetContent({ entry }: { entry: EditableProfileView }) {
               <p className="text-sm text-stone-500">No profile config linked yet.</p>
             )}
           </TabsContent>
+
+          {/* ─── Projects ─── */}
+          <TabsContent value="projects" className="m-0 px-6 py-5">
+            <ProjectsPanel accountId={entry.account.id} projects={projects} otherProfiles={otherProfiles} />
+          </TabsContent>
         </ScrollArea>
       </Tabs>
     </div>
@@ -351,6 +368,7 @@ function ProfileSheetContent({ entry }: { entry: EditableProfileView }) {
 type WorkbenchProps = {
   profiles: EditableProfileView[];
   selectedProfile: EditableProfileView | null;
+  projectsByAccount: Record<string, ProjectView[]>;
 };
 
 const toneColors: Record<ProposalTone, string> = {
@@ -601,7 +619,7 @@ function DeleteProfileButton({ accountId, personName }: { accountId: string; per
   );
 }
 
-export function ProfileWorkbench({ profiles, selectedProfile }: WorkbenchProps) {
+export function ProfileWorkbench({ profiles, selectedProfile, projectsByAccount }: WorkbenchProps) {
   const router = useRouter();
 
   return (
@@ -692,7 +710,14 @@ export function ProfileWorkbench({ profiles, selectedProfile }: WorkbenchProps) 
       >
         <SheetContent side="right" className="data-[side=right]:w-full data-[side=right]:max-w-full data-[side=right]:lg:w-[70vw] data-[side=right]:lg:max-w-[70vw] p-0 flex flex-col">
           {selectedProfile && (
-            <ProfileSheetContent key={selectedProfile.account.id} entry={selectedProfile} />
+            <ProfileSheetContent
+              key={selectedProfile.account.id}
+              entry={selectedProfile}
+              projects={projectsByAccount[selectedProfile.account.id] ?? []}
+              otherProfiles={profiles
+                .filter((p) => p.account.id !== selectedProfile.account.id && p.account.isActive)
+                .map((p) => ({ id: p.account.id, personName: p.account.personName }))}
+            />
           )}
         </SheetContent>
       </Sheet>

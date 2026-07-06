@@ -118,11 +118,13 @@ export async function generateProposalDraft(input: ProposalGenerationInput) {
   try {
     // Adaptive thinking lets Claude plan the proposal against every rule before
     // writing — the whole point here is faithful adherence to the profile config.
-    // Stream so a longer (thinking) turn never trips an HTTP timeout.
+    // Stream so a longer (thinking) turn never trips an HTTP timeout. Thinking
+    // tokens share max_tokens, so the cap must leave generous room for both a
+    // long planning phase AND the draft — 4096 produced mid-sentence cutoffs.
     const message = await anthropic.messages
       .stream({
         model: env.ANTHROPIC_MODEL,
-        max_tokens: 4096,
+        max_tokens: 16384,
         thinking: { type: 'adaptive' },
         system: buildSystemPrompt(input),
         messages: [{ role: 'user', content: buildUserPrompt(input) }],
@@ -133,10 +135,17 @@ export async function generateProposalDraft(input: ProposalGenerationInput) {
       return fallbackProposal(input);
     }
 
-    const text = message.content
+    let text = message.content
       .map((block) => (block.type === 'text' ? block.text : ''))
       .join('')
       .trim();
+
+    // If the budget was still exhausted, drop the trailing sentence fragment —
+    // a draft that stops cleanly beats one that dies mid-word.
+    if (message.stop_reason === 'max_tokens') {
+      const trimmed = text.replace(/[^.!?]*$/, '').trim();
+      if (trimmed) text = trimmed;
+    }
 
     return text || fallbackProposal(input);
   } catch {

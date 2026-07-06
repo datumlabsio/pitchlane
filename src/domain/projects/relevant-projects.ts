@@ -58,7 +58,7 @@ export function appendProjectsToSummary(
   return [
     summary.trim(),
     '',
-    'RELEVANT PAST PROJECTS (real delivered work). Reference one or two ONLY where they genuinely strengthen the pitch, weaving them in naturally. Cite links exactly as written. Never invent projects, results, or URLs beyond these:',
+    'RELEVANT PAST PROJECTS (real delivered work). Reference one or two ONLY where they genuinely strengthen the pitch, weaving them in naturally — and when you cite a project that has a link, include that link so the client can see the work. Cite links exactly as written. Never invent projects, results, or URLs beyond these:',
     ...lines,
   ].join('\n');
 }

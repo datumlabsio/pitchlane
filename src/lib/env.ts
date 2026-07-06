@@ -8,6 +8,12 @@ const envSchema = z.object({
   DATABASE_URL: z.string().optional(),
   ANTHROPIC_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-4-6"),
+  // Which LLM writes proposals: "anthropic" (default) or "litellm" (on-prem,
+  // OpenAI-compatible LiteLLM proxy). Anthropic stays wired so we can switch back.
+  LLM_PROVIDER: z.string().optional(),
+  LITELLM_BASE_URL: z.string().optional(),
+  LITELLM_API_KEY: z.string().optional(),
+  LITELLM_MODEL: z.string().default("smart"),
   UPWORK_CLIENT_ID: z.string().optional(),
   UPWORK_CLIENT_SECRET: z.string().optional(),
   // Must exactly match the single Callback URL registered on the Upwork app.
@@ -34,6 +40,10 @@ export const env = envSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   ANTHROPIC_KEY: process.env.ANTHROPIC_KEY,
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
+  LLM_PROVIDER: process.env.LLM_PROVIDER,
+  LITELLM_BASE_URL: process.env.LITELLM_BASE_URL,
+  LITELLM_API_KEY: process.env.LITELLM_API_KEY,
+  LITELLM_MODEL: process.env.LITELLM_MODEL,
   UPWORK_CLIENT_ID: process.env.UPWORK_CLIENT_ID,
   UPWORK_CLIENT_SECRET: process.env.UPWORK_CLIENT_SECRET,
   UPWORK_REDIRECT_URI: process.env.UPWORK_REDIRECT_URI,

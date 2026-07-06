@@ -109,7 +109,56 @@ function getAnthropic(): Anthropic | null {
   return anthropicClient;
 }
 
+/**
+ * Write a proposal with the configured provider. Anthropic stays the default and
+ * fully wired; set LLM_PROVIDER=litellm (+ LITELLM_* env) to route to the on-prem,
+ * OpenAI-compatible model instead. Switching back is just the env var.
+ */
 export async function generateProposalDraft(input: ProposalGenerationInput) {
+  if (env.LLM_PROVIDER === 'litellm' && env.LITELLM_BASE_URL && env.LITELLM_API_KEY) {
+    return generateViaLiteLLM(input);
+  }
+  return generateViaAnthropic(input);
+}
+
+// On-prem LLM via the LiteLLM proxy (OpenAI-compatible Chat Completions). Reuses the
+// exact same prompts as the Anthropic path; falls back to the template draft on any
+// error/timeout so a flaky on-prem model never blocks ingestion.
+async function generateViaLiteLLM(input: ProposalGenerationInput) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60_000);
+  try {
+    const res = await fetch(`${env.LITELLM_BASE_URL!.replace(/\/$/, '')}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.LITELLM_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: env.LITELLM_MODEL,
+        messages: [
+          { role: 'system', content: buildSystemPrompt(input) },
+          { role: 'user', content: buildUserPrompt(input) },
+        ],
+        max_tokens: 1024,
+        temperature: 0.7,
+      }),
+      signal: controller.signal,
+    });
+    if (!res.ok) return fallbackProposal(input);
+    const json = (await res.json().catch(() => null)) as
+      | { choices?: Array<{ message?: { content?: string } }> }
+      | null;
+    const text = json?.choices?.[0]?.message?.content?.trim();
+    return text || fallbackProposal(input);
+  } catch {
+    return fallbackProposal(input);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function generateViaAnthropic(input: ProposalGenerationInput) {
   const anthropic = getAnthropic();
   if (!anthropic) {
     return fallbackProposal(input);

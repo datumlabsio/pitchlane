@@ -65,6 +65,7 @@ model Account {
   leads               Lead[]
   applications        Application[]
   projects            Project[]
+  profileStats        ProfileStat[]
 }
 
 model ProfileConfig {
@@ -213,6 +214,25 @@ model SyncRun {
   integration          IntegrationConnection? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
 
   @@index([provider, startedAt])
+}
+
+// Weekly Upwork profile visibility stats, entered manually per profile. Upwork does
+// not expose these historically by date, so they are captured by hand each week.
+// One row per profile per week (weekStart = the Monday of that week).
+model ProfileStat {
+  id          String   @id @default(cuid())
+  accountId   String
+  weekStart   DateTime @db.Date
+  views       Int      @default(0)
+  invites     Int      @default(0)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, weekStart])
+  @@index([accountId, weekStart])
 }
 
 // Portfolio project for one profile — real delivered work the proposal writer can

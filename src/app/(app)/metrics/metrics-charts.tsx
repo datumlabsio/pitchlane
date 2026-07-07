@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, Legend, XAxis, YAxis } from 'recharts';
 import { LeadStatus } from '@/domain/enums';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { leadStatusLabelMap } from '@/domain/leads/types';
+import type { VisibilityPoint } from '@/domain/profile-stats/types';
 
 // ─── Status colour map ────────────────────────────────────────────────────────
 
@@ -28,7 +29,14 @@ const statusColors: Partial<Record<LeadStatus, string>> = {
 
 // ─── Funnel ───────────────────────────────────────────────────────────────────
 
-type FunnelData = { total: number; qualified: number; applied: number; won: number };
+type FunnelData = {
+  total: number;
+  qualified: number;
+  applied: number;
+  replied: number;
+  callBooked: number;
+  won: number;
+};
 
 function FunnelRow({
   label, count, total, color, subLabel,
@@ -60,6 +68,8 @@ function FunnelRow({
 export function PipelineFunnel({ data }: { data: FunnelData }) {
   const qualRate = data.total === 0 ? 0 : Math.round((data.qualified / data.total) * 100);
   const applyRate = data.qualified === 0 ? 0 : Math.round((data.applied / data.qualified) * 100);
+  const replyRate = data.applied === 0 ? 0 : Math.round((data.replied / data.applied) * 100);
+  const bookRate = data.applied === 0 ? 0 : Math.round((data.callBooked / data.applied) * 100);
   const winRate = data.applied === 0 ? 0 : Math.round((data.won / data.applied) * 100);
 
   return (
@@ -67,6 +77,8 @@ export function PipelineFunnel({ data }: { data: FunnelData }) {
       <FunnelRow label="Leads received" count={data.total} total={data.total} color="bg-stone-400" subLabel="100%" />
       <FunnelRow label="Qualified" count={data.qualified} total={data.total} color="bg-amber-400" subLabel={`${qualRate}%`} />
       <FunnelRow label="Applied" count={data.applied} total={data.total} color="bg-amber-600" subLabel={`${applyRate}% of qual.`} />
+      <FunnelRow label="Client replied" count={data.replied} total={data.total} color="bg-sky-500" subLabel={`${replyRate}% of applied`} />
+      <FunnelRow label="Call booked" count={data.callBooked} total={data.total} color="bg-sky-600" subLabel={`${bookRate}% of applied`} />
       <FunnelRow label="Won" count={data.won} total={data.total} color="bg-emerald-500" subLabel={`${winRate}% of applied`} />
     </div>
   );
@@ -167,6 +179,33 @@ export function ProfileBarChart({ data }: { data: ProfileRow[] }) {
         <Bar dataKey="qualified" fill="var(--color-qualified)" radius={[3, 3, 0, 0]} />
         <Bar dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]} />
       </BarChart>
+    </ChartContainer>
+  );
+}
+
+// ─── Profile visibility over time ───────────────────────────────────────────────
+
+const visibilityConfig = {
+  views: { label: 'Views', color: 'oklch(0.6 0.13 230)' },
+  invites: { label: 'Invites', color: 'oklch(0.7 0.15 50)' },
+  impressions: { label: 'Impressions', color: 'oklch(0.72 0.13 160)' },
+  clicks: { label: 'Clicks', color: 'oklch(0.62 0.2 300)' },
+};
+
+export function VisibilityChart({ data }: { data: VisibilityPoint[] }) {
+  return (
+    <ChartContainer config={visibilityConfig} className="h-64 w-full">
+      <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 4 }}>
+        <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
+        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} />
+        <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} width={28} />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="invites" stroke="var(--color-invites)" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="impressions" stroke="var(--color-impressions)" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="clicks" stroke="var(--color-clicks)" strokeWidth={2} dot={false} />
+      </LineChart>
     </ChartContainer>
   );
 }

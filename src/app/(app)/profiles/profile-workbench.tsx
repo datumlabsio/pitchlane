@@ -23,8 +23,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import type { AccountSettingsView } from '@/domain/accounts/types';
 import type { EditableProfileView, ProfileConfigView, ScoringWeights } from '@/domain/profiles/types';
+import type { ProfileStatView } from '@/domain/profile-stats/types';
 import type { ProjectView } from '@/domain/projects/types';
 
+import { ProfileStatsPanel } from './profile-stats-panel';
 import { ProjectsPanel } from './projects-panel';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -92,10 +94,12 @@ function SaveStatus({ status, pending }: { status: string; pending: boolean }) {
 function ProfileSheetContent({
   entry,
   projects,
+  stats,
   otherProfiles,
 }: {
   entry: EditableProfileView;
   projects: ProjectView[];
+  stats: ProfileStatView[];
   otherProfiles: { id: string; personName: string }[];
 }) {
   const [accountForm, setAccountForm] = useState(() => initAccountForm(entry.account));
@@ -193,6 +197,7 @@ function ProfileSheetContent({
           <TabsTrigger value="scoring">Scoring</TabsTrigger>
           <TabsTrigger value="proposal">Proposal</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
+          <TabsTrigger value="stats">Stats</TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 min-h-0">
@@ -357,6 +362,11 @@ function ProfileSheetContent({
           <TabsContent value="projects" className="m-0 px-6 py-5">
             <ProjectsPanel accountId={entry.account.id} projects={projects} otherProfiles={otherProfiles} />
           </TabsContent>
+
+          {/* ─── Stats ─── */}
+          <TabsContent value="stats" className="m-0 px-6 py-5">
+            <ProfileStatsPanel accountId={entry.account.id} stats={stats} />
+          </TabsContent>
         </ScrollArea>
       </Tabs>
     </div>
@@ -369,6 +379,7 @@ type WorkbenchProps = {
   profiles: EditableProfileView[];
   selectedProfile: EditableProfileView | null;
   projectsByAccount: Record<string, ProjectView[]>;
+  statsByAccount: Record<string, ProfileStatView[]>;
 };
 
 const toneColors: Record<ProposalTone, string> = {
@@ -619,7 +630,7 @@ function DeleteProfileButton({ accountId, personName }: { accountId: string; per
   );
 }
 
-export function ProfileWorkbench({ profiles, selectedProfile, projectsByAccount }: WorkbenchProps) {
+export function ProfileWorkbench({ profiles, selectedProfile, projectsByAccount, statsByAccount }: WorkbenchProps) {
   const router = useRouter();
 
   return (
@@ -714,6 +725,7 @@ export function ProfileWorkbench({ profiles, selectedProfile, projectsByAccount 
               key={selectedProfile.account.id}
               entry={selectedProfile}
               projects={projectsByAccount[selectedProfile.account.id] ?? []}
+              stats={statsByAccount[selectedProfile.account.id] ?? []}
               otherProfiles={profiles
                 .filter((p) => p.account.id !== selectedProfile.account.id && p.account.isActive)
                 .map((p) => ({ id: p.account.id, personName: p.account.personName }))}

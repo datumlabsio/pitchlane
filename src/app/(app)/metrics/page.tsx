@@ -156,8 +156,8 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
         <CardHeader>
           <CardTitle>Pipeline activity over time</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Leads received and applied per period (cohort by arrival date, Monday-start weeks), with apply rate
-            (applied ÷ qualified) on the right axis. Recent periods read low while their leads are still being worked.
+            What the team did each period (Monday-start weeks): leads received by arrival date and applications
+            sent by the date they were applied. Pure activity — conversion is covered by the funnel above.
           </p>
         </CardHeader>
         <CardContent>

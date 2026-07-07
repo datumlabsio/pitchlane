@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bar, BarChart, CartesianGrid, ComposedChart, Line, LineChart, Legend, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, Legend, XAxis, YAxis } from 'recharts';
 import { LeadStatus } from '@/domain/enums';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -248,33 +248,25 @@ export function ProfileBarChart({ data }: { data: ProfileRow[] }) {
 
 // ─── Pipeline activity over time ────────────────────────────────────────────────
 
-type PipelineDay = { date: string; received: number; qualified: number; applied: number };
+type PipelineDay = { date: string; received: number; applied: number };
 
 const pipelineConfig = {
   received: { label: 'Leads received', color: 'oklch(0.83 0.02 250)' },
-  applied: { label: 'Applied', color: 'oklch(0.6 0.15 50)' },
-  applyRate: { label: 'Apply rate %', color: 'oklch(0.55 0.13 230)' },
+  applied: { label: 'Applications sent', color: 'oklch(0.6 0.15 50)' },
 };
 
 function rollupPipeline(data: PipelineDay[], grain: Grain) {
-  const map = new Map<string, { key: string; received: number; qualified: number; applied: number }>();
+  const map = new Map<string, { key: string; received: number; applied: number }>();
   for (const d of data) {
     const key = grainKey(d.date, grain);
-    const cur = map.get(key) ?? { key, received: 0, qualified: 0, applied: 0 };
+    const cur = map.get(key) ?? { key, received: 0, applied: 0 };
     cur.received += d.received;
-    cur.qualified += d.qualified;
     cur.applied += d.applied;
     map.set(key, cur);
   }
   return [...map.values()]
     .sort((a, b) => (a.key < b.key ? -1 : 1))
-    .map((x) => ({
-      label: grainLabel(x.key, grain),
-      received: x.received,
-      applied: x.applied,
-      qualified: x.qualified,
-      applyRate: x.qualified > 0 ? Math.round((x.applied / x.qualified) * 100) : 0,
-    }));
+    .map((x) => ({ label: grainLabel(x.key, grain), received: x.received, applied: x.applied }));
 }
 
 export function PipelineActivityChart({ data }: { data: PipelineDay[] }) {
@@ -288,17 +280,15 @@ export function PipelineActivityChart({ data }: { data: PipelineDay[] }) {
         <GrainToggle value={grain} onChange={setGrain} />
       </div>
       <ChartContainer config={pipelineConfig} className="h-72 w-full">
-        <ComposedChart data={rows} margin={{ top: 8, right: 8, left: -12, bottom: 4 }}>
+        <BarChart data={rows} margin={{ top: 8, right: 8, left: -12, bottom: 4 }}>
           <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
           <XAxis dataKey="label" tickLine={false} axisLine={false} interval={interval} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} />
-          <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} width={28} />
-          <YAxis yAxisId="right" orientation="right" domain={[0, 100]} unit="%" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} width={36} />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} width={28} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar yAxisId="left" dataKey="received" fill="var(--color-received)" radius={[3, 3, 0, 0]} />
-          <Bar yAxisId="left" dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]} />
-          <Line yAxisId="right" type="monotone" dataKey="applyRate" stroke="var(--color-applyRate)" strokeWidth={2} dot={false} />
-        </ComposedChart>
+          <Bar dataKey="received" fill="var(--color-received)" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]} />
+        </BarChart>
       </ChartContainer>
     </div>
   );

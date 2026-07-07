@@ -263,29 +263,46 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
   };
 }
 
-export type PipelineDay = { date: string; received: number; qualified: number; applied: number };
+export type PipelineDay = { date: string; received: number; applied: number };
 
 /**
- * Daily pipeline activity, cohort by lead.createdAt: for leads that arrived on each
- * day, how many were qualified and applied to. Returned at day grain (UTC); the
- * client rolls it up to weekly/monthly. Only days with activity are included.
+ * Daily pipeline ACTIVITY (not cohort — the funnel already covers conversion):
+ *  - received: leads counted by the day they arrived (lead.createdAt)
+ *  - applied: applications counted by the day they were sent (application.appliedAt,
+ *    falling back to createdAt when appliedAt was never recorded, so nothing is dropped)
+ * Returned at day grain (UTC); the client rolls it up to weekly/monthly. Only days
+ * with activity are included.
  */
 export async function getPipelineActivitySeries(
   window: DateWindow = {},
   accountId?: string,
 ): Promise<PipelineDay[]> {
-  const leads = await prisma.lead.findMany({
-    where: leadWhere(window, accountId),
-    select: { createdAt: true, status: true },
-  });
+  const range = buildCreatedAtRange(window);
+  const accountIds = (accountId ?? '').split(',').filter(Boolean);
+  const inRange = (d: Date) =>
+    (!range?.gte || d >= range.gte) && (!range?.lte || d <= range.lte);
+
+  const [leads, apps] = await Promise.all([
+    prisma.lead.findMany({ where: leadWhere(window, accountId), select: { createdAt: true } }),
+    prisma.application.findMany({
+      where: accountIds.length ? { accountId: { in: accountIds } } : {},
+      select: { appliedAt: true, createdAt: true },
+    }),
+  ]);
+
   const byDay = new Map<string, PipelineDay>();
-  for (const l of leads) {
-    const key = l.createdAt.toISOString().slice(0, 10);
-    const d = byDay.get(key) ?? { date: key, received: 0, qualified: 0, applied: 0 };
-    d.received += 1;
-    if (QUALIFIED_STATUSES.includes(l.status)) d.qualified += 1;
-    if (APPLIED_STATUSES.includes(l.status)) d.applied += 1;
-    byDay.set(key, d);
+  const bump = (when: Date, key: 'received' | 'applied') => {
+    const day = when.toISOString().slice(0, 10);
+    const d = byDay.get(day) ?? { date: day, received: 0, applied: 0 };
+    d[key] += 1;
+    byDay.set(day, d);
+  };
+
+  for (const l of leads) bump(l.createdAt, 'received'); // already window-filtered by leadWhere
+  for (const a of apps) {
+    const activityDate = a.appliedAt ?? a.createdAt;
+    if (inRange(activityDate)) bump(activityDate, 'applied');
   }
+
   return [...byDay.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
 }

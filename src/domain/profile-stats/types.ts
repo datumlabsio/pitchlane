@@ -19,6 +19,7 @@ export type ProfileStatInput = {
 
 // One point in the combined visibility time-series (summed across filtered profiles).
 export type VisibilityPoint = {
+  week: string; // yyyy-MM-dd (week start) — used for client-side monthly rollup
   label: string; // e.g. "Feb 2"
   views: number;
   invites: number;

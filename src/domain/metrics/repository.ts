@@ -190,14 +190,16 @@ function median(values: number[]): number | null {
  *  - response: lead.createdAt → application.appliedAt (how fast we apply after a lead lands)
  *  - applyToReply / replyToCall: from the timestamps of `lead.status_updated` events,
  *    which record every status transition with a `{ from, to }` payload.
- * All figures are medians (P50) in milliseconds, robust to outliers, with the sample
- * size (n) each is based on. Null means no qualifying data in the window.
+ * Each figure is a median (P50) in milliseconds with `n` (leads with a usable pair
+ * of timestamps) and `reached` (leads that reached that stage at all). n < reached
+ * means the rest are missing a timestamp — e.g. an applied lead with no applied-date.
  */
 export async function getLatencyMetrics(window: DateWindow = {}, accountId?: string) {
   const base = leadWhere(window, accountId);
   const leads = await prisma.lead.findMany({
     where: base,
     select: {
+      status: true,
       createdAt: true,
       applications: { select: { appliedAt: true } },
       events: {
@@ -211,15 +213,25 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
   const responseMs: number[] = [];
   const applyToReplyMs: number[] = [];
   const replyToCallMs: number[] = [];
+  let appliedReached = 0;
+  let repliedReached = 0;
+  let callReached = 0;
 
   for (const lead of leads) {
+    const isApplied = APPLIED_STATUSES.includes(lead.status);
+    const isReplied = REPLIED_STATUSES.includes(lead.status);
+    const isCall = CALL_STATUSES.includes(lead.status);
+    if (isApplied) appliedReached++;
+    if (isReplied) repliedReached++;
+    if (isCall) callReached++;
+
     // Earliest applied timestamp across this lead's applications.
     const appliedTimes = lead.applications
       .map((a) => a.appliedAt?.getTime())
       .filter((t): t is number => typeof t === 'number');
     const appliedAt = appliedTimes.length ? Math.min(...appliedTimes) : null;
 
-    if (appliedAt != null) {
+    if (isApplied && appliedAt != null) {
       const gap = appliedAt - lead.createdAt.getTime();
       if (gap >= 0) responseMs.push(gap);
     }
@@ -236,17 +248,44 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
     const repliedAt = firstReached[LeadStatus.CLIENT_REPLIED] ?? null;
     const callAt = firstReached[LeadStatus.INTRO_CALL] ?? null;
 
-    if (applyBaseline != null && repliedAt != null && repliedAt >= applyBaseline) {
+    if (isReplied && applyBaseline != null && repliedAt != null && repliedAt >= applyBaseline) {
       applyToReplyMs.push(repliedAt - applyBaseline);
     }
-    if (repliedAt != null && callAt != null && callAt >= repliedAt) {
+    if (isCall && repliedAt != null && callAt != null && callAt >= repliedAt) {
       replyToCallMs.push(callAt - repliedAt);
     }
   }
 
   return {
-    response: { p50Ms: median(responseMs), n: responseMs.length },
-    applyToReply: { p50Ms: median(applyToReplyMs), n: applyToReplyMs.length },
-    replyToCall: { p50Ms: median(replyToCallMs), n: replyToCallMs.length },
+    response: { p50Ms: median(responseMs), n: responseMs.length, reached: appliedReached },
+    applyToReply: { p50Ms: median(applyToReplyMs), n: applyToReplyMs.length, reached: repliedReached },
+    replyToCall: { p50Ms: median(replyToCallMs), n: replyToCallMs.length, reached: callReached },
   };
+}
+
+export type PipelineDay = { date: string; received: number; qualified: number; applied: number };
+
+/**
+ * Daily pipeline activity, cohort by lead.createdAt: for leads that arrived on each
+ * day, how many were qualified and applied to. Returned at day grain (UTC); the
+ * client rolls it up to weekly/monthly. Only days with activity are included.
+ */
+export async function getPipelineActivitySeries(
+  window: DateWindow = {},
+  accountId?: string,
+): Promise<PipelineDay[]> {
+  const leads = await prisma.lead.findMany({
+    where: leadWhere(window, accountId),
+    select: { createdAt: true, status: true },
+  });
+  const byDay = new Map<string, PipelineDay>();
+  for (const l of leads) {
+    const key = l.createdAt.toISOString().slice(0, 10);
+    const d = byDay.get(key) ?? { date: key, received: 0, qualified: 0, applied: 0 };
+    d.received += 1;
+    if (QUALIFIED_STATUSES.includes(l.status)) d.qualified += 1;
+    if (APPLIED_STATUSES.includes(l.status)) d.applied += 1;
+    byDay.set(key, d);
+  }
+  return [...byDay.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
 }

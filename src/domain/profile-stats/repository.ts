@@ -86,7 +86,7 @@ export async function getVisibilitySeries(
   const byWeek = new Map<string, VisibilityPoint>();
   for (const r of rows) {
     const key = isoDate(r.weekStart);
-    const point = byWeek.get(key) ?? { label: label(r.weekStart), views: 0, invites: 0, impressions: 0, clicks: 0 };
+    const point = byWeek.get(key) ?? { week: key, label: label(r.weekStart), views: 0, invites: 0, impressions: 0, clicks: 0 };
     point.views += r.views;
     point.invites += r.invites;
     point.impressions += r.impressions;

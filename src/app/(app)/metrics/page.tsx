@@ -12,13 +12,14 @@ import {
   COST_PER_CONNECT,
   getDashboardMetrics,
   getLatencyMetrics,
+  getPipelineActivitySeries,
   getPipelineFunnel,
   getProfilePerformanceRows,
   getStatusBreakdown,
 } from '@/domain/metrics/repository';
 import { getVisibilitySeries } from '@/domain/profile-stats/repository';
 
-import { PipelineFunnel, ProfileBarChart, StatusBreakdown, VisibilityChart } from './metrics-charts';
+import { PipelineActivityChart, PipelineFunnel, ProfileBarChart, StatusBreakdown, VisibilityChart } from './metrics-charts';
 
 function RateCell({ value }: { value: number }) {
   const color = value >= 60 ? 'text-emerald-700' : value >= 30 ? 'text-amber-700' : 'text-stone-500';
@@ -51,15 +52,17 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
   const dateWindow = { since: str('since'), from: str('from'), to: str('to') };
   const accountId = str('accountId'); // comma-separated profile filter (multi-select)
 
-  const [accounts, metrics, funnel, profileRows, statusBreakdown, latency, visibility] = await Promise.all([
-    listActiveAccounts(),
-    getDashboardMetrics(dateWindow, accountId),
-    getPipelineFunnel(dateWindow, accountId),
-    getProfilePerformanceRows(dateWindow, accountId),
-    getStatusBreakdown(dateWindow, accountId),
-    getLatencyMetrics(dateWindow, accountId),
-    getVisibilitySeries(dateWindow, accountId),
-  ]);
+  const [accounts, metrics, funnel, profileRows, statusBreakdown, latency, visibility, pipelineActivity] =
+    await Promise.all([
+      listActiveAccounts(),
+      getDashboardMetrics(dateWindow, accountId),
+      getPipelineFunnel(dateWindow, accountId),
+      getProfilePerformanceRows(dateWindow, accountId),
+      getStatusBreakdown(dateWindow, accountId),
+      getLatencyMetrics(dateWindow, accountId),
+      getVisibilitySeries(dateWindow, accountId),
+      getPipelineActivitySeries(dateWindow, accountId),
+    ]);
 
   const totals = profileRows.reduce(
     (acc, r) => ({
@@ -147,6 +150,24 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
           </CardContent>
         </Card>
       </section>
+
+      {/* ── Pipeline activity over time ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Pipeline activity over time</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Leads received and applied per period (cohort by arrival date, Monday-start weeks), with apply rate
+            (applied ÷ qualified) on the right axis. Recent periods read low while their leads are still being worked.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {pipelineActivity.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No pipeline activity in this range.</p>
+          ) : (
+            <PipelineActivityChart data={pipelineActivity} />
+          )}
+        </CardContent>
+      </Card>
 
       {/* ── Profile bar chart ── */}
       <Card>
@@ -313,23 +334,31 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
         <CardHeader>
           <CardTitle>Pipeline latency</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Median time between stages, from lead timestamps and status-change history. Response is how fast we
-            apply after a lead lands; the others are how fast the deal moves once applied.
+            Median time between stages, from lead timestamps and status-change history. “n of N” is how many of the
+            leads that reached a stage had a usable timestamp — the rest are missing a recorded date.
           </p>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              { label: 'Lead → applied', stat: latency.response },
-              { label: 'Applied → reply', stat: latency.applyToReply },
-              { label: 'Reply → call', stat: latency.replyToCall },
-            ].map(({ label, stat }) => (
-              <div key={label} className="rounded-lg border border-stone-200 bg-stone-50/60 px-4 py-3">
-                <p className="text-sm text-muted-foreground">{label}</p>
-                <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">{formatDuration(stat.p50Ms)}</p>
-                <p className="mt-1 text-xs text-stone-400">median · {stat.n} lead{stat.n === 1 ? '' : 's'}</p>
-              </div>
-            ))}
+              { label: 'Lead → applied', stat: latency.response, reachedNoun: 'applied', missingNoun: 'an applied date' },
+              { label: 'Applied → reply', stat: latency.applyToReply, reachedNoun: 'replied', missingNoun: 'a reply date' },
+              { label: 'Reply → call', stat: latency.replyToCall, reachedNoun: 'booked a call', missingNoun: 'a call date' },
+            ].map(({ label, stat, reachedNoun, missingNoun }) => {
+              const missing = stat.reached - stat.n;
+              return (
+                <div key={label} className="rounded-lg border border-stone-200 bg-stone-50/60 px-4 py-3">
+                  <p className="text-sm text-muted-foreground">{label}</p>
+                  <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">{formatDuration(stat.p50Ms)}</p>
+                  <p className="mt-1 text-xs text-stone-400">
+                    median · {stat.n} of {stat.reached} {reachedNoun}
+                  </p>
+                  {missing > 0 && (
+                    <p className="mt-0.5 text-xs text-amber-700">{missing} missing {missingNoun}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

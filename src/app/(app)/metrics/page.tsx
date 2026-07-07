@@ -25,6 +25,11 @@ function RateCell({ value }: { value: number }) {
   return <span className={`tabular-nums font-medium ${color}`}>{value}%</span>;
 }
 
+// Lead/application (pipeline) tracking began when Gmail ingest went live. Anything
+// before this has no funnel/costing/latency data. Profile-visibility stats are
+// backfilled earlier (see the Profile visibility section).
+const PIPELINE_TRACKING_START = 'June 15, 2026';
+
 const usd = (n: number) =>
   '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -96,6 +101,13 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
           </div>
         }
       />
+
+      {/* ── Tracking-window note ── */}
+      <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-2.5 text-xs text-amber-900">
+        Lead pipeline tracking began <span className="font-semibold">{PIPELINE_TRACKING_START}</span>. Funnel,
+        costing, and latency cover that date onward — earlier periods have no data. Profile-visibility stats are
+        backfilled to December 2025.
+      </div>
 
       {/* ── Metric cards ── */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

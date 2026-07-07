@@ -306,3 +306,67 @@ export async function getPipelineActivitySeries(
 
   return [...byDay.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
 }
+
+export type KeywordRow = {
+  keyword: string;
+  matched: number;
+  qualified: number;
+  applied: number;
+  qualRate: number;
+  applyRate: number;
+};
+export type KeywordQualification = {
+  rows: KeywordRow[];
+  totalLeads: number;
+  leadsWithKeywords: number;
+};
+
+/**
+ * Qualification rate per matched keyword — which alert/target words bring good jobs
+ * vs noise. Uses each lead's latest evaluation's matchedKeywords (normalized to
+ * lowercase). A lead matches several keywords, so it counts under each (mentions >
+ * leads). `leadsWithKeywords` vs `totalLeads` shows coverage — leads with no matched
+ * keyword aren't represented.
+ */
+export async function getKeywordQualification(
+  window: DateWindow = {},
+  accountId?: string,
+): Promise<KeywordQualification> {
+  const leads = await prisma.lead.findMany({
+    where: leadWhere(window, accountId),
+    select: {
+      status: true,
+      // Not every evaluation records keywords (the LLM judge doesn't; the rule scorer
+      // does). Pull them newest-first and take the most recent one that actually has any.
+      evaluations: { orderBy: { createdAt: 'desc' }, select: { matchedKeywords: true } },
+    },
+  });
+
+  const map = new Map<string, { keyword: string; matched: number; qualified: number; applied: number }>();
+  let leadsWithKeywords = 0;
+
+  for (const lead of leads) {
+    const source = lead.evaluations.find((e) => e.matchedKeywords.length > 0)?.matchedKeywords ?? [];
+    const kws = [...new Set(source.map((k) => k.trim().toLowerCase()).filter(Boolean))];
+    if (kws.length) leadsWithKeywords += 1;
+    const isQualified = QUALIFIED_STATUSES.includes(lead.status);
+    const isApplied = APPLIED_STATUSES.includes(lead.status);
+    for (const k of kws) {
+      const row = map.get(k) ?? { keyword: k, matched: 0, qualified: 0, applied: 0 };
+      row.matched += 1;
+      if (isQualified) row.qualified += 1;
+      if (isApplied) row.applied += 1;
+      map.set(k, row);
+    }
+  }
+
+  const rows = [...map.values()]
+    .map((r) => ({
+      ...r,
+      qualRate: r.matched > 0 ? Math.round((r.qualified / r.matched) * 100) : 0,
+      applyRate: r.matched > 0 ? Math.round((r.applied / r.matched) * 100) : 0,
+    }))
+    .sort((a, b) => b.matched - a.matched);
+
+  return { rows, totalLeads: leads.length, leadsWithKeywords };
+}

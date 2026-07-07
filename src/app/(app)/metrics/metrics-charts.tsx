@@ -294,6 +294,36 @@ export function PipelineActivityChart({ data }: { data: PipelineDay[] }) {
   );
 }
 
+// ─── Keyword qualification ──────────────────────────────────────────────────────
+
+type KeywordRow = { keyword: string; matched: number; qualified: number };
+
+const keywordConfig = {
+  qualified: { label: 'Qualified', color: 'oklch(0.65 0.14 150)' },
+  rest: { label: 'Not qualified', color: 'oklch(0.86 0.03 60)' },
+};
+
+export function KeywordChart({ data }: { data: KeywordRow[] }) {
+  const rows = data.slice(0, 12).map((r) => ({
+    keyword: r.keyword,
+    qualified: r.qualified,
+    rest: r.matched - r.qualified,
+  }));
+  return (
+    <ChartContainer config={keywordConfig} className="h-80 w-full">
+      <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 12, left: 8, bottom: 4 }}>
+        <CartesianGrid horizontal={false} stroke="oklch(0.93 0 0)" />
+        <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} allowDecimals={false} />
+        <YAxis type="category" dataKey="keyword" width={130} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.4 0 0)' }} />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Bar dataKey="qualified" stackId="a" fill="var(--color-qualified)" />
+        <Bar dataKey="rest" stackId="a" fill="var(--color-rest)" radius={[0, 3, 3, 0]} />
+      </BarChart>
+    </ChartContainer>
+  );
+}
+
 // ─── Profile visibility over time ───────────────────────────────────────────────
 
 const visibilityConfig = {

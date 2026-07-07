@@ -18,7 +18,7 @@ Pitchlane is a multi-profile Upwork lead intelligence app built for forwarded-em
 - Tailwind CSS
 - Prisma
 - Supabase Postgres
-- Vercel Cron (scheduled Gmail sync)
+- External cron or Vercel Cron (scheduled Gmail sync)
 - OpenAI Responses API
 
 ## Local setup
@@ -33,6 +33,24 @@ Pitchlane is a multi-profile Upwork lead intelligence app built for forwarded-em
    ```bash
    pnpm dev
    ```
+
+## Scheduling
+
+Vercel Hobby does not allow sub-daily `crons` in `vercel.json`, so this repo does not declare built-in Vercel cron jobs.
+
+For production scheduling you have two options:
+
+1. Vercel Pro: add `crons` back to [vercel.json](/Users/mac/Humayun/Personal/n8n ATS/pitchlane/vercel.json) with the desired schedule.
+2. Vercel Hobby: use an external scheduler to call these endpoints with `Authorization: Bearer $CRON_SECRET`:
+   - `GET /api/integrations/gmail/sync`
+   - `GET /api/leads/enrich-pending`
+
+Recommended schedules:
+
+- Gmail sync: every 1 minute
+- Lead enrichment: every 5 minutes
+
+The Gmail sync endpoint already checks the database-configured `syncIntervalMinutes` and will skip early runs when the minimum interval has not elapsed.
 
 ## Database
 

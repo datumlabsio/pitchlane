@@ -44,6 +44,12 @@ function listToMultiline(values: string[]) {
 function multilineToList(value: string) {
   return value.split(/\r?\n|,/).map((s) => s.trim()).filter(Boolean);
 }
+// Rules and snippets are full sentences — commas there are punctuation, not
+// separators. Splitting them on commas shredded the prompt into fragments
+// ("confident, concise, solution-focused" became three broken rules).
+function sentencesToList(value: string) {
+  return value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+}
 
 type WeightsForm = { skillMatch: string; roleFit: string; keywordMatch: string; budgetFit: string; confidence: string };
 type AccountForm = { gmailLabel: string; forwardingInbox: string; notificationEmail: string; isActive: boolean };
@@ -147,7 +153,7 @@ function ProfileSheetContent({
           requiredSkills: multilineToList(profileForm.requiredSkills), niceToHaveSkills: multilineToList(profileForm.niceToHaveSkills),
           rejectRules: multilineToList(profileForm.rejectRules), budgetPreference: profileForm.budgetPreference,
           scoreThreshold: isNaN(threshold) ? 70 : threshold, proposalTone: profileForm.proposalTone,
-          proposalRules: multilineToList(profileForm.proposalRules), reusableSnippets: multilineToList(profileForm.reusableSnippets),
+          proposalRules: sentencesToList(profileForm.proposalRules), reusableSnippets: sentencesToList(profileForm.reusableSnippets),
           scoringWeights: {
             skillMatch: parseFloat(profileForm.scoringWeights.skillMatch) || 0.35,
             roleFit: parseFloat(profileForm.scoringWeights.roleFit) || 0.25,

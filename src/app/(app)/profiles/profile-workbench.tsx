@@ -471,7 +471,7 @@ function NewProfileDialog({ onSuccess }: { onSuccess: () => void }) {
         <Plus className="h-3.5 w-3.5" />
         New profile
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Create new profile</DialogTitle>
         </DialogHeader>

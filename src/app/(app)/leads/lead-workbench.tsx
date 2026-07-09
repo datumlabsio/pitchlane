@@ -787,7 +787,7 @@ function ManualIngestDialogContent({
             value={gmailLabel}
             onValueChange={(value: string | null) => setGmailLabel(value ?? "")}
           >
-            <SelectTrigger id="ingest-label">
+            <SelectTrigger id="ingest-label" className="w-full">
               <SelectValue placeholder="Select label" />
             </SelectTrigger>
             <SelectContent>
@@ -810,7 +810,7 @@ function ManualIngestDialogContent({
               LEAD_SOURCES.map((s) => [s.value, s.label]),
             )}
           >
-            <SelectTrigger id="ingest-source">
+            <SelectTrigger id="ingest-source" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1205,7 +1205,7 @@ export function LeadWorkbench({
                 <Plus className="h-3.5 w-3.5" />
                 Add lead
               </DialogTrigger>
-              <DialogContent className="max-w-lg">
+              <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Add lead manually</DialogTitle>
                 </DialogHeader>

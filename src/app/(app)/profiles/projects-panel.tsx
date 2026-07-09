@@ -252,7 +252,7 @@ export function ProjectsPanel({
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit project' : 'Add project'}</DialogTitle>
           </DialogHeader>

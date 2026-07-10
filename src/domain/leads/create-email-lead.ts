@@ -2,6 +2,7 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
+import { jobCiphertext } from '@/domain/leads/duplicates';
 import { prisma } from '@/lib/prisma';
 import { decodeHtmlEntities } from '@/lib/utils';
 
@@ -42,6 +43,21 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   const existingLead = await prisma.lead.findUnique({ where: { dedupeKey } });
   if (existingLead) {
     return { lead: existingLead, duplicate: true };
+  }
+
+  // Mailbox-agnostic guard: the dedupeKey above is the Gmail message id, which is
+  // specific to one inbox — when the same alert lands in (or is re-fetched from) a
+  // different mailbox, or Upwork re-alerts the same job, the id differs and the key
+  // misses. The job's URL ciphertext is the stable identity, so a lead for the same
+  // job on the same profile is always a duplicate regardless of which email it came in.
+  const cipher = jobCiphertext(input.sourceUrl);
+  if (cipher) {
+    const sameJob = await prisma.lead.findFirst({
+      where: { accountId: account.id, sourceUrl: { contains: cipher } },
+    });
+    if (sameJob) {
+      return { lead: sameJob, duplicate: true };
+    }
   }
 
   const evalConfig = {

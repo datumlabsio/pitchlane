@@ -20,6 +20,10 @@ export type IngestEmailInput = {
   sourceCompleteness?: SourceCompleteness;
 };
 
+// How far back the same-title repost guard looks. Reposts cluster within days or a
+// few weeks of the original posting.
+const REPOST_WINDOW_DAYS = 45;
+
 function buildDedupeKey(input: IngestEmailInput) {
   if (input.externalMessageId) {
     return `gmail:${input.externalMessageId}`.toLowerCase();
@@ -60,6 +64,27 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     }
   }
 
+  // Repost guard: clients re-list the same job as a brand-new Upwork posting, which
+  // gets a fresh job id — so the ciphertext check can't see it. Same profile + same
+  // title within the recency window is the same work; skip it. (Window-bound so a
+  // genuinely different job that happens to reuse a generic title months later still
+  // gets through.)
+  const normalizedTitle = decodeHtmlEntities(input.subject).trim().replace(/\s+/g, ' ').toLowerCase();
+  if (normalizedTitle) {
+    const windowStart = new Date(Date.now() - REPOST_WINDOW_DAYS * 24 * 3600 * 1000);
+    const recent = await prisma.lead.findMany({
+      where: { accountId: account.id, createdAt: { gte: windowStart } },
+      select: { id: true, title: true },
+    });
+    const samePost = recent.find(
+      (l) => l.title.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedTitle,
+    );
+    if (samePost) {
+      const lead = await prisma.lead.findUnique({ where: { id: samePost.id } });
+      if (lead) return { lead, duplicate: true };
+    }
+  }
+
   const evalConfig = {
     requiredSkills: profileConfig.requiredSkills,
     niceToHaveSkills: profileConfig.niceToHaveSkills,
@@ -77,7 +102,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
   // and the UI shows why; the user can still generate from the email manually.
   // Decode HTML entities from the forwarded email ("AI &amp; Automation" → "AI &
   // Automation") so titles, scoring, and Slack all use clean text.
-  const subject = decodeHtmlEntities(input.subject);
+  const subject = decodeHtmlEntities(input.subject).trim();
   const body = decodeHtmlEntities(input.body);
 
   const evaluation = evaluateEmail({ subject, body, ...evalConfig });

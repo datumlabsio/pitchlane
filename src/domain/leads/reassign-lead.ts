@@ -71,6 +71,18 @@ export async function reassignLead(leadId: string, accountId: string): Promise<R
         payload: { from: lead.account.personName, to: account.personName, score: ev.score },
       },
     }),
+    // Stage log: re-scoring against the new profile can flip NEW ↔ QUALIFIED.
+    ...(nextStatus !== lead.status
+      ? [
+          prisma.leadEvent.create({
+            data: {
+              leadId,
+              type: 'lead.status_updated',
+              payload: { from: lead.status, to: nextStatus, reason: 'reassigned' },
+            },
+          }),
+        ]
+      : []),
   ]);
 
   return { ok: true, score: ev.score, status: nextStatus, profile: account.personName };

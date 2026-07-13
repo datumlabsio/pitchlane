@@ -217,6 +217,19 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
       },
     }),
   ];
+  // Stage log: enrichment may auto-promote NEW → QUALIFIED; record the transition
+  // with its timestamp so time-in-stage reporting sees every hop, not just manual ones.
+  if (nextStatus !== lead.status) {
+    ops.push(
+      prisma.leadEvent.create({
+        data: {
+          leadId,
+          type: 'lead.status_updated',
+          payload: { from: lead.status, to: nextStatus, reason: 'enrichment' },
+        },
+      }),
+    );
+  }
   if (newProposal) {
     ops.push(
       prisma.proposalVersion.updateMany({ where: { leadId, isPrimary: true }, data: { isPrimary: false } }),

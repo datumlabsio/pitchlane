@@ -148,10 +148,18 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
           },
         },
         events: {
-          create: {
-            type: 'lead.ingested_from_email',
-            payload: { gmailLabel: input.gmailLabel, from: input.from ?? null },
-          },
+          create: [
+            {
+              type: 'lead.ingested_from_email',
+              payload: { gmailLabel: input.gmailLabel, from: input.from ?? null },
+            },
+            // Stage log from birth: record the first transition (null → initial
+            // status) so time-in-stage math always has a starting timestamp.
+            {
+              type: 'lead.status_updated',
+              payload: { from: null, to: status, reason: 'ingest' },
+            },
+          ],
         },
       },
       include: { evaluations: true, proposals: true },

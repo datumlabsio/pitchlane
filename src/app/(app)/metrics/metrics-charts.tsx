@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bar, BarChart, CartesianGrid, Line, LineChart, Legend, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, Legend, XAxis, YAxis } from 'recharts';
 import { LeadStatus } from '@/domain/enums';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -198,6 +198,14 @@ const chartConfig = {
   applied: { label: 'Applied', color: 'oklch(0.6 0.15 50)' },
 };
 
+// Value labels on bars: small, muted, and hidden for zeros so empty bars don't
+// print noise.
+const barLabelStyle = { fontSize: 9.5, fill: 'oklch(0.5 0 0)' } as const;
+const hideZero = (v: unknown) => {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) && n > 0 ? String(n) : '';
+};
+
 export function ProfileBarChart({ data }: { data: ProfileRow[] }) {
   const router = useRouter();
   const chartData = data.map((r) => ({
@@ -221,6 +229,7 @@ export function ProfileBarChart({ data }: { data: ProfileRow[] }) {
         data={chartData}
         barGap={2}
         barCategoryGap="28%"
+        margin={{ top: 14 }}
         onClick={handleBarClick}
         className="cursor-pointer"
       >
@@ -236,11 +245,18 @@ export function ProfileBarChart({ data }: { data: ProfileRow[] }) {
           axisLine={false}
           tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
           width={24}
+          allowDecimals={false}
         />
         <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: 'oklch(0.97 0 0)' }} />
-        <Bar dataKey="leads" fill="var(--color-leads)" radius={[3, 3, 0, 0]} />
-        <Bar dataKey="qualified" fill="var(--color-qualified)" radius={[3, 3, 0, 0]} />
-        <Bar dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="leads" fill="var(--color-leads)" radius={[3, 3, 0, 0]}>
+          <LabelList dataKey="leads" position="top" style={barLabelStyle} formatter={hideZero} />
+        </Bar>
+        <Bar dataKey="qualified" fill="var(--color-qualified)" radius={[3, 3, 0, 0]}>
+          <LabelList dataKey="qualified" position="top" style={barLabelStyle} formatter={hideZero} />
+        </Bar>
+        <Bar dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]}>
+          <LabelList dataKey="applied" position="top" style={barLabelStyle} formatter={hideZero} />
+        </Bar>
       </BarChart>
     </ChartContainer>
   );
@@ -280,14 +296,18 @@ export function PipelineActivityChart({ data }: { data: PipelineDay[] }) {
         <GrainToggle value={grain} onChange={setGrain} />
       </div>
       <ChartContainer config={pipelineConfig} className="h-72 w-full">
-        <BarChart data={rows} margin={{ top: 8, right: 8, left: -12, bottom: 4 }}>
+        <BarChart data={rows} margin={{ top: 16, right: 8, left: -12, bottom: 4 }}>
           <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
           <XAxis dataKey="label" tickLine={false} axisLine={false} interval={interval} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} />
-          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} width={28} />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} width={28} allowDecimals={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="received" fill="var(--color-received)" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="received" fill="var(--color-received)" radius={[3, 3, 0, 0]}>
+            <LabelList dataKey="received" position="top" style={barLabelStyle} formatter={hideZero} />
+          </Bar>
+          <Bar dataKey="applied" fill="var(--color-applied)" radius={[3, 3, 0, 0]}>
+            <LabelList dataKey="applied" position="top" style={barLabelStyle} formatter={hideZero} />
+          </Bar>
         </BarChart>
       </ChartContainer>
     </div>
@@ -308,17 +328,21 @@ export function KeywordChart({ data }: { data: KeywordRow[] }) {
     keyword: r.keyword,
     qualified: r.qualified,
     rest: r.matched - r.qualified,
+    // For the end-of-bar label: "qualified/total".
+    ratio: `${r.qualified}/${r.matched}`,
   }));
   return (
     <ChartContainer config={keywordConfig} className="h-80 w-full">
-      <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 12, left: 8, bottom: 4 }}>
+      <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 40, left: 8, bottom: 4 }}>
         <CartesianGrid horizontal={false} stroke="oklch(0.93 0 0)" />
         <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }} allowDecimals={false} />
         <YAxis type="category" dataKey="keyword" width={130} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'oklch(0.4 0 0)' }} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Bar dataKey="qualified" stackId="a" fill="var(--color-qualified)" />
-        <Bar dataKey="rest" stackId="a" fill="var(--color-rest)" radius={[0, 3, 3, 0]} />
+        <Bar dataKey="rest" stackId="a" fill="var(--color-rest)" radius={[0, 3, 3, 0]}>
+          <LabelList dataKey="ratio" position="right" style={barLabelStyle} />
+        </Bar>
       </BarChart>
     </ChartContainer>
   );

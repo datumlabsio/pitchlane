@@ -954,6 +954,11 @@ export function LeadWorkbench({
   const [copied, setCopied] = useState(false);
   const [proposalFeedback, setProposalFeedback] = useState("");
   const [citedProjectIds, setCitedProjectIds] = useState<string[]>([]);
+  // Lifecycle pills select a pending status; Apply commits it. A single stray
+  // click must never change the status.
+  const [pendingStatus, setPendingStatus] = useState<
+    (typeof leadLifecycleStatuses)[number] | null
+  >(null);
   const [connectsSpent, setConnectsSpent] = useState("");
   const [appliedAt, setAppliedAt] = useState("");
   const [appliedPickerOpen, setAppliedPickerOpen] = useState(false);
@@ -965,6 +970,7 @@ export function LeadWorkbench({
     setProposalDraft(selectedLead?.proposals[0]?.content ?? "");
     setProposalFeedback("");
     setCitedProjectIds(selectedLead?.relevantProjects.map((p) => p.id) ?? []);
+    setPendingStatus(null);
     setConnectsSpent(
       selectedLead?.application?.connectsSpent?.toString() ?? "",
     );
@@ -1167,7 +1173,9 @@ export function LeadWorkbench({
     if (mode === "regenerate") setProposalFeedback("");
   }
 
-  function buildCloseUrl() {
+  // Active filters as URL params — opening and closing a lead must both carry
+  // them, otherwise opening (which navigates) wipes the filtered view.
+  function buildFilterParams() {
     const params = new URLSearchParams();
     if (currentFilters.accountId)
       params.set("accountId", currentFilters.accountId);
@@ -1177,7 +1185,17 @@ export function LeadWorkbench({
     if (currentFilters.from) params.set("from", currentFilters.from);
     if (currentFilters.to) params.set("to", currentFilters.to);
     if (page > 1) params.set("page", String(page));
-    const qs = params.toString();
+    return params;
+  }
+
+  function buildLeadUrl(leadId: string) {
+    const params = buildFilterParams();
+    params.set("leadId", leadId);
+    return `/leads?${params.toString()}`;
+  }
+
+  function buildCloseUrl() {
+    const qs = buildFilterParams().toString();
     return qs ? `/leads?${qs}` : "/leads";
   }
 
@@ -1259,7 +1277,7 @@ export function LeadWorkbench({
                       "cursor-pointer transition-colors hover:bg-amber-50/60",
                       isSelected && "bg-amber-50",
                     )}
-                    onClick={() => router.push(`/leads?leadId=${lead.id}`)}
+                    onClick={() => router.push(buildLeadUrl(lead.id))}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-1.5">
@@ -1461,17 +1479,22 @@ export function LeadWorkbench({
                     <div className="flex flex-wrap gap-2">
                       {leadLifecycleStatuses.map((status) => {
                         const isCurrent = selectedLead.statusCode === status;
+                        const isPendingPick = pendingStatus === status;
                         return (
                           <button
                             key={status}
                             type="button"
                             disabled={isPending || isCurrent}
-                            onClick={() => submitStatus(status)}
+                            onClick={() =>
+                              setPendingStatus(isPendingPick ? null : status)
+                            }
                             className={cn(
                               "rounded-full px-3.5 py-1.5 text-xs font-medium transition",
                               isCurrent
                                 ? "bg-stone-950 text-white"
-                                : "border border-stone-200 bg-white text-stone-700 hover:border-stone-400",
+                                : isPendingPick
+                                  ? "border border-amber-400 bg-amber-50 text-amber-900 ring-2 ring-amber-200"
+                                  : "border border-stone-200 bg-white text-stone-700 hover:border-stone-400",
                               isPending && "cursor-not-allowed opacity-70",
                             )}
                           >
@@ -1480,6 +1503,30 @@ export function LeadWorkbench({
                         );
                       })}
                     </div>
+                    {pendingStatus && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          disabled={isPending}
+                          onClick={() => {
+                            submitStatus(pendingStatus);
+                            setPendingStatus(null);
+                          }}
+                        >
+                          {isPending
+                            ? "Applying…"
+                            : `Apply — move to ${leadStatusLabelMap[pendingStatus]}`}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isPending}
+                          onClick={() => setPendingStatus(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
                     {statusMessage && (
                       <p className="text-xs text-stone-500">{statusMessage}</p>
                     )}
@@ -1507,7 +1554,7 @@ export function LeadWorkbench({
                             {selectedLead.duplicates.map((d) => (
                               <a
                                 key={d.leadId}
-                                href={`/leads?leadId=${d.leadId}`}
+                                href={buildLeadUrl(d.leadId)}
                                 className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-2.5 py-1 text-xs text-stone-700 transition hover:border-violet-400"
                               >
                                 <span className="font-medium">{d.profile}</span>

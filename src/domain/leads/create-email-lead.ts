@@ -18,6 +18,10 @@ export type IngestEmailInput = {
   extractedBudget?: string;
   extractedSkills?: string[];
   sourceCompleteness?: SourceCompleteness;
+  /** When the alert email actually arrived (Gmail internalDate). Backfilled mail is
+   *  ingested long after arrival — createdAt uses this so lead age reflects the
+   *  job's real age (UI relative times, Slack freshness gate, repost window). */
+  receivedAt?: Date;
 };
 
 // How far back the same-title repost guard looks. Reposts cluster within days or a
@@ -131,6 +135,7 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
         confidence: evaluation.confidence,
         dedupeKey,
         status,
+        ...(input.receivedAt ? { createdAt: input.receivedAt } : {}),
         evaluations: {
           create: {
             profileConfigId: profileConfig.id,

@@ -13,9 +13,9 @@ import { prisma } from '@/lib/prisma';
 // unknown messages, bounded per run; the remainder drains on subsequent runs.
 const SCAN_WINDOW_DAYS = 30;
 // Per-label checkpoint (epoch seconds) stored in connection.metadata.syncWatermarks.
-// Re-listing overlaps the watermark slightly so late-delivered mail is never missed;
-// the id-diff makes the overlap free.
-const WATERMARK_OVERLAP_SECONDS = 6 * 3600;
+// When a label is fully caught up its watermark is set to now MINUS this overlap, so
+// late-delivered mail still gets listed on later runs (the id-diff keeps that cheap).
+const WATERMARK_OVERLAP_SECONDS = 3600;
 const MAX_NEW_FETCHES_PER_LABEL = 50;
 
 type SyncSummary = {
@@ -73,6 +73,14 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
         ? { ...(meta.syncWatermarks as Record<string, number>) }
         : {};
 
+    // How many accounts claim each alert address — recipient routing is only safe
+    // when exactly one account owns the address.
+    const accountsByInbox = new Map<string, number>();
+    for (const a of accounts) {
+      const key = a.forwardingInbox?.trim().toLowerCase();
+      if (key) accountsByInbox.set(key, (accountsByInbox.get(key) ?? 0) + 1);
+    }
+
     for (const account of accounts) {
       const gmailLabel = account.gmailLabel;
       const labelId = labelIdByName.get(gmailLabel);
@@ -97,27 +105,38 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
         continue;
       }
 
-      // Window: from the label's checkpoint (minus overlap) or the max scan window.
+      // Window: from the label's checkpoint or the max scan window. The overlap for
+      // late-delivered mail is baked into the stored watermark (see below).
       const nowEpoch = Math.floor(Date.now() / 1000);
       const windowFloor = nowEpoch - SCAN_WINDOW_DAYS * 24 * 3600;
-      const since = watermarks[gmailLabel]
-        ? Math.max(watermarks[gmailLabel] - WATERMARK_OVERLAP_SECONDS, windowFloor)
-        : windowFloor;
+      const since = Math.max(watermarks[gmailLabel] ?? 0, windowFloor);
 
       // 1) List every candidate id in the window (paginated — no silent cap).
-      const messageIds: string[] = [];
-      let pageToken: string | undefined;
-      do {
-        const page = await gmail.users.messages.list({
-          userId: 'me',
-          labelIds: [resolvedLabelId],
-          q: `after:${since}`,
-          maxResults: 500,
-          pageToken,
-        });
-        for (const m of page.data.messages ?? []) if (m.id) messageIds.push(m.id);
-        pageToken = page.data.nextPageToken ?? undefined;
-      } while (pageToken);
+      // Two sources, merged: the profile label (curated mail), PLUS mail routed by
+      // the account's own alert address. The mailbox switch dropped the Gmail
+      // filters that used to apply our labels, so labels can't be assumed — but
+      // Upwork always addresses the alert to the profile's address, which is
+      // stable. Recipient routing is skipped when two profiles share an address.
+      const messageIdSet = new Set<string>();
+      const listInto = async (params: { labelIds?: string[]; q: string }) => {
+        let pageToken: string | undefined;
+        do {
+          const page = await gmail.users.messages.list({
+            userId: 'me',
+            maxResults: 500,
+            pageToken,
+            ...params,
+          });
+          for (const m of page.data.messages ?? []) if (m.id) messageIdSet.add(m.id);
+          pageToken = page.data.nextPageToken ?? undefined;
+        } while (pageToken);
+      };
+      await listInto({ labelIds: [resolvedLabelId], q: `after:${since}` });
+      const inbox = account.forwardingInbox?.trim().toLowerCase();
+      if (inbox && accountsByInbox.get(inbox) === 1) {
+        await listInto({ q: `from:donotreply@upwork.com to:${inbox} after:${since}` });
+      }
+      const messageIds = [...messageIdSet];
 
       // 2) Diff against leads we already ingested — known ids cost nothing.
       const knownKeys = new Set<string>();
@@ -129,12 +148,19 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
         });
         for (const row of rows) knownKeys.add(row.dedupeKey);
       }
-      const unknownIds = messageIds.filter((id) => !knownKeys.has(`gmail:${id}`.toLowerCase()));
+      // Oldest first: paired with the incremental watermark below, this lets the
+      // checkpoint advance past messages that were fetched but skipped as duplicates.
+      // Skipped messages never become lead rows, so the id-diff alone would re-fetch
+      // the same batch forever.
+      const unknownIds = messageIds
+        .filter((id) => !knownKeys.has(`gmail:${id}`.toLowerCase()))
+        .reverse();
 
       // 3) Fetch + ingest only the unknown, bounded per run; leftovers drain on the
-      // next run, so the watermark only advances once the label is fully caught up.
+      // next run as the watermark walks forward.
       const toFetch = unknownIds.slice(0, MAX_NEW_FETCHES_PER_LABEL);
       const caughtUp = unknownIds.length <= MAX_NEW_FETCHES_PER_LABEL;
+      let maxProcessedInternalMs = 0;
 
       for (const messageId of toFetch) {
         perLabel.scanned += 1;
@@ -146,6 +172,9 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
             id: messageId,
             format: 'full',
           });
+
+          const internalMs = Number(fullMessage.data.internalDate ?? 0);
+          if (internalMs > maxProcessedInternalMs) maxProcessedInternalMs = internalMs;
 
           const payload = fullMessage.data.payload;
           const subject = getHeaderValue(payload?.headers, 'Subject') || 'Untitled forwarded lead';
@@ -164,6 +193,7 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
             extractedBudget: extracted.budget,
             extractedSkills: extracted.skills,
             sourceCompleteness: extracted.sourceCompleteness,
+            receivedAt: internalMs > 0 ? new Date(internalMs) : undefined,
           });
 
           if (result.duplicate) {
@@ -176,6 +206,19 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
             // sync responds — see the route's after() hook.
             if (result.lead.sourceUrl) newLeadIds.push(result.lead.id);
           }
+
+          // Self-heal the label on recipient-routed mail so the mailbox stays
+          // organized and label listing keeps working. Best effort — the lead is
+          // already ingested either way.
+          if (!(fullMessage.data.labelIds ?? []).includes(resolvedLabelId)) {
+            try {
+              await gmail.users.messages.modify({
+                userId: 'me',
+                id: messageId,
+                requestBody: { addLabelIds: [resolvedLabelId] },
+              });
+            } catch { /* labeling failure must not fail the sync */ }
+          }
         } catch (error) {
           perLabel.errors += 1;
           errorsCount += 1;
@@ -183,10 +226,20 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
         }
       }
 
-      // Advance the checkpoint only when the label is fully drained with no
-      // errors — unfetched backlog and failed messages get retried next run.
-      if (caughtUp && perLabel.errors === 0) {
-        watermarks[gmailLabel] = nowEpoch;
+      // Advance the checkpoint. Fully drained and clean → now minus the overlap
+      // (late-delivered mail re-lists briefly; the id-diff keeps that cheap).
+      // Still catching up → advance to the newest message actually processed, so
+      // fetched-but-skipped duplicates are not re-fetched on the next run. Errors
+      // freeze the watermark so failed messages are retried.
+      if (perLabel.errors === 0) {
+        if (caughtUp) {
+          watermarks[gmailLabel] = nowEpoch - WATERMARK_OVERLAP_SECONDS;
+        } else if (maxProcessedInternalMs > 0) {
+          watermarks[gmailLabel] = Math.max(
+            watermarks[gmailLabel] ?? 0,
+            Math.floor(maxProcessedInternalMs / 1000),
+          );
+        }
       }
 
       labelSummaries.push(perLabel);

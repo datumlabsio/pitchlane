@@ -21,6 +21,12 @@ function confidenceLabel(c: number): string {
 // the channel. The 🟢/⚪ dot (slackMinScore) still flags the strong ones above it.
 const SLACK_ALERT_MIN_MATCH = 30;
 
+// Never Slack-alert a job whose alert arrived more than this long ago — speed is
+// the whole point of the ping, and backfills/re-syncs ingest days-old mail whose
+// jobs are already buried in proposals. (lead.createdAt carries the email's real
+// arrival time.)
+const SLACK_ALERT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 export type EnrichLeadResult =
   | { ok: true; outcome: 'enriched'; score: number; status: LeadStatus }
   | { ok: true; outcome: 'private' }
@@ -68,6 +74,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
 
   const slackMinScore = await getSlackMinScore();
   const freshLead = !lead.enrichedAt && (lead.status === LeadStatus.NEW || lead.status === LeadStatus.QUALIFIED);
+  const alertAgeOk = Date.now() - lead.createdAt.getTime() <= SLACK_ALERT_MAX_AGE_MS;
 
   // Cross-account dedupe: if this same Upwork job already produced an alert-worthy
   // lead on another profile, stay quiet here — one job shouldn't ping twice (and
@@ -99,7 +106,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     // retries won't re-alert (freshLead turns false once it's been attempted).
     const existingScore = lead.evaluations[0]?.score ?? 0;
     const existingRejected = (lead.evaluations[0]?.rejectionReasons?.length ?? 0) > 0;
-    if (freshLead && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected && !siblingAlreadyAlerted) {
+    if (freshLead && alertAgeOk && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected && !siblingAlreadyAlerted) {
       void notifySlackNewLead({
         variant: outcome.status, // 'private' | 'failed'
         profileName: lead.account.personName,
@@ -239,7 +246,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
 
   // Rich meta alert on every fresh lead above the match floor (first enrichment
   // only, so re-enriching is quiet). The dot is 🟢 when the score clears "hot".
-  if (freshLead && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0 && !siblingAlreadyAlerted) {
+  if (freshLead && alertAgeOk && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0 && !siblingAlreadyAlerted) {
     const clientLocation = [c.location, c.country].map((s) => s?.trim()).filter(Boolean).join(', ') || null;
     void notifySlackNewLead({
       variant: 'enriched',

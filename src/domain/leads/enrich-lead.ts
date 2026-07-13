@@ -1,6 +1,7 @@
 import { LeadStatus, Prisma, SourceCompleteness } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { getActorName } from '@/lib/auth/actor';
 import { scoreLead } from '@/domain/leads/score-lead';
 import { fetchUpworkJob, isScrapeConfigured, type EnrichOutcome } from '@/lib/scrape/upwork';
 import { fetchUpworkJobViaApi, isUpworkApiEnabled } from '@/lib/upwork/api';
@@ -217,6 +218,9 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
       },
     }),
   ];
+  // "system" from the crons; the person's name when triggered via Refresh from Upwork.
+  const actor = await getActorName();
+
   // Stage log: enrichment may auto-promote NEW → QUALIFIED; record the transition
   // with its timestamp so time-in-stage reporting sees every hop, not just manual ones.
   if (nextStatus !== lead.status) {
@@ -225,7 +229,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
         data: {
           leadId,
           type: 'lead.status_updated',
-          payload: { from: lead.status, to: nextStatus, reason: 'enrichment' },
+          payload: { from: lead.status, to: nextStatus, reason: 'enrichment', actor },
         },
       }),
     );
@@ -248,6 +252,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
           score: evaluation.score,
           proposalsCount: enrichment.proposalsCount ?? null,
           proposalWritten: Boolean(newProposal),
+          actor,
           ...(newProposal && portfolioProjects.length
             ? { projectsUsed: portfolioProjects.map((p) => p.title) }
             : {}),

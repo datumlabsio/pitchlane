@@ -452,7 +452,21 @@ function ActivityItem({
       </div>
       <div className="flex-1 pb-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-stone-900">{meta.title}</p>
+          <p className="text-sm font-medium text-stone-900">
+            {meta.title}
+            {typeof payload.actor === "string" && payload.actor && (
+              <span
+                className={cn(
+                  "ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                  payload.actor === "system"
+                    ? "bg-stone-100 text-stone-500"
+                    : "bg-amber-50 text-amber-800",
+                )}
+              >
+                {payload.actor === "system" ? "system" : `by ${payload.actor}`}
+              </span>
+            )}
+          </p>
           <p className="shrink-0 text-xs text-stone-400">{event.createdAt}</p>
         </div>
         <div className="mt-1.5 text-sm text-stone-600">

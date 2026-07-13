@@ -1,5 +1,6 @@
 import { LeadStatus } from '@prisma/client';
 
+import { getActorName } from '@/lib/auth/actor';
 import { prisma } from '@/lib/prisma';
 
 export type UpsertApplicationInput = {
@@ -19,6 +20,8 @@ export async function upsertApplication(input: UpsertApplicationInput) {
   if (!lead) {
     throw new Error('Lead not found');
   }
+
+  const actor = await getActorName();
 
   return prisma.$transaction(async (tx) => {
     const existing = await tx.application.findFirst({
@@ -67,6 +70,7 @@ export async function upsertApplication(input: UpsertApplicationInput) {
             from: lead.status,
             to: nextStatus,
             reason: 'application_upsert',
+            actor,
           },
         },
       });
@@ -80,6 +84,7 @@ export async function upsertApplication(input: UpsertApplicationInput) {
           connectsSpent: input.connectsSpent,
           appliedAt: input.appliedAt?.toISOString() ?? null,
           lastFollowUpAt: input.lastFollowUpAt?.toISOString() ?? null,
+          actor,
         },
       },
     });

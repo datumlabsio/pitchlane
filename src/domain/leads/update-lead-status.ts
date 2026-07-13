@@ -1,5 +1,6 @@
 import { LeadStatus } from '@prisma/client';
 
+import { getActorName } from '@/lib/auth/actor';
 import { prisma } from '@/lib/prisma';
 
 export async function updateLeadStatus(leadId: string, status: LeadStatus) {
@@ -16,6 +17,8 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus) {
     return prisma.lead.findUnique({ where: { id: leadId } });
   }
 
+  const actor = await getActorName();
+
   return prisma.$transaction(async (tx) => {
     const lead = await tx.lead.update({
       where: { id: leadId },
@@ -29,6 +32,7 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus) {
         payload: {
           from: existingLead.status,
           to: status,
+          actor,
         },
       },
     });

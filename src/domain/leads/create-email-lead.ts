@@ -3,6 +3,7 @@ import { LeadSource, LeadStatus, Prisma, SourceCompleteness } from '@prisma/clie
 import { findAccountByLabel } from '@/domain/accounts/repository';
 import { evaluateEmail } from '@/domain/leads/evaluate-email';
 import { jobCiphertext } from '@/domain/leads/duplicates';
+import { getActorName } from '@/lib/auth/actor';
 import { prisma } from '@/lib/prisma';
 import { decodeHtmlEntities } from '@/lib/utils';
 
@@ -115,6 +116,9 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
     ? LeadStatus.QUALIFIED
     : LeadStatus.NEW;
 
+  // "system" for the Gmail sync; the person's name for the manual Add-lead dialog.
+  const actor = await getActorName();
+
   let lead;
   try {
     lead = await prisma.lead.create({
@@ -151,13 +155,13 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
           create: [
             {
               type: 'lead.ingested_from_email',
-              payload: { gmailLabel: input.gmailLabel, from: input.from ?? null },
+              payload: { gmailLabel: input.gmailLabel, from: input.from ?? null, actor },
             },
             // Stage log from birth: record the first transition (null → initial
             // status) so time-in-stage math always has a starting timestamp.
             {
               type: 'lead.status_updated',
-              payload: { from: null, to: status, reason: 'ingest' },
+              payload: { from: null, to: status, reason: 'ingest', actor },
             },
           ],
         },

@@ -1,6 +1,7 @@
 import { LeadStatus } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { getActorName } from '@/lib/auth/actor';
 import { scoreLead } from '@/domain/leads/score-lead';
 
 export type ReassignResult =
@@ -44,6 +45,8 @@ export async function reassignLead(leadId: string, accountId: string): Promise<R
         : LeadStatus.NEW
       : lead.status;
 
+  const actor = await getActorName();
+
   await prisma.$transaction([
     prisma.lead.update({
       where: { id: leadId },
@@ -68,7 +71,7 @@ export async function reassignLead(leadId: string, accountId: string): Promise<R
       data: {
         leadId,
         type: 'lead.reassigned',
-        payload: { from: lead.account.personName, to: account.personName, score: ev.score },
+        payload: { from: lead.account.personName, to: account.personName, score: ev.score, actor },
       },
     }),
     // Stage log: re-scoring against the new profile can flip NEW ↔ QUALIFIED.
@@ -78,7 +81,7 @@ export async function reassignLead(leadId: string, accountId: string): Promise<R
             data: {
               leadId,
               type: 'lead.status_updated',
-              payload: { from: lead.status, to: nextStatus, reason: 'reassigned' },
+              payload: { from: lead.status, to: nextStatus, reason: 'reassigned', actor },
             },
           }),
         ]

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { getActorName } from '@/lib/auth/actor';
 import { generateProposalDraft } from '@/lib/ai/proposals';
 import { appendProjectsToSummary, relevantProjectsForJob } from '@/domain/projects/relevant-projects';
 
@@ -102,6 +103,8 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
         previousProposal: input.feedback ? currentPrimary?.content : undefined,
       });
 
+  const actor = await getActorName();
+
   return prisma.$transaction(async (tx) => {
     await tx.proposalVersion.updateMany({
       where: {
@@ -130,6 +133,7 @@ export async function saveProposalVersion(input: SaveProposalVersionInput) {
         payload: {
           proposalId: proposal.id,
           versionCount: lead.proposals.length + 1,
+          actor,
           ...(portfolioProjects.length ? { projectsUsed: portfolioProjects.map((p) => p.title) } : {}),
         },
       },

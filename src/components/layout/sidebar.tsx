@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { BarChart3, BriefcaseBusiness, Inbox, LogOut, Settings2, Users2 } from 'lucide-react';
+import { BarChart3, BookOpen, BriefcaseBusiness, Inbox, LogOut, Settings2, Users2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export const navItems = [
@@ -11,6 +11,7 @@ export const navItems = [
   { href: '/leads', label: 'Leads', icon: Inbox },
   { href: '/profiles', label: 'Profiles', icon: Users2 },
   { href: '/metrics', label: 'Metrics', icon: BarChart3 },
+  { href: '/docs', label: 'Docs', icon: BookOpen },
   { href: '/settings', label: 'Settings', icon: Settings2 },
 ];
 

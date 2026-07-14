@@ -1,5 +1,9 @@
 import type { LeadStatus } from '@prisma/client';
 
+// The 10-stage pipeline (NEW is the implicit entry stage). Three legacy stages were
+// consolidated and are no longer settable — FOLLOW_UP folded into
+// ONGOING_DISCUSSION, QUALIFIED_LOST into LOST, CLOSED into JOB_CLOSED. Their enum
+// values stay in the schema so historical rows/events remain readable.
 export const leadLifecycleStatuses = [
   'QUALIFIED',
   'REJECTED',
@@ -7,13 +11,10 @@ export const leadLifecycleStatuses = [
   'CLIENT_REPLIED',
   'INTRO_CALL',
   'ONGOING_DISCUSSION',
-  'FOLLOW_UP',
   'HIRES_OTHER',
-  'QUALIFIED_LOST',
   'JOB_CLOSED',
   'WON',
   'LOST',
-  'CLOSED',
 ] as const satisfies readonly LeadStatus[];
 
 export const leadStatusLabelMap: Record<LeadStatus, string> = {
@@ -22,7 +23,7 @@ export const leadStatusLabelMap: Record<LeadStatus, string> = {
   REJECTED: 'Rejected',
   APPLIED: 'Applied',
   CLIENT_REPLIED: 'Client Replied',
-  INTRO_CALL: 'Intro Call',
+  INTRO_CALL: 'First Call',
   FOLLOW_UP: 'Follow Up',
   ONGOING_DISCUSSION: 'Ongoing Discussion',
   HIRES_OTHER: 'Hired Other',

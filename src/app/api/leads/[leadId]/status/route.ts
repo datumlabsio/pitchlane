@@ -4,8 +4,17 @@ import { z } from 'zod';
 
 import { updateLeadStatus } from '@/domain/leads/update-lead-status';
 
+// NEW is entry-only, and the three consolidated legacy stages can no longer be set
+// (FOLLOW_UP → Ongoing Discussion, QUALIFIED_LOST → Lost, CLOSED → Job Closed).
+const RETIRED: LeadStatus[] = [
+  LeadStatus.NEW,
+  LeadStatus.FOLLOW_UP,
+  LeadStatus.QUALIFIED_LOST,
+  LeadStatus.CLOSED,
+];
+
 const requestSchema = z.object({
-  status: z.nativeEnum(LeadStatus).refine((value) => value !== LeadStatus.NEW && value !== LeadStatus.FOLLOW_UP, {
+  status: z.nativeEnum(LeadStatus).refine((value) => !RETIRED.includes(value), {
     message: 'Unsupported lifecycle status',
   }),
 });

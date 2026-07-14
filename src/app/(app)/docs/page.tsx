@@ -1,0 +1,256 @@
+import { Topbar } from '@/components/layout/topbar';
+import { leadLifecycleStatuses, leadStatusLabelMap } from '@/domain/leads/types';
+import { stageGuide } from '@/domain/leads/stage-guide';
+
+export const metadata = { title: 'Docs — SalesFlow' };
+
+const TOC = [
+  ['lifecycle', 'Pipeline stages'],
+  ['flow', 'Where leads come from'],
+  ['scoring', 'How scoring works'],
+  ['proposals', 'Proposals'],
+  ['alerts', 'Slack alerts'],
+  ['howto', 'How-tos'],
+  ['faq', 'FAQ'],
+] as const;
+
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-24 space-y-3">
+      <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
+      <div className="space-y-3 text-sm leading-6 text-stone-600">{children}</div>
+    </section>
+  );
+}
+
+function H3({ children }: { children: React.ReactNode }) {
+  return <h3 className="pt-1 text-sm font-semibold text-stone-800">{children}</h3>;
+}
+
+function Faq({ q, children }: { q: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white p-4">
+      <p className="text-sm font-medium text-stone-900">{q}</p>
+      <div className="mt-1.5 text-sm leading-6 text-stone-600">{children}</div>
+    </div>
+  );
+}
+
+export default function DocsPage() {
+  return (
+    <div className="space-y-6">
+      <Topbar
+        title="Docs"
+        subtitle="How SalesFlow works: the pipeline, the scoring, the proposals, and what to do at each step."
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {TOC.map(([id, label]) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-600 transition hover:border-stone-400"
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+
+      <div className="max-w-3xl space-y-10 pb-16">
+        <Section id="lifecycle" title="Pipeline stages">
+          <p>
+            A lead moves through <strong>10 stages</strong>. Two are automatic (the AI judge sets
+            them), the rest are moved by BD using the lifecycle pills on the lead panel — pick a
+            stage, then press <strong>Apply</strong>. Every transition is logged with a timestamp
+            and who did it (see the Activity tab).
+          </p>
+          <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
+                  <th className="px-4 py-2.5 font-medium">Stage</th>
+                  <th className="px-4 py-2.5 font-medium">Who moves it</th>
+                  <th className="px-4 py-2.5 font-medium">What it means</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-stone-100 align-top">
+                  <td className="whitespace-nowrap px-4 py-2.5 font-medium text-stone-900">New</td>
+                  <td className="whitespace-nowrap px-4 py-2.5 text-stone-500">{stageGuide.NEW.who}</td>
+                  <td className="px-4 py-2.5">{stageGuide.NEW.meaning}</td>
+                </tr>
+                {leadLifecycleStatuses.map((s) => (
+                  <tr key={s} className="border-b border-stone-100 align-top last:border-0">
+                    <td className="whitespace-nowrap px-4 py-2.5 font-medium text-stone-900">
+                      {leadStatusLabelMap[s]}
+                      {stageGuide[s].terminal && (
+                        <span className="ml-1.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500">
+                          terminal
+                        </span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-stone-500">{stageGuide[s].who}</td>
+                    <td className="px-4 py-2.5">{stageGuide[s].meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <H3>Which terminal stage do I pick?</H3>
+          <ul className="list-disc space-y-1 pl-5">
+            <li><strong>Won</strong> — we got the project.</li>
+            <li><strong>Lost</strong> — the client engaged (reply, call, discussion) but chose someone else or went permanently silent.</li>
+            <li><strong>Hires Other</strong> — the client hired someone else without ever engaging us. Usually straight from Applied.</li>
+            <li><strong>Job Closed</strong> — the client closed or deleted the posting. The job no longer exists.</li>
+            <li><strong>Rejected</strong> — we chose not to pursue it (or the judge did).</li>
+          </ul>
+          <p className="text-xs text-stone-500">
+            History note: three legacy stages were consolidated — Follow Up lives inside Ongoing
+            Discussion, Qualified Lost inside Lost, and Closed inside Job Closed. Old leads and
+            events that used them remain readable.
+          </p>
+        </Section>
+
+        <Section id="flow" title="Where leads come from">
+          <p>
+            Each profile&apos;s Upwork job alerts are emailed to that person&apos;s own alert address and
+            forwarded into the shared mailbox (<code className="rounded bg-stone-100 px-1 py-0.5 text-xs">sales@datumlabs.io</code>).
+            A sync runs every few minutes, routes each email to its profile (by label or by the
+            recipient address, so it survives mailbox changes), and creates the lead. You can also
+            pull immediately with <strong>Sync now</strong> on the Leads page, or add a lead by hand
+            with <strong>Add lead</strong>.
+          </p>
+          <H3>Why the same job doesn&apos;t appear twice</H3>
+          <p>Three dedupe layers run at ingest, in order:</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li><strong>Same email</strong> — the Gmail message was already processed.</li>
+            <li><strong>Same job posting</strong> — the job&apos;s ID from its URL already exists on this profile (catches re-alerts and mailbox switches).</li>
+            <li><strong>Repost</strong> — a lead with the same title exists on this profile within the last 45 days (clients re-list the same job under a new ID).</li>
+          </ul>
+          <p>
+            The same job <em>can</em> legitimately exist on two different profiles — the lead panel
+            shows an “Also matched on N profiles” banner linking the siblings, and only the first
+            one alerts Slack.
+          </p>
+        </Section>
+
+        <Section id="scoring" title="How scoring works">
+          <p>
+            An AI judge reads each job against the profile&apos;s brief (skills, scope, what the person
+            does and doesn&apos;t do — editable under Profiles) and returns a fit score with reasoning.
+            It runs on the alert email first, then <strong>again with the full job description</strong> once
+            the lead is enriched from Upwork — so scores can change after enrichment, and the
+            enriched verdict is the one that counts.
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li><strong>Clear fit</strong> → the lead auto-moves to Qualified and gets a draft proposal.</li>
+            <li><strong>Hard reject</strong> (wrong stack, out-of-scope work, no budget) → auto-moves to Rejected. The reasons are on the lead&apos;s Overview.</li>
+            <li><strong>Caution</strong> — a partial or uncertain fit stays in New for a human decision.</li>
+          </ul>
+          <p>
+            The judge never overrides a human decision: once BD has moved a lead anywhere, scoring
+            only records evaluations, it doesn&apos;t change the stage.
+          </p>
+        </Section>
+
+        <Section id="proposals" title="Proposals">
+          <p>
+            Drafts are generated for qualified leads and on demand (Generate / Regenerate on the
+            Proposal tab). Every draft is grounded in the profile&apos;s brief and its{' '}
+            <strong>portfolio projects</strong> (Profiles → Projects): the most relevant projects by
+            tech overlap are cited with their links. The “Cite these projects” chips on the Proposal
+            tab show exactly what will be cited — toggle them before regenerating.
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>If the job post asks screening questions, the draft answers every one under an <strong>Answers:</strong> block — never skip these when applying.</li>
+            <li>Use the feedback box to rewrite a draft with specific instructions instead of editing from scratch.</li>
+            <li>Keep your Projects list fresh — proposals only cite what&apos;s there, and never invent work.</li>
+          </ul>
+        </Section>
+
+        <Section id="alerts" title="Slack alerts">
+          <p>A lead pings Slack only when all of these hold:</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>it just enriched for the first time (crons and re-enrichment stay quiet),</li>
+            <li>the match score is above 30%,</li>
+            <li>the judge didn&apos;t reject it,</li>
+            <li>the alert email is less than <strong>24 hours old</strong> (backfilled or stale jobs never ping),</li>
+            <li>no sibling profile already alerted for the same job.</li>
+          </ul>
+          <p>The 🟢 dot marks leads above the hot-score threshold; ⚪ is above the alert floor but below hot.</p>
+        </Section>
+
+        <Section id="howto" title="How-tos">
+          <H3>Apply from a different profile — or several</H3>
+          <p>
+            Two distinct actions on the lead panel header:
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <strong>Move</strong> — the profile dropdown (also in the list&apos;s Profile column).
+              The lead transfers to that profile, is re-scored against their brief, and the old
+              draft is retired so a new one generates in their voice.
+            </li>
+            <li>
+              <strong>Also apply from…</strong> — pick multiple profiles and a linked{' '}
+              <strong>copy</strong> is created on each: re-scored by the judge for that person,
+              with its own proposal and lifecycle. Copies appear under “Also matched on N
+              profiles”. Remember each application spends that profile&apos;s connects, and only the
+              first alert pings Slack.
+            </li>
+          </ul>
+          <H3>Mark a lead applied</H3>
+          <p>
+            Either the one-click <strong>Mark applied</strong> on the Application tab (stamps date and
+            time) or the lifecycle pills → Applied. Both ask for <strong>connects spent</strong> — log
+            them; cost reporting depends on it.
+          </p>
+          <H3>Filters and search</H3>
+          <p>
+            Filters on the Leads page (profile, status, date, search) persist while you open and
+            close leads. Search matches titles, email content, and pasted Upwork job URLs.
+          </p>
+          <H3>Weekly profile stats</H3>
+          <p>
+            Upwork profile views and invites are entered per week under Profiles → (person) →
+            Stats, and feed the Metrics page.
+          </p>
+        </Section>
+
+        <Section id="faq" title="FAQ">
+          <div className="space-y-3">
+            <Faq q="Why was this lead rejected automatically?">
+              The judge hard-rejected it — the Overview tab lists the reasons (e.g. wrong stack,
+              out-of-scope work, no budget). If you disagree, just move it with the lifecycle
+              pills; the judge never overrides a human.
+            </Faq>
+            <Faq q="Why didn't this lead ping Slack?">
+              Check the alert conditions above — most commonly the score was ≤30%, the alert email
+              was older than 24h (backfill), or a sibling profile already alerted for the same job.
+            </Faq>
+            <Faq q="The same job is on two profiles — is that a bug?">
+              No. Either Upwork alerted both profiles (both saved searches matched), or someone
+              used “Also apply from…” to pursue it from several profiles deliberately. The lead
+              panel links the siblings either way, and each copy has its own score, proposal, and
+              lifecycle.
+            </Faq>
+            <Faq q="Why did the score change after a while?">
+              The first score comes from the alert email alone. Once the full job description is
+              fetched from Upwork, the judge re-scores with the complete picture — that score
+              stands.
+            </Faq>
+            <Faq q="Who changed this lead's status?">
+              Open the Activity tab — every transition shows a timestamp and a “by {'{name}'}” chip
+              (or “system” for automatic moves).
+            </Faq>
+            <Faq q="What happened to Follow Up / Qualified Lost / Closed?">
+              Consolidated: follow-ups live inside Ongoing Discussion, Qualified Lost inside Lost,
+              Closed inside Job Closed. Old leads that used them were migrated and their history
+              kept.
+            </Faq>
+          </div>
+        </Section>
+      </div>
+    </div>
+  );
+}

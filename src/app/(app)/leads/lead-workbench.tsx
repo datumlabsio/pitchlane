@@ -70,6 +70,7 @@ import {
   type LeadEnrichment,
   type LeadSummary,
 } from "@/domain/leads/types";
+import { stageGuide } from "@/domain/leads/stage-guide";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -973,6 +974,9 @@ export function LeadWorkbench({
   const [pendingStatus, setPendingStatus] = useState<
     (typeof leadLifecycleStatuses)[number] | null
   >(null);
+  // Multi-profile apply: pick target profiles → a linked copy is created on each.
+  const [copyOpen, setCopyOpen] = useState(false);
+  const [copyTargets, setCopyTargets] = useState<string[]>([]);
   const [connectsSpent, setConnectsSpent] = useState("");
   const [appliedAt, setAppliedAt] = useState("");
   const [appliedPickerOpen, setAppliedPickerOpen] = useState(false);
@@ -985,6 +989,8 @@ export function LeadWorkbench({
     setProposalFeedback("");
     setCitedProjectIds(selectedLead?.relevantProjects.map((p) => p.id) ?? []);
     setPendingStatus(null);
+    setCopyOpen(false);
+    setCopyTargets([]);
     setConnectsSpent(
       selectedLead?.application?.connectsSpent?.toString() ?? "",
     );
@@ -1020,7 +1026,13 @@ export function LeadWorkbench({
     init: RequestInit,
     successMessage:
       | string
-      | ((result: { outcome?: string; leadsCreated?: number; profile?: string; score?: number }) => string),
+      | ((result: {
+          outcome?: string;
+          leadsCreated?: number;
+          profile?: string;
+          score?: number;
+          results?: Array<{ profile: string; outcome: string; score?: number }>;
+        }) => string),
   ) {
     setStatusMessage("");
     startTransition(async () => {
@@ -1211,6 +1223,35 @@ export function LeadWorkbench({
   function buildCloseUrl() {
     const qs = buildFilterParams().toString();
     return qs ? `/leads?${qs}` : "/leads";
+  }
+
+  function copyToProfiles() {
+    if (!selectedLead || copyTargets.length === 0) return;
+    const targets = [...copyTargets];
+    setCopyOpen(false);
+    setCopyTargets([]);
+    void runRequest(
+      `/api/leads/${selectedLead.id}/copy`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountIds: targets }),
+      },
+      (r) => {
+        const copied = (r.results ?? []).filter((x) => x.outcome === "copied");
+        const existing = (r.results ?? []).filter((x) => x.outcome === "already_exists");
+        const parts: string[] = [];
+        if (copied.length)
+          parts.push(
+            `Now also applying from ${copied
+              .map((x) => `${x.profile} (${x.score}%)`)
+              .join(", ")}.`,
+          );
+        if (existing.length)
+          parts.push(`${existing.map((x) => x.profile).join(", ")} already had this lead.`);
+        return parts.join(" ") || "No copies created.";
+      },
+    );
   }
 
   return (
@@ -1429,6 +1470,84 @@ export function LeadWorkbench({
                       ))}
                     </SelectContent>
                   </Select>
+                  <Dialog open={copyOpen} onOpenChange={setCopyOpen}>
+                    <DialogTrigger
+                      render={
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          title="Apply to this job from more profiles — creates a linked copy per profile, each re-scored for that person"
+                          className="inline-flex h-6 items-center gap-1 rounded-md border border-stone-200 bg-stone-50 px-1.5 text-[11px] font-normal text-stone-600 transition hover:bg-stone-100 disabled:opacity-50"
+                        />
+                      }
+                    >
+                      <Plus className="size-3" />
+                      Also apply from…
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Apply from more profiles</DialogTitle>
+                      </DialogHeader>
+                      <p className="text-xs leading-5 text-stone-500">
+                        Creates a copy of this lead on each selected profile — re-scored by the
+                        judge for that person, with its own proposal and lifecycle. Copies are
+                        linked under “Also matched on other profiles”. Each application costs that
+                        profile&apos;s connects.
+                      </p>
+                      <div className="space-y-1.5">
+                        {accounts
+                          .filter((a) => a.id !== selectedLead.accountId)
+                          .map((a) => {
+                            const alreadyHeld = selectedLead.duplicates.some(
+                              (d) => d.profile === a.personName,
+                            );
+                            return (
+                              <label
+                                key={a.id}
+                                className={cn(
+                                  "flex items-center gap-2.5 rounded-lg border px-3 py-2 text-sm",
+                                  alreadyHeld
+                                    ? "border-stone-100 bg-stone-50 text-stone-400"
+                                    : "cursor-pointer border-stone-200 bg-white text-stone-700 hover:border-stone-300",
+                                )}
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="size-3.5 accent-amber-600"
+                                  disabled={alreadyHeld}
+                                  checked={alreadyHeld || copyTargets.includes(a.id)}
+                                  onChange={() =>
+                                    setCopyTargets((ids) =>
+                                      ids.includes(a.id)
+                                        ? ids.filter((id) => id !== a.id)
+                                        : [...ids, a.id],
+                                    )
+                                  }
+                                />
+                                <span className="flex-1">{a.personName}</span>
+                                {alreadyHeld && (
+                                  <span className="text-[11px]">already has this lead</span>
+                                )}
+                              </label>
+                            );
+                          })}
+                      </div>
+                      <div className="flex justify-end gap-2 pt-1">
+                        <Button variant="ghost" size="sm" onClick={() => setCopyOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={isPending || copyTargets.length === 0}
+                          onClick={copyToProfiles}
+                        >
+                          {isPending
+                            ? "Copying…"
+                            : `Apply from ${copyTargets.length || "…"} profile${copyTargets.length === 1 ? "" : "s"}`}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <span className="text-xs text-stone-500">
                     {selectedLead.budget}
                   </span>
@@ -1487,8 +1606,15 @@ export function LeadWorkbench({
                 <div className="px-6 py-4">
                   {/* Lifecycle — pulled out of the tabs so status is reachable from any tab */}
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-500">
                       Lifecycle
+                      <Link
+                        href="/docs#lifecycle"
+                        title="What each stage means and who moves it"
+                        className="rounded-full border border-stone-200 px-1.5 text-[10px] font-medium normal-case text-stone-400 transition hover:border-stone-400 hover:text-stone-600"
+                      >
+                        ?
+                      </Link>
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {leadLifecycleStatuses.map((status) => {
@@ -1499,6 +1625,7 @@ export function LeadWorkbench({
                             key={status}
                             type="button"
                             disabled={isPending || isCurrent}
+                            title={stageGuide[status].meaning}
                             onClick={() =>
                               setPendingStatus(isPendingPick ? null : status)
                             }
@@ -1518,12 +1645,35 @@ export function LeadWorkbench({
                       })}
                     </div>
                     {pendingStatus && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {pendingStatus === "APPLIED" && (
+                          <Input
+                            inputMode="numeric"
+                            value={connectsSpent}
+                            onChange={(e) => setConnectsSpent(e.target.value)}
+                            placeholder="Connects spent"
+                            title="Logged with the application — same field as the Application tab"
+                            className="h-8 w-36 text-xs"
+                          />
+                        )}
                         <Button
                           size="sm"
                           disabled={isPending}
                           onClick={() => {
-                            submitStatus(pendingStatus);
+                            if (pendingStatus === "APPLIED") {
+                              // Stamps applied-at + saves connects; the application
+                              // upsert moves NEW/QUALIFIED → APPLIED itself. Leads
+                              // pulled back from a later stage need the explicit move.
+                              markApplied(new Date());
+                              if (
+                                selectedLead.statusCode !== "NEW" &&
+                                selectedLead.statusCode !== "QUALIFIED"
+                              ) {
+                                submitStatus("APPLIED");
+                              }
+                            } else {
+                              submitStatus(pendingStatus);
+                            }
                             setPendingStatus(null);
                           }}
                         >

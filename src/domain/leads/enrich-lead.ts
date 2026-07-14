@@ -151,10 +151,17 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     clientSummary,
   });
 
-  // Only auto-promote a still-NEW lead; never override a human decision.
+  // Auto-triage a still-NEW lead from the judge's verdict; never override a human
+  // decision. Clear qualify → QUALIFIED. Hard reject (rejection reasons present) →
+  // REJECTED, so dead leads don't pile up in New. Caution (failed the bar without
+  // hard reasons) stays NEW — that's the "needs a human look" state.
   const nextStatus =
-    lead.status === LeadStatus.NEW && evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
-      ? LeadStatus.QUALIFIED
+    lead.status === LeadStatus.NEW
+      ? evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
+        ? LeadStatus.QUALIFIED
+        : !evaluation.hardFilterPassed && evaluation.rejectionReasons.length > 0
+          ? LeadStatus.REJECTED
+          : lead.status
       : lead.status;
 
   // Regenerate the proposal off the full job description + client facts (the

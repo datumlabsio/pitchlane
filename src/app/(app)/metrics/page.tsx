@@ -20,7 +20,12 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 export default async function MetricsPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const str = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
-  const dateWindow = { since: str('since'), from: str('from'), to: str('to') };
+  const from = str('from');
+  const to = str('to');
+  // Default to "This week" on first load (zero-click WoW view); explicit `since`,
+  // or a custom from/to range, always wins.
+  const since = str('since') ?? (from || to ? undefined : 'this_week');
+  const dateWindow = { since, from, to };
   const accountId = str('accountId'); // comma-separated profile filter (multi-select)
   const tabParam = str('tab');
   const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '') ? (tabParam as Tab) : 'pipeline';
@@ -39,7 +44,7 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
               label="Profiles"
               options={accounts.map((a) => ({ value: a.id, label: a.personName }))}
             />
-            <DateRangeFilter />
+            <DateRangeFilter defaultToken="this_week" />
           </div>
         }
       />

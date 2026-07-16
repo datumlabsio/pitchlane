@@ -1,7 +1,13 @@
 import { LeadStatus, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { buildCreatedAtRange, type DateWindow } from '@/lib/date-window';
+import {
+  buildCreatedAtRange,
+  comparisonWindow,
+  resolveWindow,
+  TRACKING_START_DATE,
+  type DateWindow,
+} from '@/lib/date-window';
 
 // Shared lead filter: date window + the comma-separated `accountId` profile filter
 // (same multi-select convention the leads list uses).
@@ -129,6 +135,124 @@ export async function getDashboardMetrics(window: DateWindow = {}, accountId?: s
     { label: 'Qualification Rate', value: `${qualRate}%`, note: 'Passed scoring evaluation' },
     { label: 'Applications Sent', value: String(applied), note: 'Proposals submitted' },
     { label: 'Win Rate', value: `${winRate}%`, note: `${won} contract${won !== 1 ? 's' : ''} won` },
+  ];
+}
+
+// Denominator floor below which a rate's delta is unreliable (e.g. win rate on a
+// handful of applications). Configurable here; PRD default is 10.
+export const MIN_RATE_DENOMINATOR = 10;
+
+type CoreCounts = { totalLeads: number; won: number; applied: number; qualified: number };
+
+async function coreCounts(range: { start?: Date; end?: Date } | undefined, accountId?: string): Promise<CoreCounts> {
+  const accountIds = (accountId ?? '').split(',').filter(Boolean);
+  const createdAt = range && (range.start || range.end)
+    ? { ...(range.start ? { gte: range.start } : {}), ...(range.end ? { lte: range.end } : {}) }
+    : undefined;
+  const base: Prisma.LeadWhereInput = {
+    ...(createdAt ? { createdAt } : {}),
+    ...(accountIds.length ? { accountId: { in: accountIds } } : {}),
+  };
+  const [totalLeads, won, applied, qualified] = await Promise.all([
+    prisma.lead.count({ where: base }),
+    prisma.lead.count({ where: { ...base, status: LeadStatus.WON } }),
+    prisma.lead.count({ where: { ...base, status: { in: APPLIED_STATUSES } } }),
+    prisma.lead.count({ where: { ...base, status: { in: QUALIFIED_STATUSES } } }),
+  ]);
+  return { totalLeads, won, applied, qualified };
+}
+
+export type HeroMetricDelta =
+  | { kind: 'hidden' }
+  | { kind: 'no-prior-data' }
+  | { kind: 'n-too-small' }
+  | { kind: 'count'; previous: number; absDelta: number; pctDelta: number | null; direction: 'up' | 'down' | 'flat' }
+  | { kind: 'pp'; previous: number; ppDelta: number; direction: 'up' | 'down' | 'flat' };
+
+export type HeroMetric = {
+  label: string;
+  value: string;
+  note: string;
+  partial: boolean;
+  delta: HeroMetricDelta;
+};
+
+function directionOf(delta: number): 'up' | 'down' | 'flat' {
+  return delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+}
+
+/**
+ * Hero cards for Metrics → Pipeline, with a week-over-week (or equivalent)
+ * comparison sub-line per §3.3/§3.4 of the date-presets/WoW-deltas PRD. Every
+ * metric here "improves upward", so `direction: 'up'` is always the green case.
+ */
+export async function getPipelineHeroMetrics(window: DateWindow = {}, accountId?: string): Promise<HeroMetric[]> {
+  const resolved = resolveWindow(window);
+  const current = await coreCounts({ start: resolved.start, end: resolved.end }, accountId);
+
+  const qualRate = current.totalLeads === 0 ? 0 : Math.round((current.qualified / current.totalLeads) * 100);
+  const winRate = current.applied === 0 ? 0 : Math.round((current.won / current.applied) * 100);
+
+  let previous: CoreCounts | null = null;
+  if (resolved.kind !== 'none') {
+    const cmp = comparisonWindow(resolved);
+    // A comparison window that starts before tracking began would be a truncated
+    // (wrong) baseline, whether it's entirely or only partially before that date.
+    if (cmp && cmp.start.getTime() >= TRACKING_START_DATE.getTime()) {
+      previous = await coreCounts(cmp, accountId);
+    }
+  }
+
+  const noPriorData = resolved.kind !== 'none' && previous === null;
+
+  function countDelta(currentValue: number, previousValue: number): HeroMetricDelta {
+    if (resolved.kind === 'none') return { kind: 'hidden' };
+    if (previous === null) return noPriorData ? { kind: 'no-prior-data' } : { kind: 'hidden' };
+    const absDelta = currentValue - previousValue;
+    const pctDelta = previousValue === 0 ? null : Math.round((absDelta / previousValue) * 100);
+    return { kind: 'count', previous: previousValue, absDelta, pctDelta, direction: directionOf(absDelta) };
+  }
+
+  function rateDelta(currentRate: number, previousRate: number, currentDen: number, previousDen: number): HeroMetricDelta {
+    if (resolved.kind === 'none') return { kind: 'hidden' };
+    if (previous === null) return noPriorData ? { kind: 'no-prior-data' } : { kind: 'hidden' };
+    if (currentDen < MIN_RATE_DENOMINATOR || previousDen < MIN_RATE_DENOMINATOR) return { kind: 'n-too-small' };
+    const ppDelta = Math.round((currentRate - previousRate) * 10) / 10;
+    return { kind: 'pp', previous: previousRate, ppDelta, direction: directionOf(ppDelta) };
+  }
+
+  const prevQualRate = previous && previous.totalLeads > 0 ? Math.round((previous.qualified / previous.totalLeads) * 100) : 0;
+  const prevWinRate = previous && previous.applied > 0 ? Math.round((previous.won / previous.applied) * 100) : 0;
+
+  return [
+    {
+      label: 'Leads Received',
+      value: String(current.totalLeads),
+      note: 'Across all active profiles',
+      partial: resolved.partial,
+      delta: countDelta(current.totalLeads, previous?.totalLeads ?? 0),
+    },
+    {
+      label: 'Qualification Rate',
+      value: `${qualRate}%`,
+      note: 'Passed scoring evaluation',
+      partial: resolved.partial,
+      delta: rateDelta(qualRate, prevQualRate, current.totalLeads, previous?.totalLeads ?? 0),
+    },
+    {
+      label: 'Applications Sent',
+      value: String(current.applied),
+      note: 'Proposals submitted',
+      partial: resolved.partial,
+      delta: countDelta(current.applied, previous?.applied ?? 0),
+    },
+    {
+      label: 'Win Rate',
+      value: `${winRate}%`,
+      note: `${current.won} contract${current.won !== 1 ? 's' : ''} won`,
+      partial: resolved.partial,
+      delta: rateDelta(winRate, prevWinRate, current.applied, previous?.applied ?? 0),
+    },
   ];
 }
 

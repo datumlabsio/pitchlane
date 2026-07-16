@@ -11,22 +11,23 @@ import { Calendar, type DateRange } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 
 const DATE_PRESETS: Array<{ token: string; label: string }> = [
-  { token: "any", label: "Any time" },
-  { token: "1h", label: "Last hour" },
-  { token: "6h", label: "Last 6 hours" },
-  { token: "12h", label: "Last 12 hours" },
-  { token: "24h", label: "Last 24 hours" },
-  { token: "3d", label: "Last 3 days" },
+  { token: "this_week", label: "This week" },
+  { token: "last_week", label: "Last week" },
   { token: "7d", label: "Last 7 days" },
+  { token: "24h", label: "Last 24 hours" },
+  { token: "this_month", label: "This month" },
+  { token: "last_month", label: "Last month" },
+  { token: "any", label: "Any time" },
 ]
 
 /**
  * Unified date filter — preset quick-picks + a custom calendar range. Drives
  * the URL params `?since` (preset) and `?from`/`?to` (custom, yyyy-MM-dd),
  * preserving every other param so it drops into any page (leads, dashboard,
- * metrics) unchanged.
+ * metrics) unchanged. `defaultToken` is the preset a page treats as active when
+ * no `since`/`from`/`to` param is present yet (e.g. Metrics defaults to "this week").
  */
-export function DateRangeFilter() {
+export function DateRangeFilter({ defaultToken = "any" }: { defaultToken?: string } = {}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -43,10 +44,11 @@ export function DateRangeFilter() {
   })
 
   const hasCustom = Boolean(from || to)
-  const active = hasCustom || Boolean(since)
+  const effectiveToken = since ?? (hasCustom ? undefined : defaultToken)
+  const active = hasCustom || Boolean(since) || effectiveToken !== "any"
   const label = hasCustom
     ? `${from ?? "…"}${to ? ` → ${to}` : "+"}`
-    : (DATE_PRESETS.find((p) => p.token === since)?.label ?? "Any time")
+    : (DATE_PRESETS.find((p) => p.token === effectiveToken)?.label ?? "Any time")
 
   function navigate(updates: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString())
@@ -61,7 +63,7 @@ export function DateRangeFilter() {
   }
 
   function pickPreset(token: string) {
-    navigate({ since: token === "any" ? null : token, from: null, to: null })
+    navigate({ since: token, from: null, to: null })
     setOpen(false)
   }
   function applyRange() {
@@ -98,7 +100,7 @@ export function DateRangeFilter() {
           {/* Preset quick-picks — apply on click */}
           <div className="flex w-36 shrink-0 flex-col gap-0.5 border-r border-stone-100 p-2">
             {DATE_PRESETS.map((p) => {
-              const isActive = (p.token === "any" && !since && !hasCustom) || since === p.token
+              const isActive = since === p.token || (!since && !hasCustom && p.token === defaultToken)
               return (
                 <button
                   key={p.token}

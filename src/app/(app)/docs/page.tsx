@@ -11,6 +11,7 @@ const TOC = [
   ['proposals', 'Proposals'],
   ['alerts', 'Slack alerts'],
   ['howto', 'How-tos'],
+  ['ownership', 'Data ownership'],
   ['faq', 'FAQ'],
 ] as const;
 
@@ -199,22 +200,49 @@ export default function DocsPage() {
               first alert pings Slack.
             </li>
           </ul>
-          <H3>Mark a lead applied</H3>
-          <p>
-            Either the one-click <strong>Mark applied</strong> on the Application tab (stamps date and
-            time) or the lifecycle pills → Applied. Both ask for <strong>connects spent</strong> — log
-            them; cost reporting depends on it.
-          </p>
           <H3>Filters and search</H3>
           <p>
             Filters on the Leads page (profile, status, date, search) persist while you open and
             close leads. Search matches titles, email content, and pasted Upwork job URLs.
           </p>
-          <H3>Weekly profile stats</H3>
+        </Section>
+
+        <Section id="ownership" title="Data ownership">
+          <p>
+            SalesFlow is the single source of truth for Upwork performance — nothing gets reported
+            that isn&apos;t logged here. BD owns this data entry as a core responsibility; gaps mean
+            blind spots in reporting.
+          </p>
+          <H3>1. Automatic leads (from job alerts)</H3>
+          <p>
+            After applying, update the lead immediately: move it to Applied, log connects spent,
+            log the applied date, and confirm the correct profile name is on the lead. Tracking
+            which profiles receive and convert leads depends on it.
+          </p>
+          <H3>2. Manually sourced jobs</H3>
+          <p>
+            Any job found via manual search must be logged with <strong>Add lead</strong>. Applying
+            first is fine, but enter the lead right after, in the same sitting — not batched for
+            later. On entry, log: Applied status and connects spent, the job posting date and
+            applied date, and the profile used to apply.
+          </p>
+          <H3>3. Weekly profile stats</H3>
           <p>
             Upwork profile views and invites are entered per week under Profiles → (person) →
             Stats, and feed the Metrics page.
           </p>
+          <H3>4. Weekly outcome sweep</H3>
+          <p>
+            Once a week, review every open Applied-or-later lead and move it to the correct
+            terminal stage:
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li><strong>Won</strong> — we got the project.</li>
+            <li><strong>Lost</strong> — client engaged but chose someone else or went silent.</li>
+            <li><strong>Hires Other</strong> — client hired someone else without engaging us.</li>
+            <li><strong>Job Closed</strong> — posting was closed or deleted.</li>
+            <li><strong>Rejected</strong> — decided not to pursue it after all.</li>
+          </ul>
         </Section>
 
         <Section id="faq" title="FAQ">

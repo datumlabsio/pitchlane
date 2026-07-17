@@ -26,3 +26,36 @@ export type VisibilityPoint = {
   impressions: number;
   clicks: number;
 };
+
+export type ProfileVisibilityMetricDelta =
+  | { kind: 'hidden' }
+  | { kind: 'no-data' }
+  | { kind: 'na' }
+  | {
+      kind: 'count';
+      previous: number;
+      currentValue: number;
+      absDelta: number;
+      pctDelta: number | null;
+      direction: 'up' | 'down' | 'flat';
+    };
+
+export type ProfileVisibilityCell = {
+  value: number;
+  delta: ProfileVisibilityMetricDelta;
+};
+
+export type ProfileVisibilityTableRow = {
+  profile: string;
+  accountId?: string;
+  views: ProfileVisibilityCell;
+  invites: ProfileVisibilityCell;
+  impressions: ProfileVisibilityCell;
+  clicks: ProfileVisibilityCell;
+};
+
+export type ProfileVisibilityTable = {
+  comparisonLabel: string;
+  rows: ProfileVisibilityTableRow[];
+  total: ProfileVisibilityTableRow;
+};

@@ -9,15 +9,16 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar, type DateRange } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
+import { DATE_PRESET_LABELS, formatDateFilterLabel } from "@/lib/date-window"
 
 const DATE_PRESETS: Array<{ token: string; label: string }> = [
-  { token: "this_week", label: "This week" },
-  { token: "last_week", label: "Last week" },
-  { token: "7d", label: "Last 7 days" },
-  { token: "24h", label: "Last 24 hours" },
-  { token: "this_month", label: "This month" },
-  { token: "last_month", label: "Last month" },
-  { token: "any", label: "Any time" },
+  { token: "this_week", label: DATE_PRESET_LABELS.this_week },
+  { token: "last_week", label: DATE_PRESET_LABELS.last_week },
+  { token: "7d", label: DATE_PRESET_LABELS["7d"] },
+  { token: "24h", label: DATE_PRESET_LABELS["24h"] },
+  { token: "this_month", label: DATE_PRESET_LABELS.this_month },
+  { token: "last_month", label: DATE_PRESET_LABELS.last_month },
+  { token: "any", label: DATE_PRESET_LABELS.any },
 ]
 
 /**
@@ -46,9 +47,7 @@ export function DateRangeFilter({ defaultToken = "any" }: { defaultToken?: strin
   const hasCustom = Boolean(from || to)
   const effectiveToken = since ?? (hasCustom ? undefined : defaultToken)
   const active = hasCustom || Boolean(since) || effectiveToken !== "any"
-  const label = hasCustom
-    ? `${from ?? "…"}${to ? ` → ${to}` : "+"}`
-    : (DATE_PRESETS.find((p) => p.token === effectiveToken)?.label ?? "Any time")
+  const label = formatDateFilterLabel({ since, from, to }, defaultToken)
 
   function navigate(updates: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString())

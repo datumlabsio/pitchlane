@@ -121,3 +121,48 @@ export function buildCreatedAtRange(w: DateWindow): { gte?: Date; lte?: Date } |
   if (!r.start && !r.end) return undefined;
   return { ...(r.start ? { gte: r.start } : {}), ...(r.end ? { lte: r.end } : {}) };
 }
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+export const DATE_PRESET_LABELS: Record<string, string> = {
+  this_week: 'This week',
+  last_week: 'Last week',
+  '7d': 'Last 7 days',
+  '24h': 'Last 24 hours',
+  this_month: 'This month',
+  last_month: 'Last month',
+  any: 'Any time',
+};
+
+/** Compact range for chip/header copy, e.g. "Jul 6 – 12" or "Jun 28 – Jul 4". */
+export function formatShortDateRange(start: Date, end: Date): string {
+  const sm = start.getUTCMonth();
+  const em = end.getUTCMonth();
+  const sd = start.getUTCDate();
+  const ed = end.getUTCDate();
+  const sy = start.getUTCFullYear();
+  const ey = end.getUTCFullYear();
+
+  if (sy === ey && sm === em) return `${MONTH_SHORT[sm]} ${sd} – ${ed}`;
+  if (sy === ey) return `${MONTH_SHORT[sm]} ${sd} – ${MONTH_SHORT[em]} ${ed}`;
+  return `${MONTH_SHORT[sm]} ${sd}, ${sy} – ${MONTH_SHORT[em]} ${ed}, ${ey}`;
+}
+
+/** `{preset label} vs {prev period dates}` for the date filter chip and table headers. */
+export function formatDateFilterLabel(w: DateWindow, defaultToken = 'any', now: Date = new Date()): string {
+  const resolved = resolveWindow(w, now);
+  const hasCustom = Boolean(w.from || w.to);
+  const effectiveToken = w.since ?? (hasCustom ? undefined : defaultToken);
+
+  let presetLabel: string;
+  if (hasCustom) {
+    const from = w.from ?? '…';
+    presetLabel = w.to ? `${from} → ${w.to}` : `${from}+`;
+  } else {
+    presetLabel = DATE_PRESET_LABELS[effectiveToken ?? 'any'] ?? 'Any time';
+  }
+
+  const cmp = comparisonWindow(resolved);
+  if (!cmp) return presetLabel;
+  return `${presetLabel} vs ${formatShortDateRange(cmp.start, cmp.end)}`;
+}

@@ -173,7 +173,6 @@ export type HeroMetric = {
   label: string;
   value: string;
   note: string;
-  partial: boolean;
   delta: HeroMetricDelta;
 };
 
@@ -229,28 +228,24 @@ export async function getPipelineHeroMetrics(window: DateWindow = {}, accountId?
       label: 'Leads Received',
       value: String(current.totalLeads),
       note: 'Across all active profiles',
-      partial: resolved.partial,
       delta: countDelta(current.totalLeads, previous?.totalLeads ?? 0),
     },
     {
       label: 'Qualification Rate',
       value: `${qualRate}%`,
       note: 'Passed scoring evaluation',
-      partial: resolved.partial,
       delta: rateDelta(qualRate, prevQualRate, current.totalLeads, previous?.totalLeads ?? 0),
     },
     {
       label: 'Applications Sent',
       value: String(current.applied),
       note: 'Proposals submitted',
-      partial: resolved.partial,
       delta: countDelta(current.applied, previous?.applied ?? 0),
     },
     {
       label: 'Win Rate',
       value: `${winRate}%`,
       note: `${current.won} contract${current.won !== 1 ? 's' : ''} won`,
-      partial: resolved.partial,
       delta: rateDelta(winRate, prevWinRate, current.applied, previous?.applied ?? 0),
     },
   ];

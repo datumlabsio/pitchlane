@@ -1,6 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import type { DateWindow } from '@/lib/date-window';
 import {
   getLatencyMetrics,
@@ -8,49 +6,11 @@ import {
   getPipelineFunnel,
   getPipelineHeroMetrics,
   getStatusBreakdown,
-  type HeroMetricDelta,
 } from '@/domain/metrics/repository';
+import { HeroMetricDeltaLine } from '@/components/metrics/hero-metric-delta';
 
 import { PipelineActivityChart, PipelineFunnel, StatusBreakdown } from './metrics-charts';
 import { formatDuration } from './shared';
-
-function DeltaLine({ delta }: { delta: HeroMetricDelta }) {
-  if (delta.kind === 'hidden') return null;
-  if (delta.kind === 'no-prior-data') {
-    return <p className="mt-1.5 text-xs text-stone-400">no prior data</p>;
-  }
-
-  const color =
-    delta.kind === 'n-too-small'
-      ? 'text-stone-400'
-      : delta.direction === 'up'
-        ? 'text-emerald-700'
-        : delta.direction === 'down'
-          ? 'text-red-700'
-          : 'text-stone-500';
-  const arrow = delta.kind !== 'n-too-small' && delta.direction !== 'flat' ? (delta.direction === 'up' ? '↑' : '↓') : '→';
-
-  if (delta.kind === 'count') {
-    const pct = delta.pctDelta === null ? '' : ` (${delta.pctDelta > 0 ? '+' : ''}${delta.pctDelta}%)`;
-    return (
-      <p className={cn('mt-1.5 text-xs', color)}>
-        vs {delta.previous} · {arrow} {Math.abs(delta.absDelta)}
-        {pct}
-      </p>
-    );
-  }
-
-  if (delta.kind === 'pp') {
-    return (
-      <p className={cn('mt-1.5 text-xs', color)}>
-        vs {delta.previous}% · {arrow} {Math.abs(delta.ppDelta)}pp
-      </p>
-    );
-  }
-
-  // n-too-small
-  return <p className={cn('mt-1.5 text-xs', color)}>n too small</p>;
-}
 
 export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateWindow; accountId?: string }) {
   const [metrics, funnel, statusBreakdown, latency, pipelineActivity] = await Promise.all([
@@ -69,19 +29,12 @@ export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateW
           <Card key={metric.label} className="relative overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-300 to-orange-400" />
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                {metric.label}
-                {metric.partial && (
-                  <Badge variant="outline" className="rounded-full border-amber-200 bg-amber-50 text-[10px] font-normal text-amber-700">
-                    partial
-                  </Badge>
-                )}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{metric.label}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold tracking-tight">{metric.value}</p>
               <p className="mt-1 text-xs text-muted-foreground">{metric.note}</p>
-              <DeltaLine delta={metric.delta} />
+              <HeroMetricDeltaLine delta={metric.delta} />
             </CardContent>
           </Card>
         ))}

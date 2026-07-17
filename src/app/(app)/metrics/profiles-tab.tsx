@@ -2,17 +2,29 @@ import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ProfileVisibilityDeltaLine } from '@/components/metrics/profile-visibility-delta';
 import type { DateWindow } from '@/lib/date-window';
 import { getProfilePerformanceRows } from '@/domain/metrics/repository';
-import { getVisibilitySeries } from '@/domain/profile-stats/repository';
+import { getProfileVisibilityTable, getVisibilitySeries } from '@/domain/profile-stats/repository';
+import type { ProfileVisibilityCell } from '@/domain/profile-stats/types';
 
 import { ProfileBarChart, VisibilityChart } from './metrics-charts';
 import { RateCell } from './shared';
 
+function VisibilityMetricCell({ cell, bold = false }: { cell: ProfileVisibilityCell; bold?: boolean }) {
+  return (
+    <div className="text-right">
+      <p className={bold ? 'font-bold tabular-nums' : 'tabular-nums'}>{cell.value}</p>
+      <ProfileVisibilityDeltaLine delta={cell.delta} />
+    </div>
+  );
+}
+
 export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateWindow; accountId?: string }) {
-  const [profileRows, visibility] = await Promise.all([
+  const [profileRows, visibility, visibilityTable] = await Promise.all([
     getProfilePerformanceRows(dateWindow, accountId),
     getVisibilitySeries(dateWindow, accountId),
+    getProfileVisibilityTable(dateWindow, accountId),
   ]);
 
   const totals = profileRows.reduce(
@@ -137,6 +149,51 @@ export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateW
             </p>
           ) : (
             <VisibilityChart data={visibility} />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Profile visibility table ── */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+          <CardTitle>Profile visibility</CardTitle>
+          <p className="shrink-0 text-xs text-muted-foreground">{visibilityTable.comparisonLabel}</p>
+        </CardHeader>
+        <CardContent>
+          {visibilityTable.rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No profiles found. Add weekly numbers under Profiles → Stats.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-stone-50/60">
+                  <TableHead>Profile</TableHead>
+                  <TableHead className="text-right">Views</TableHead>
+                  <TableHead className="text-right">Invites</TableHead>
+                  <TableHead className="text-right">Impressions</TableHead>
+                  <TableHead className="text-right">Clicks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibilityTable.rows.map((row) => (
+                  <TableRow key={row.accountId ?? row.profile}>
+                    <TableCell className="font-medium">{row.profile}</TableCell>
+                    <TableCell><VisibilityMetricCell cell={row.views} /></TableCell>
+                    <TableCell><VisibilityMetricCell cell={row.invites} /></TableCell>
+                    <TableCell><VisibilityMetricCell cell={row.impressions} /></TableCell>
+                    <TableCell><VisibilityMetricCell cell={row.clicks} /></TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="border-t-2 border-stone-200 bg-stone-50/60 font-bold">
+                  <TableCell className="font-bold">{visibilityTable.total.profile}</TableCell>
+                  <TableCell><VisibilityMetricCell bold cell={visibilityTable.total.views} /></TableCell>
+                  <TableCell><VisibilityMetricCell bold cell={visibilityTable.total.invites} /></TableCell>
+                  <TableCell><VisibilityMetricCell bold cell={visibilityTable.total.impressions} /></TableCell>
+                  <TableCell><VisibilityMetricCell bold cell={visibilityTable.total.clicks} /></TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

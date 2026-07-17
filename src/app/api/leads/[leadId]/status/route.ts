@@ -2,19 +2,13 @@ import { NextResponse } from 'next/server';
 import { LeadStatus } from '@prisma/client';
 import { z } from 'zod';
 
+import { leadLifecycleStatuses } from '@/domain/leads/types';
 import { updateLeadStatus } from '@/domain/leads/update-lead-status';
 
-// NEW is entry-only, and the three consolidated legacy stages can no longer be set
-// (FOLLOW_UP → Ongoing Discussion, QUALIFIED_LOST → Lost, CLOSED → Job Closed).
-const RETIRED: LeadStatus[] = [
-  LeadStatus.NEW,
-  LeadStatus.FOLLOW_UP,
-  LeadStatus.QUALIFIED_LOST,
-  LeadStatus.CLOSED,
-];
+const settable = new Set<string>(leadLifecycleStatuses);
 
 const requestSchema = z.object({
-  status: z.nativeEnum(LeadStatus).refine((value) => !RETIRED.includes(value), {
+  status: z.nativeEnum(LeadStatus).refine((value) => settable.has(value), {
     message: 'Unsupported lifecycle status',
   }),
 });

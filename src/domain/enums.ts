@@ -16,14 +16,11 @@ export const LeadStatus = {
   APPLIED: 'APPLIED',
   CLIENT_REPLIED: 'CLIENT_REPLIED',
   INTRO_CALL: 'INTRO_CALL',
-  FOLLOW_UP: 'FOLLOW_UP',
   ONGOING_DISCUSSION: 'ONGOING_DISCUSSION',
   HIRES_OTHER: 'HIRES_OTHER',
-  QUALIFIED_LOST: 'QUALIFIED_LOST',
   JOB_CLOSED: 'JOB_CLOSED',
   WON: 'WON',
   LOST: 'LOST',
-  CLOSED: 'CLOSED',
 } as const;
 export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus];
 

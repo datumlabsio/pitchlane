@@ -4,9 +4,11 @@ import { prisma } from '@/lib/prisma';
 import {
   buildCreatedAtRange,
   comparisonWindow,
+  formatDateFilterLabel,
   resolveWindow,
   TRACKING_START_DATE,
   type DateWindow,
+  type ResolvedWindow,
 } from '@/lib/date-window';
 
 // Shared lead filter: date window + the comma-separated `accountId` profile filter
@@ -26,10 +28,8 @@ const QUALIFIED_STATUSES: LeadStatus[] = [
   LeadStatus.APPLIED,
   LeadStatus.CLIENT_REPLIED,
   LeadStatus.INTRO_CALL,
-  LeadStatus.FOLLOW_UP,
   LeadStatus.ONGOING_DISCUSSION,
   LeadStatus.HIRES_OTHER,
-  LeadStatus.QUALIFIED_LOST,
   LeadStatus.JOB_CLOSED,
   LeadStatus.WON,
   LeadStatus.LOST,
@@ -40,7 +40,6 @@ const APPLIED_STATUSES: LeadStatus[] = [
   LeadStatus.APPLIED,
   LeadStatus.CLIENT_REPLIED,
   LeadStatus.INTRO_CALL,
-  LeadStatus.FOLLOW_UP,
   LeadStatus.ONGOING_DISCUSSION,
   LeadStatus.HIRES_OTHER,
   LeadStatus.JOB_CLOSED,
@@ -55,7 +54,6 @@ const APPLIED_STATUSES: LeadStatus[] = [
 const REPLIED_STATUSES: LeadStatus[] = [
   LeadStatus.CLIENT_REPLIED,
   LeadStatus.INTRO_CALL,
-  LeadStatus.FOLLOW_UP,
   LeadStatus.ONGOING_DISCUSSION,
   LeadStatus.WON,
 ];
@@ -63,7 +61,6 @@ const REPLIED_STATUSES: LeadStatus[] = [
 // Statuses that mean an intro call was booked (reached the call stage or beyond).
 const CALL_STATUSES: LeadStatus[] = [
   LeadStatus.INTRO_CALL,
-  LeadStatus.FOLLOW_UP,
   LeadStatus.ONGOING_DISCUSSION,
   LeadStatus.WON,
 ];
@@ -251,7 +248,21 @@ export async function getPipelineHeroMetrics(window: DateWindow = {}, accountId?
   ];
 }
 
-export async function getProfilePerformanceRows(window: DateWindow = {}, accountId?: string) {
+type ProfileVolumeCounts = {
+  accountId: string;
+  profile: string;
+  leads: number;
+  qualified: number;
+  applied: number;
+  replied: number;
+  callBooked: number;
+  won: number;
+  connects: number;
+  spend: number;
+};
+
+/** Cohort counts by lead/application createdAt — same mapping the pipeline hero cards use. */
+async function profileVolumeCounts(window: DateWindow, accountId?: string): Promise<ProfileVolumeCounts[]> {
   const createdAt = buildCreatedAtRange(window);
   const accountIds = (accountId ?? '').split(',').filter(Boolean);
   const accounts = await prisma.account.findMany({
@@ -271,30 +282,206 @@ export async function getProfilePerformanceRows(window: DateWindow = {}, account
     const callBooked = account.leads.filter((l) => CALL_STATUSES.includes(l.status as LeadStatus)).length;
     const won = account.leads.filter((l) => l.status === LeadStatus.WON).length;
     const connects = account.applications.reduce((sum, a) => sum + (a.connectsSpent ?? 0), 0);
-    const spend = connects * COST_PER_CONNECT;
-
     return {
       accountId: account.id,
       profile: account.personName,
       leads,
       qualified,
-      qualRate: leads > 0 ? Math.round((qualified / leads) * 100) : 0,
       applied,
-      applyRate: qualified > 0 ? Math.round((applied / qualified) * 100) : 0,
       replied,
-      replyRate: applied > 0 ? Math.round((replied / applied) * 100) : 0,
       callBooked,
-      bookRate: applied > 0 ? Math.round((callBooked / applied) * 100) : 0,
       won,
-      winRate: applied > 0 ? Math.round((won / applied) * 100) : 0,
       connects,
-      spend,
-      connectsPerApp: applied > 0 ? connects / applied : 0,
-      costPerReply: replied > 0 ? spend / replied : null,
-      costPerCall: callBooked > 0 ? spend / callBooked : null,
-      costPerWin: won > 0 ? spend / won : null,
+      spend: connects * COST_PER_CONNECT,
     };
   });
+}
+
+export async function getProfilePerformanceRows(window: DateWindow = {}, accountId?: string) {
+  const rows = await profileVolumeCounts(window, accountId);
+  return rows.map((row) => ({
+    ...row,
+    qualRate: row.leads > 0 ? Math.round((row.qualified / row.leads) * 100) : 0,
+    applyRate: row.qualified > 0 ? Math.round((row.applied / row.qualified) * 100) : 0,
+    replyRate: row.applied > 0 ? Math.round((row.replied / row.applied) * 100) : 0,
+    bookRate: row.applied > 0 ? Math.round((row.callBooked / row.applied) * 100) : 0,
+    winRate: row.applied > 0 ? Math.round((row.won / row.applied) * 100) : 0,
+    connectsPerApp: row.applied > 0 ? row.connects / row.applied : 0,
+    costPerReply: row.replied > 0 ? row.spend / row.replied : null,
+    costPerCall: row.callBooked > 0 ? row.spend / row.callBooked : null,
+    costPerWin: row.won > 0 ? row.spend / row.won : null,
+  }));
+}
+
+export type ProfileConversionMetricDelta =
+  | { kind: 'hidden' }
+  | { kind: 'no-prior-data' }
+  | { kind: 'na' }
+  | {
+      kind: 'count' | 'money';
+      previous: number;
+      currentValue: number;
+      absDelta: number;
+      pctDelta: number | null;
+      direction: 'up' | 'down' | 'flat';
+    };
+
+export type ProfileConversionCell = {
+  value: number;
+  delta: ProfileConversionMetricDelta;
+};
+
+export type ProfileConversionTableRow = {
+  profile: string;
+  accountId?: string;
+  leads: ProfileConversionCell;
+  qualified: ProfileConversionCell;
+  applied: ProfileConversionCell;
+  replied: ProfileConversionCell;
+  calls: ProfileConversionCell;
+  won: ProfileConversionCell;
+  connects: ProfileConversionCell;
+  spend: ProfileConversionCell;
+};
+
+export type ProfileConversionTable = {
+  comparisonLabel: string;
+  rows: ProfileConversionTableRow[];
+  total: ProfileConversionTableRow;
+};
+
+function conversionDelta(
+  currentValue: number,
+  previousValue: number,
+  showComparison: boolean,
+  noPriorData: boolean,
+  kind: 'count' | 'money' = 'count',
+): ProfileConversionMetricDelta {
+  if (!showComparison) return { kind: 'hidden' };
+  if (noPriorData) return { kind: 'no-prior-data' };
+  if (currentValue === 0 && previousValue === 0) return { kind: 'na' };
+
+  const absDelta = currentValue - previousValue;
+  if (absDelta === 0) {
+    return { kind, previous: previousValue, currentValue, absDelta: 0, pctDelta: null, direction: 'flat' };
+  }
+
+  const pctDelta = previousValue === 0 ? null : Math.round((absDelta / previousValue) * 100);
+  return {
+    kind,
+    previous: previousValue,
+    currentValue,
+    absDelta,
+    pctDelta,
+    direction: absDelta > 0 ? 'up' : 'down',
+  };
+}
+
+function emptyVolume(accountId: string, profile: string): ProfileVolumeCounts {
+  return {
+    accountId,
+    profile,
+    leads: 0,
+    qualified: 0,
+    applied: 0,
+    replied: 0,
+    callBooked: 0,
+    won: 0,
+    connects: 0,
+    spend: 0,
+  };
+}
+
+function sumVolumes(rows: ProfileVolumeCounts[]): Omit<ProfileVolumeCounts, 'accountId' | 'profile'> {
+  return rows.reduce(
+    (acc, r) => ({
+      leads: acc.leads + r.leads,
+      qualified: acc.qualified + r.qualified,
+      applied: acc.applied + r.applied,
+      replied: acc.replied + r.replied,
+      callBooked: acc.callBooked + r.callBooked,
+      won: acc.won + r.won,
+      connects: acc.connects + r.connects,
+      spend: acc.spend + r.spend,
+    }),
+    { leads: 0, qualified: 0, applied: 0, replied: 0, callBooked: 0, won: 0, connects: 0, spend: 0 },
+  );
+}
+
+function buildConversionCells(
+  current: Omit<ProfileVolumeCounts, 'accountId' | 'profile'>,
+  previous: Omit<ProfileVolumeCounts, 'accountId' | 'profile'>,
+  showComparison: boolean,
+  noPriorData: boolean,
+): Omit<ProfileConversionTableRow, 'profile' | 'accountId'> {
+  const mk = (
+    key: keyof Omit<ProfileVolumeCounts, 'accountId' | 'profile'>,
+    kind: 'count' | 'money' = 'count',
+  ): ProfileConversionCell => ({
+    value: current[key],
+    delta: conversionDelta(current[key], previous[key], showComparison, noPriorData, kind),
+  });
+  return {
+    leads: mk('leads'),
+    qualified: mk('qualified'),
+    applied: mk('applied'),
+    replied: mk('replied'),
+    calls: mk('callBooked'),
+    won: mk('won'),
+    connects: mk('connects'),
+    spend: mk('spend', 'money'),
+  };
+}
+
+function windowFromResolved(resolved: ResolvedWindow): DateWindow {
+  if (!resolved.start && !resolved.end) return { since: 'any' };
+  const from = resolved.start?.toISOString().slice(0, 10);
+  const to = resolved.end?.toISOString().slice(0, 10);
+  return { from, to };
+}
+
+/**
+ * Per-profile conversion volume with comparison deltas (Profiles tab table).
+ * Pure counts + spend — rates live in the Pipeline funnel.
+ */
+export async function getProfileConversionTable(
+  window: DateWindow = {},
+  accountId?: string,
+): Promise<ProfileConversionTable> {
+  const resolved = resolveWindow(window);
+  const cmp = comparisonWindow(resolved);
+  const noPriorData = Boolean(cmp && cmp.start.getTime() < TRACKING_START_DATE.getTime());
+  const showComparison = resolved.kind !== 'none' && cmp !== null;
+  const previousWindow: DateWindow =
+    cmp && !noPriorData ? windowFromResolved({ start: cmp.start, end: cmp.end, kind: resolved.kind, partial: false }) : { since: 'any' };
+
+  const [currentRows, previousRows] = await Promise.all([
+    profileVolumeCounts(window, accountId),
+    showComparison && !noPriorData ? profileVolumeCounts(previousWindow, accountId) : Promise.resolve([] as ProfileVolumeCounts[]),
+  ]);
+
+  const previousById = new Map(previousRows.map((r) => [r.accountId, r]));
+
+  const rows: ProfileConversionTableRow[] = currentRows.map((current) => {
+    const previous = previousById.get(current.accountId) ?? emptyVolume(current.accountId, current.profile);
+    return {
+      profile: current.profile,
+      accountId: current.accountId,
+      ...buildConversionCells(current, previous, showComparison, noPriorData),
+    };
+  });
+
+  const currentTotal = sumVolumes(currentRows);
+  const previousTotal = sumVolumes(previousRows);
+
+  return {
+    comparisonLabel: formatDateFilterLabel(window, 'this_week'),
+    rows,
+    total: {
+      profile: 'Total',
+      ...buildConversionCells(currentTotal, previousTotal, showComparison, noPriorData),
+    },
+  };
 }
 
 function median(values: number[]): number | null {

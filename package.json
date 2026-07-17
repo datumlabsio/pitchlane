@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "node prisma/seed.mjs",
+    "db:retire-legacy-statuses": "npx tsx scripts/retire-legacy-statuses.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

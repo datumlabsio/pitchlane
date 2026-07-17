@@ -1,9 +1,22 @@
 import type { LeadStatus } from '@prisma/client';
 
-// The 10-stage pipeline (NEW is the implicit entry stage). Three legacy stages were
-// consolidated and are no longer settable — FOLLOW_UP folded into
-// ONGOING_DISCUSSION, QUALIFIED_LOST into LOST, CLOSED into JOB_CLOSED. Their enum
-// values stay in the schema so historical rows/events remain readable.
+// Canonical pipeline statuses shown anywhere in the app (decision 9 / PRD v1.4).
+// NEW is filterable but not settable via the lifecycle pills — it is the entry stage only.
+export const leadFilterStatuses = [
+  'NEW',
+  'QUALIFIED',
+  'REJECTED',
+  'APPLIED',
+  'CLIENT_REPLIED',
+  'INTRO_CALL',
+  'ONGOING_DISCUSSION',
+  'HIRES_OTHER',
+  'JOB_CLOSED',
+  'WON',
+  'LOST',
+] as const satisfies readonly LeadStatus[];
+
+// The settable lifecycle stages (NEW is entry-only).
 export const leadLifecycleStatuses = [
   'QUALIFIED',
   'REJECTED',
@@ -24,14 +37,11 @@ export const leadStatusLabelMap: Record<LeadStatus, string> = {
   APPLIED: 'Applied',
   CLIENT_REPLIED: 'Client Replied',
   INTRO_CALL: 'First Call',
-  FOLLOW_UP: 'Follow Up',
   ONGOING_DISCUSSION: 'Ongoing Discussion',
   HIRES_OTHER: 'Hired Other',
-  QUALIFIED_LOST: 'Qualified Lost',
   JOB_CLOSED: 'Job Closed',
   WON: 'Won',
   LOST: 'Lost',
-  CLOSED: 'Closed',
 };
 
 export type LeadStatusCode = LeadStatus;

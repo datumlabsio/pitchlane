@@ -80,14 +80,11 @@ const statusColors: Partial<Record<LeadStatus, string>> = {
   APPLIED: 'bg-amber-100 text-amber-700',
   CLIENT_REPLIED: 'bg-amber-200 text-amber-800',
   INTRO_CALL: 'bg-amber-300 text-amber-900',
-  FOLLOW_UP: 'bg-amber-100 text-amber-700',
   ONGOING_DISCUSSION: 'bg-sky-100 text-sky-700',
   HIRES_OTHER: 'bg-slate-100 text-slate-600',
-  QUALIFIED_LOST: 'bg-slate-100 text-slate-600',
   JOB_CLOSED: 'bg-slate-100 text-slate-600',
   WON: 'bg-emerald-200 text-emerald-800',
   LOST: 'bg-rose-100 text-rose-600',
-  CLOSED: 'bg-stone-100 text-stone-500',
 };
 
 // ─── Funnel ───────────────────────────────────────────────────────────────────

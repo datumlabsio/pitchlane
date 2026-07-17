@@ -64,6 +64,7 @@ import { DateRangeFilter } from "@/components/filters/date-range-filter";
 import { MultiSelectFilter } from "@/components/filters/multi-select";
 import { Topbar } from "@/components/layout/topbar";
 import {
+  leadFilterStatuses,
   leadLifecycleStatuses,
   leadStatusLabelMap,
   type LeadDetail,
@@ -106,19 +107,16 @@ function statusBadgeVariant(statusCode: LeadSummary["statusCode"]) {
       return "bg-emerald-100 text-emerald-700 border-emerald-200";
     case "REJECTED":
     case "LOST":
-    case "QUALIFIED_LOST":
       return "bg-rose-100 text-rose-700 border-rose-200";
     case "APPLIED":
     case "CLIENT_REPLIED":
     case "INTRO_CALL":
-    case "FOLLOW_UP":
     case "ONGOING_DISCUSSION":
       return "bg-amber-100 text-amber-700 border-amber-200";
     case "WON":
       return "bg-sky-100 text-sky-700 border-sky-200";
     case "HIRES_OTHER":
     case "JOB_CLOSED":
-    case "CLOSED":
       return "bg-slate-100 text-slate-600 border-slate-200";
     default:
       return "bg-stone-100 text-stone-600 border-stone-200";
@@ -599,9 +597,9 @@ function FilterBar({
       <MultiSelectFilter
         param="status"
         label="Status"
-        options={Object.entries(leadStatusLabelMap).map(([value, lbl]) => ({
+        options={leadFilterStatuses.map((value) => ({
           value,
-          label: lbl,
+          label: leadStatusLabelMap[value],
         }))}
       />
 

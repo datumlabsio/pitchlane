@@ -59,11 +59,6 @@ export const stageGuide: Record<LeadStatus, StageGuideEntry> = {
       'The client hired someone else without ever engaging us — usually straight from Applied.',
     terminal: true,
   },
-  QUALIFIED_LOST: {
-    who: 'BD (manual)',
-    meaning: 'Retired stage — use Lost. Kept only so old leads remain readable.',
-    terminal: true,
-  },
   JOB_CLOSED: {
     who: 'BD (manual)',
     meaning: 'The client closed or deleted the posting — the job no longer exists.',
@@ -78,16 +73,6 @@ export const stageGuide: Record<LeadStatus, StageGuideEntry> = {
     who: 'BD (manual)',
     meaning:
       'After replies, calls, or discussion the client chose someone else or went permanently silent.',
-    terminal: true,
-  },
-  FOLLOW_UP: {
-    who: 'BD (manual)',
-    meaning: 'Retired stage — follow-ups live inside Ongoing Discussion now.',
-    terminal: false,
-  },
-  CLOSED: {
-    who: 'BD (manual)',
-    meaning: 'Retired stage — use Job Closed. Kept only so old leads remain readable.',
     terminal: true,
   },
 };

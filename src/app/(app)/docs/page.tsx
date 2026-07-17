@@ -106,9 +106,9 @@ export default function DocsPage() {
             <li><strong>Rejected</strong> — we chose not to pursue it (or the judge did).</li>
           </ul>
           <p className="text-xs text-stone-500">
-            History note: three legacy stages were consolidated — Follow Up lives inside Ongoing
-            Discussion, Qualified Lost inside Lost, and Closed inside Job Closed. Old leads and
-            events that used them remain readable.
+            History note: Follow Up, Qualified Lost, and Closed were retired from the status enum.
+            Follow-ups live inside Ongoing Discussion, Qualified Lost inside Lost, and Closed inside
+            Job Closed.
           </p>
         </Section>
 
@@ -272,9 +272,9 @@ export default function DocsPage() {
               (or “system” for automatic moves).
             </Faq>
             <Faq q="What happened to Follow Up / Qualified Lost / Closed?">
-              Consolidated: follow-ups live inside Ongoing Discussion, Qualified Lost inside Lost,
-              Closed inside Job Closed. Old leads that used them were migrated and their history
-              kept.
+              Retired from the status list. Follow-ups live inside Ongoing Discussion, Qualified
+              Lost inside Lost, and Closed inside Job Closed. Activity history that mentioned them
+              is unchanged.
             </Faq>
           </div>
         </Section>

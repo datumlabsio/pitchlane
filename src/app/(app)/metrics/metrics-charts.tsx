@@ -112,14 +112,33 @@ type FunnelData = {
   won: number;
 };
 
+// Mirrors the cumulative status groups in domain/metrics/repository — each funnel
+// row links to the leads list filtered to exactly the statuses it counts, so the
+// number on the chart matches the list it opens.
+const FUNNEL_STAGE_FILTERS: Record<string, string | null> = {
+  received: null,
+  qualified:
+    'QUALIFIED,APPLIED,CLIENT_REPLIED,INTRO_CALL,ONGOING_DISCUSSION,HIRES_OTHER,JOB_CLOSED,WON,LOST',
+  applied: 'APPLIED,CLIENT_REPLIED,INTRO_CALL,ONGOING_DISCUSSION,HIRES_OTHER,JOB_CLOSED,WON,LOST',
+  replied: 'CLIENT_REPLIED,INTRO_CALL,ONGOING_DISCUSSION,WON',
+  call: 'INTRO_CALL,ONGOING_DISCUSSION,WON',
+  won: 'WON',
+};
+
 function FunnelRow({
-  label, count, total, color, subLabel,
+  label, count, total, color, subLabel, statusFilter,
 }: {
-  label: string; count: number; total: number; color: string; subLabel?: string;
+  label: string; count: number; total: number; color: string; subLabel?: string; statusFilter?: string | null;
 }) {
+  const router = useRouter();
   const pct = total === 0 ? 0 : Math.round((count / total) * 100);
   return (
-    <div className="flex items-center gap-4">
+    <button
+      type="button"
+      onClick={() => router.push(statusFilter ? `/leads?status=${statusFilter}` : '/leads')}
+      title={`Open the leads list behind “${label}”`}
+      className="flex w-full items-center gap-4 rounded-md px-1 py-0.5 text-left transition hover:bg-stone-50"
+    >
       <p className="w-32 shrink-0 text-sm text-stone-600">{label}</p>
       <div className="flex-1 h-6 overflow-hidden rounded-full bg-stone-100">
         <div
@@ -135,7 +154,7 @@ function FunnelRow({
           <span className="text-xs tabular-nums text-stone-400">{pct}%</span>
         )}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -147,13 +166,13 @@ export function PipelineFunnel({ data }: { data: FunnelData }) {
   const winRate = data.applied === 0 ? 0 : Math.round((data.won / data.applied) * 100);
 
   return (
-    <div className="space-y-3">
-      <FunnelRow label="Leads received" count={data.total} total={data.total} color="bg-stone-400" subLabel="100%" />
-      <FunnelRow label="Qualified" count={data.qualified} total={data.total} color="bg-amber-400" subLabel={`${qualRate}%`} />
-      <FunnelRow label="Applied" count={data.applied} total={data.total} color="bg-amber-600" subLabel={`${applyRate}% of qual.`} />
-      <FunnelRow label="Client replied" count={data.replied} total={data.total} color="bg-sky-500" subLabel={`${replyRate}% of applied`} />
-      <FunnelRow label="Call booked" count={data.callBooked} total={data.total} color="bg-sky-600" subLabel={`${bookRate}% of applied`} />
-      <FunnelRow label="Won" count={data.won} total={data.total} color="bg-emerald-500" subLabel={`${winRate}% of applied`} />
+    <div className="space-y-2.5">
+      <FunnelRow label="Leads received" count={data.total} total={data.total} color="bg-stone-400" subLabel="100%" statusFilter={FUNNEL_STAGE_FILTERS.received} />
+      <FunnelRow label="Qualified" count={data.qualified} total={data.total} color="bg-amber-400" subLabel={`${qualRate}%`} statusFilter={FUNNEL_STAGE_FILTERS.qualified} />
+      <FunnelRow label="Applied" count={data.applied} total={data.total} color="bg-amber-600" subLabel={`${applyRate}% of qual.`} statusFilter={FUNNEL_STAGE_FILTERS.applied} />
+      <FunnelRow label="Client replied" count={data.replied} total={data.total} color="bg-sky-500" subLabel={`${replyRate}% of applied`} statusFilter={FUNNEL_STAGE_FILTERS.replied} />
+      <FunnelRow label="Call booked" count={data.callBooked} total={data.total} color="bg-sky-600" subLabel={`${bookRate}% of applied`} statusFilter={FUNNEL_STAGE_FILTERS.call} />
+      <FunnelRow label="Won" count={data.won} total={data.total} color="bg-emerald-500" subLabel={`${winRate}% of applied`} statusFilter={FUNNEL_STAGE_FILTERS.won} />
     </div>
   );
 }
@@ -163,13 +182,20 @@ export function PipelineFunnel({ data }: { data: FunnelData }) {
 type StatusCount = { status: LeadStatus; count: number };
 
 export function StatusBreakdown({ data }: { data: StatusCount[] }) {
+  const router = useRouter();
   const total = data.reduce((sum, d) => sum + d.count, 0);
   if (total === 0) return <p className="text-sm text-stone-400">No leads yet.</p>;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       {data.map(({ status, count }) => (
-        <div key={status} className="flex items-center justify-between gap-3">
+        <button
+          key={status}
+          type="button"
+          onClick={() => router.push(`/leads?status=${status}`)}
+          title={`Open the leads list filtered to ${leadStatusLabelMap[status] ?? status}`}
+          className="flex w-full items-center justify-between gap-3 rounded-md px-1 py-0.5 text-left transition hover:bg-stone-50"
+        >
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[status] ?? 'bg-stone-100 text-stone-500'}`}>
             {leadStatusLabelMap[status] ?? status}
           </span>
@@ -182,7 +208,7 @@ export function StatusBreakdown({ data }: { data: StatusCount[] }) {
             </div>
             <span className="w-6 text-right text-xs tabular-nums text-stone-500">{count}</span>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );

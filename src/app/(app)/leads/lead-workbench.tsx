@@ -7,12 +7,14 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  Columns3,
   Copy,
   ExternalLink,
   FileEdit,
   Mail,
   Plus,
   RefreshCw,
+  Rows3,
   Search,
   Sparkles,
   StickyNote,
@@ -69,9 +71,11 @@ import {
   leadStatusLabelMap,
   type LeadDetail,
   type LeadEnrichment,
+  type LeadStatusCode,
   type LeadSummary,
 } from "@/domain/leads/types";
 import { stageGuide } from "@/domain/leads/stage-guide";
+import { LeadKanban } from "./lead-kanban";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -425,6 +429,40 @@ function ActivityItem({
           title: "Proposal edited",
           tint: "bg-stone-100 text-stone-700",
         };
+      case "proposal.sent_recorded":
+        return {
+          icon: FileEdit,
+          title: "Sent proposal recorded",
+          tint: "bg-emerald-100 text-emerald-700",
+        };
+      case "lead.profiles_suggested":
+        return {
+          icon: Sparkles,
+          title: "Also fits other profiles",
+          tint: "bg-amber-100 text-amber-700",
+        };
+      case "proposal.feedback_updated":
+        return {
+          icon: FileEdit,
+          title: "Manager feedback on proposal",
+          tint: "bg-violet-100 text-violet-700",
+        };
+      case "application.bu_review_updated":
+        return {
+          icon: Check,
+          title:
+            payload.buReviewed === false ? "BU review unmarked" : "BU reviewed",
+          tint: "bg-amber-100 text-amber-700",
+        };
+      case "application.proposal_viewed_updated":
+        return {
+          icon: Check,
+          title:
+            payload.proposalViewed === false
+              ? "Proposal viewed unmarked"
+              : "Proposal viewed",
+          tint: "bg-sky-100 text-sky-700",
+        };
       default:
         return {
           icon: Sparkles,
@@ -504,6 +542,17 @@ function ActivityItem({
             payload.versionCount ? (
             <p className="text-xs text-stone-500">
               Now on version {String(payload.versionCount)}
+            </p>
+          ) : event.type === "lead.profiles_suggested" &&
+            Array.isArray(payload.profiles) ? (
+            <p className="text-xs text-stone-500">
+              {payload.profiles.map(String).join(" · ")}
+            </p>
+          ) : event.type === "proposal.feedback_updated" &&
+            typeof payload.excerpt === "string" &&
+            payload.excerpt ? (
+            <p className="rounded-md border border-violet-100 bg-violet-50/60 px-2.5 py-1.5 text-xs text-stone-600">
+              “{payload.excerpt}”
             </p>
           ) : event.type === "lead.enriched" ? (
             <p className="text-xs text-stone-500">
@@ -947,6 +996,7 @@ export function LeadWorkbench({
   labels,
   accounts,
   currentFilters,
+  view = "list",
   enrichmentEnabled = false,
 }: {
   leads: LeadSummary[];
@@ -958,6 +1008,7 @@ export function LeadWorkbench({
   labels: string[];
   accounts: FilterAccount[];
   currentFilters: CurrentFilters;
+  view?: "list" | "kanban";
   enrichmentEnabled?: boolean;
 }) {
   const router = useRouter();
@@ -976,10 +1027,18 @@ export function LeadWorkbench({
   const [copyOpen, setCopyOpen] = useState(false);
   const [copyTargets, setCopyTargets] = useState<string[]>([]);
   const [connectsSpent, setConnectsSpent] = useState("");
+  const [connectsRefunded, setConnectsRefunded] = useState("");
   const [appliedAt, setAppliedAt] = useState("");
   const [appliedPickerOpen, setAppliedPickerOpen] = useState(false);
   const [lastFollowUpAt, setLastFollowUpAt] = useState("");
   const [notes, setNotes] = useState("");
+  // Review trail: the proposal actually sent on Upwork, the manager's feedback on
+  // it, and the two review toggles. Distinct from `proposalFeedback` above, which
+  // steers AI regeneration and is never persisted.
+  const [sentProposal, setSentProposal] = useState("");
+  const [sentFeedback, setSentFeedback] = useState("");
+  const [buReviewed, setBuReviewed] = useState(false);
+  const [proposalViewed, setProposalViewed] = useState(false);
   const [ingestOpen, setIngestOpen] = useState(false);
 
   useEffect(() => {
@@ -999,6 +1058,13 @@ export function LeadWorkbench({
       formatDateTimeInput(selectedLead?.application?.lastFollowUpAt ?? null),
     );
     setNotes(selectedLead?.application?.notes ?? "");
+    setConnectsRefunded(
+      selectedLead?.application?.connectsRefunded?.toString() ?? "",
+    );
+    setSentProposal(selectedLead?.application?.sentProposal ?? "");
+    setSentFeedback(selectedLead?.application?.proposalFeedback ?? "");
+    setBuReviewed(selectedLead?.application?.buReviewed ?? false);
+    setProposalViewed(selectedLead?.application?.proposalViewed ?? false);
     setStatusMessage("");
   }, [selectedLead]);
 
@@ -1071,7 +1137,13 @@ export function LeadWorkbench({
   // Persist the application. `appliedAtValue` is passed explicitly so the quick
   // "Mark applied" actions can set it without depending on the field's state
   // (the rest of the form — connects/follow-up/notes — is preserved as-is).
-  function postApplication(appliedAtValue: string | null, message: string) {
+  function postApplication(
+    appliedAtValue: string | null,
+    message: string,
+    // The review toggles save instantly on click; React state is async, so the
+    // flipped value rides in as an override instead of being read back from state.
+    overrides?: { buReviewed?: boolean; proposalViewed?: boolean },
+  ) {
     if (!selectedLead) return;
     const parsedConnects =
       connectsSpent.trim().length > 0 ? Number(connectsSpent) : null;
@@ -1082,6 +1154,15 @@ export function LeadWorkbench({
       setStatusMessage("Connects spent must be a non-negative integer.");
       return;
     }
+    const parsedRefunded =
+      connectsRefunded.trim().length > 0 ? Number(connectsRefunded) : null;
+    if (
+      parsedRefunded !== null &&
+      (!Number.isInteger(parsedRefunded) || parsedRefunded < 0)
+    ) {
+      setStatusMessage("Connects refunded must be a non-negative integer.");
+      return;
+    }
     void runRequest(
       "/api/applications",
       {
@@ -1090,12 +1171,37 @@ export function LeadWorkbench({
         body: JSON.stringify({
           leadId: selectedLead.id,
           connectsSpent: parsedConnects,
+          connectsRefunded: parsedRefunded,
           appliedAt: appliedAtValue,
           lastFollowUpAt: lastFollowUpAt || null,
           notes,
+          sentProposal: sentProposal || null,
+          proposalFeedback: sentFeedback || null,
+          buReviewed,
+          proposalViewed,
+          ...overrides,
         }),
       },
       message,
+    );
+  }
+
+  // Instant-save toggles — a manager ticking "viewed" shouldn't need to find Save.
+  function toggleBuReviewed(next: boolean) {
+    setBuReviewed(next);
+    postApplication(
+      appliedAt || null,
+      next ? "Marked as BU reviewed." : "BU review unmarked.",
+      { buReviewed: next },
+    );
+  }
+
+  function toggleProposalViewed(next: boolean) {
+    setProposalViewed(next);
+    postApplication(
+      appliedAt || null,
+      next ? "Marked proposal as viewed." : "Proposal viewed unmarked.",
+      { proposalViewed: next },
     );
   }
 
@@ -1208,8 +1314,75 @@ export function LeadWorkbench({
     if (currentFilters.since) params.set("since", currentFilters.since);
     if (currentFilters.from) params.set("from", currentFilters.from);
     if (currentFilters.to) params.set("to", currentFilters.to);
-    if (page > 1) params.set("page", String(page));
+    if (view === "kanban") params.set("view", "kanban");
+    if (view !== "kanban" && page > 1) params.set("page", String(page));
     return params;
+  }
+
+  function switchView(next: "list" | "kanban") {
+    if (next === view) return;
+    const params = buildFilterParams();
+    params.delete("page");
+    params.delete("view");
+    if (next === "kanban") params.set("view", "kanban");
+    const qs = params.toString();
+    router.push(qs ? `/leads?${qs}` : "/leads");
+  }
+
+  // Board actions work on any card, not just the open lead. Same endpoints as the
+  // panel flows, so events/actors/metrics behave identically.
+  function moveLeadFromBoard(leadId: string, to: LeadStatusCode) {
+    void runRequest(
+      `/api/leads/${leadId}/status`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: to }),
+      },
+      `Lead moved to ${leadStatusLabelMap[to]}.`,
+    );
+  }
+
+  function applyLeadFromBoard(
+    leadId: string,
+    connects: number | null,
+    fromStatus: LeadStatusCode,
+  ) {
+    setStatusMessage("");
+    startTransition(async () => {
+      try {
+        // Log the application (appliedAt=now). From NEW/QUALIFIED the upsert
+        // itself promotes to APPLIED; from a later stage, set the status back
+        // explicitly (same as the panel's Apply flow).
+        const res = await fetch("/api/applications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leadId,
+            appliedAt: new Date().toISOString(),
+            ...(connects != null ? { connectsSpent: connects } : {}),
+          }),
+        });
+        const result = await res.json();
+        if (!res.ok || !result.ok) {
+          setStatusMessage(result.error ?? "Request failed.");
+          return;
+        }
+        if (fromStatus !== "NEW" && fromStatus !== "QUALIFIED") {
+          await fetch(`/api/leads/${leadId}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "APPLIED" }),
+          });
+        }
+        setStatusMessage("Marked applied.");
+        router.refresh();
+      } catch (error) {
+        setStatusMessage(
+          error instanceof Error ? error.message : "Unknown request error.",
+        );
+      }
+    });
   }
 
   function buildLeadUrl(leadId: string) {
@@ -1260,6 +1433,36 @@ export function LeadWorkbench({
         actions={
           <>
             <FilterBar accounts={accounts} currentFilters={currentFilters} />
+            <div className="flex overflow-hidden rounded-md border border-stone-200">
+              <button
+                type="button"
+                onClick={() => switchView("list")}
+                title="List view"
+                className={cn(
+                  "inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition",
+                  view === "list"
+                    ? "bg-stone-800 text-white"
+                    : "bg-white text-stone-500 hover:bg-stone-50",
+                )}
+              >
+                <Rows3 className="size-3.5" />
+                List
+              </button>
+              <button
+                type="button"
+                onClick={() => switchView("kanban")}
+                title="Kanban board — drag cards between stages"
+                className={cn(
+                  "inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition",
+                  view === "kanban"
+                    ? "bg-stone-800 text-white"
+                    : "bg-white text-stone-500 hover:bg-stone-50",
+                )}
+              >
+                <Columns3 className="size-3.5" />
+                Board
+              </button>
+            </div>
             <LiveIndicator paused={Boolean(selectedLeadId)} />
             <button
               type="button"
@@ -1297,6 +1500,24 @@ export function LeadWorkbench({
         <p className="text-xs text-stone-500">{statusMessage}</p>
       )}
 
+      {view === "kanban" ? (
+        <>
+          <LeadKanban
+            leads={leads}
+            busy={isPending}
+            onOpenLead={(id) => router.push(buildLeadUrl(id))}
+            onMoveLead={moveLeadFromBoard}
+            onApplyLead={applyLeadFromBoard}
+          />
+          {total > leads.length && (
+            <p className="text-xs text-stone-400">
+              Showing the {leads.length} most recent of {total} matching leads —
+              narrow the filters (profile, status, date) to see the rest.
+            </p>
+          )}
+        </>
+      ) : (
+        <>
       {/* Table */}
       <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
         <Table className="min-w-[640px]">
@@ -1413,6 +1634,8 @@ export function LeadWorkbench({
         total={total}
         currentFilters={currentFilters}
       />
+        </>
+      )}
 
       {/* Slide-over panel */}
       <Sheet
@@ -1546,6 +1769,40 @@ export function LeadWorkbench({
                       </div>
                     </DialogContent>
                   </Dialog>
+                  {(() => {
+                    // Background judge's "this job also fits …" — clicking pre-checks
+                    // those profiles in the multi-apply dialog. Suggestions already
+                    // exclude profiles that held the job when computed; re-filter
+                    // against live duplicates in case a copy happened since.
+                    const suggested = selectedLead.profileSuggestions.filter(
+                      (s) =>
+                        s.accountId !== selectedLead.accountId &&
+                        !selectedLead.duplicates.some(
+                          (d) => d.profile === s.profile,
+                        ),
+                    );
+                    if (suggested.length === 0) return null;
+                    return (
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        title="The judge thinks this job also fits these profiles — click to apply from them"
+                        onClick={() => {
+                          setCopyTargets(suggested.map((s) => s.accountId));
+                          setCopyOpen(true);
+                        }}
+                        className="inline-flex h-6 items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-1.5 text-[11px] font-normal text-amber-800 transition hover:bg-amber-100 disabled:opacity-50"
+                      >
+                        <Sparkles className="size-3" />
+                        Also fits:{" "}
+                        {suggested
+                          .map(
+                            (s) => `${s.profile.split(" ")[0]} ${s.fitScore}%`,
+                          )
+                          .join(" · ")}
+                      </button>
+                    );
+                  })()}
                   <span className="text-xs text-stone-500">
                     {selectedLead.budget}
                   </span>
@@ -2030,7 +2287,7 @@ export function LeadWorkbench({
 
                     {/* ── Application ── */}
                     <TabsContent value="application" className="space-y-4 mt-0">
-                      <div className="grid gap-4 sm:grid-cols-3">
+                      <div className="grid gap-4 sm:grid-cols-4">
                         <div className="space-y-1.5">
                           <Label htmlFor="app-connects">Connects spent</Label>
                           <Input
@@ -2038,6 +2295,18 @@ export function LeadWorkbench({
                             inputMode="numeric"
                             value={connectsSpent}
                             onChange={(e) => setConnectsSpent(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="app-connects-refunded">
+                            Connects refunded
+                          </Label>
+                          <Input
+                            id="app-connects-refunded"
+                            inputMode="numeric"
+                            value={connectsRefunded}
+                            onChange={(e) => setConnectsRefunded(e.target.value)}
+                            title="Connects Upwork returned (e.g. job closed without a hire)"
                           />
                         </div>
                         <div className="space-y-1.5">
@@ -2142,6 +2411,75 @@ export function LeadWorkbench({
                           placeholder="Operational notes about this application..."
                         />
                       </div>
+
+                      <Separator />
+
+                      {/* ── Sent proposal + manager review ── */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="app-sent-proposal">
+                            Proposal used to apply
+                          </Label>
+                          {proposalDraft.trim() && (
+                            <button
+                              type="button"
+                              disabled={isPending}
+                              onClick={() => setSentProposal(proposalDraft)}
+                              className="text-xs text-amber-700 transition hover:text-amber-800 disabled:opacity-50"
+                              title="Copy the current draft from the Proposal tab into this field"
+                            >
+                              Copy from current draft
+                            </button>
+                          )}
+                        </div>
+                        <Textarea
+                          id="app-sent-proposal"
+                          rows={7}
+                          value={sentProposal}
+                          onChange={(e) => setSentProposal(e.target.value)}
+                          placeholder="Paste the proposal exactly as it was submitted on Upwork — so managers review what the client actually saw."
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="app-sent-feedback">
+                          Manager feedback on the sent proposal
+                        </Label>
+                        <Textarea
+                          id="app-sent-feedback"
+                          rows={3}
+                          value={sentFeedback}
+                          onChange={(e) => setSentFeedback(e.target.value)}
+                          placeholder="Managers: what should BD do differently next time? Shows in Activity with your name."
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4">
+                        <label className="flex cursor-pointer items-center gap-2 text-sm text-stone-700">
+                          <input
+                            type="checkbox"
+                            checked={buReviewed}
+                            disabled={isPending}
+                            onChange={(e) => toggleBuReviewed(e.target.checked)}
+                            className="size-4 accent-amber-600"
+                          />
+                          BU reviewed
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-2 text-sm text-stone-700">
+                          <input
+                            type="checkbox"
+                            checked={proposalViewed}
+                            disabled={isPending}
+                            onChange={(e) =>
+                              toggleProposalViewed(e.target.checked)
+                            }
+                            className="size-4 accent-amber-600"
+                          />
+                          Proposal viewed
+                        </label>
+                        <span className="text-xs text-stone-400">
+                          Toggles save instantly, with your name in Activity.
+                        </span>
+                      </div>
+
                       <div className="flex items-center gap-4">
                         <Button
                           size="sm"

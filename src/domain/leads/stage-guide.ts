@@ -15,13 +15,13 @@ export const stageGuide: Record<LeadStatus, StageGuideEntry> = {
   NEW: {
     who: 'Automatic',
     meaning:
-      'Entry point — every alert or manually added lead starts here. Also where the judge parks "caution" leads that need a human look. Nothing should live here long.',
+      'Transient entry point — a lead sits here only between arriving and being scored. Every lead auto-resolves to Qualified or Rejected; nothing parks in New.',
     terminal: false,
   },
   QUALIFIED: {
     who: 'Automatic',
     meaning:
-      'The AI judge scored the job a clear fit for this profile — worth applying. A draft proposal is generated automatically.',
+      'The judge saw a real fit — clear fits and borderline "caution" calls both land here (caution keeps its ⚠ flags in the summary). Review, generate the proposal, apply or reject.',
     terminal: false,
   },
   REJECTED: {

@@ -146,8 +146,14 @@ export default function DocsPage() {
           <ul className="list-disc space-y-1 pl-5">
             <li><strong>Clear fit</strong> → the lead auto-moves to Qualified and gets a draft proposal.</li>
             <li><strong>Hard reject</strong> (wrong stack, out-of-scope work, no budget) → auto-moves to Rejected. The reasons are on the lead&apos;s Overview.</li>
-            <li><strong>Caution</strong> — a partial or uncertain fit stays in New for a human decision.</li>
+            <li><strong>Caution</strong> — a partial or uncertain fit <em>also</em> moves to Qualified, keeping its ⚠ flags in the summary. New is transient: every scored lead ends up Qualified or Rejected, so the human decision happens in Qualified, before applying.</li>
           </ul>
+          <p>
+            In the background, each new lead is also judged against the <em>other</em> profiles&apos;
+            briefs. When another persona clearly fits, an amber <strong>“Also fits”</strong> chip
+            appears on the lead panel — click it to open the multi-profile apply dialog with those
+            profiles pre-selected. Suggestions only; nothing is copied automatically.
+          </p>
           <p>
             The judge never overrides a human decision: once BD has moved a lead anywhere, scoring
             only records evaluations, it doesn&apos;t change the stage.
@@ -167,6 +173,15 @@ export default function DocsPage() {
             <li>Use the feedback box to rewrite a draft with specific instructions instead of editing from scratch.</li>
             <li>Keep your Projects list fresh — proposals only cite what&apos;s there, and never invent work.</li>
           </ul>
+          <H3>After you apply: the review trail</H3>
+          <p>
+            On the <strong>Application tab</strong>, paste the proposal exactly as submitted into{' '}
+            <strong>“Proposal used to apply”</strong> (one click copies the current draft). Managers
+            review it there, leave <strong>feedback</strong> for BD (it lands in the Activity feed
+            with their name), and tick <strong>Proposal viewed</strong> / <strong>BU reviewed</strong> so
+            everyone can see the review actually happened. Log <strong>connects refunded</strong> on the
+            same tab when Upwork returns connects for a closed job.
+          </p>
         </Section>
 
         <Section id="alerts" title="Slack alerts">
@@ -200,6 +215,25 @@ export default function DocsPage() {
               first alert pings Slack.
             </li>
           </ul>
+          <H3>Kanban board</H3>
+          <p>
+            The <strong>Board</strong> toggle on the Leads page shows the pipeline as columns.
+            Drag a card to move it between stages — dropping on <strong>Applied</strong> asks for
+            the connects spent and stamps the applied time, exactly like the panel flow. Clicking
+            a card opens the usual lead panel. Filters apply to the board too.
+          </p>
+          <H3>Daily digest</H3>
+          <p>
+            Every morning at 9:00 (PKT) Slack gets yesterday&apos;s per-profile numbers — leads in,
+            qualified, applied (with connects), replies, calls, wins — plus how many qualified
+            leads have been sitting unapplied for over 24 hours.
+          </p>
+          <H3>Metrics drill-down</H3>
+          <p>
+            On the Metrics page, the funnel rows, the status breakdown, and the per-profile bars
+            are clickable — each opens the Leads list filtered to exactly the leads behind that
+            number.
+          </p>
           <H3>Filters and search</H3>
           <p>
             Filters on the Leads page (profile, status, date, search) persist while you open and

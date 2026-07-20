@@ -117,12 +117,20 @@ export type LeadDetail = {
   duplicates: Array<{ leadId: string; profile: string; score: number; status: LeadStatusLabel }>;
   // Portfolio projects ranked relevant to this job — cited (with links) in generated proposals.
   relevantProjects: Array<{ id: string; title: string; url: string | null }>;
+  // Other profiles the background judge thinks this job also fits — suggestions only;
+  // a human copies via the multi-apply dialog.
+  profileSuggestions: Array<{ accountId: string; profile: string; fitScore: number }>;
   application: {
     id: string;
     connectsSpent: number | null;
+    connectsRefunded: number | null;
     appliedAt: string | null;
     lastFollowUpAt: string | null;
     notes: string;
+    sentProposal: string;
+    proposalFeedback: string;
+    buReviewed: boolean;
+    proposalViewed: boolean;
     updatedAt: string;
   } | null;
   proposals: Array<{

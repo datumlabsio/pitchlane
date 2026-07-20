@@ -93,15 +93,45 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     outcome = await fetchUpworkJob(lead.sourceUrl);
   }
 
-  // Private or failed: record the status so the UI labels it, then return.
+  // Private or failed: record the status so the UI labels it, then return. The full
+  // description is unreachable, so triage a still-NEW lead off the email-based ingest
+  // evaluation — NEW is transient, and a private job (often an invite) shouldn't rot
+  // there just because it can't be fetched.
   if (outcome.status !== 'enriched') {
-    await prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        enrichment: { status: outcome.status } as unknown as Prisma.InputJsonValue,
-        enrichedAt: new Date(),
-      },
-    });
+    const ingestEval = lead.evaluations[0];
+    const unfetchedNext =
+      lead.status === LeadStatus.NEW
+        ? !ingestEval?.hardFilterPassed && (ingestEval?.rejectionReasons?.length ?? 0) > 0
+          ? LeadStatus.REJECTED
+          : LeadStatus.QUALIFIED
+        : lead.status;
+    const unfetchedOps: Prisma.PrismaPromise<unknown>[] = [
+      prisma.lead.update({
+        where: { id: leadId },
+        data: {
+          enrichment: { status: outcome.status } as unknown as Prisma.InputJsonValue,
+          enrichedAt: new Date(),
+          status: unfetchedNext,
+        },
+      }),
+    ];
+    if (unfetchedNext !== lead.status) {
+      unfetchedOps.push(
+        prisma.leadEvent.create({
+          data: {
+            leadId,
+            type: 'lead.status_updated',
+            payload: {
+              from: lead.status,
+              to: unfetchedNext,
+              reason: 'triage_without_enrichment',
+              actor: await getActorName(),
+            },
+          },
+        }),
+      );
+    }
+    await prisma.$transaction(unfetchedOps);
     // Alert on every fresh lead, even when we couldn't fetch the full job — the
     // email-derived meta still tells the user it landed. enrichedAt is set above, so
     // retries won't re-alert (freshLead turns false once it's been attempted).
@@ -115,7 +145,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
         score: existingScore,
         hot: existingScore >= slackMinScore,
         confidence: confidenceLabel(existingScore),
-        status: lead.status,
+        status: unfetchedNext,
         budget: lead.extractedBudget,
         skills: lead.extractedSkills,
         matchedKeywords: lead.evaluations[0]?.matchedKeywords,
@@ -152,16 +182,15 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   });
 
   // Auto-triage a still-NEW lead from the judge's verdict; never override a human
-  // decision. Clear qualify → QUALIFIED. Hard reject (rejection reasons present) →
-  // REJECTED, so dead leads don't pile up in New. Caution (failed the bar without
-  // hard reasons) stays NEW — that's the "needs a human look" state.
+  // decision. NEW is transient: every scored lead resolves to REJECTED (hard reject —
+  // rejection reasons present) or QUALIFIED (everything else, including the judge's
+  // borderline "caution" — its ⚠ flags stay visible in the summary for the human who
+  // reviews Qualified before applying). Decided 2026-07-20: nothing parks in New.
   const nextStatus =
     lead.status === LeadStatus.NEW
-      ? evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
-        ? LeadStatus.QUALIFIED
-        : !evaluation.hardFilterPassed && evaluation.rejectionReasons.length > 0
-          ? LeadStatus.REJECTED
-          : lead.status
+      ? !evaluation.hardFilterPassed && evaluation.rejectionReasons.length > 0
+        ? LeadStatus.REJECTED
+        : LeadStatus.QUALIFIED
       : lead.status;
 
   // Regenerate the proposal off the full job description + client facts (the

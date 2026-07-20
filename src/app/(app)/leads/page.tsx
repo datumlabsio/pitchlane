@@ -22,10 +22,17 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
   const since = sp('since');
   const from = sp('from');
   const to = sp('to');
+  const view = sp('view') === 'kanban' ? ('kanban' as const) : ('list' as const);
   const selectedLeadId = sp('leadId') ?? null;
 
   const [leadsData, selectedLead] = await Promise.all([
-    listLeadSummaries({ page, accountId, status, search, since, from, to }),
+    // The board shows all stages at once, so it works off one big page (the list
+    // paginates 20 at a time as before).
+    listLeadSummaries(
+      view === 'kanban'
+        ? { page: 1, limit: 100, accountId, status, search, since, from, to }
+        : { page, accountId, status, search, since, from, to },
+    ),
     selectedLeadId ? getLeadDetail(selectedLeadId) : null,
   ]);
 
@@ -43,6 +50,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
         labels={labels}
         accounts={accounts.map((a) => ({ id: a.id, personName: a.personName, gmailLabel: a.gmailLabel }))}
         currentFilters={{ accountId, status, search, since, from, to }}
+        view={view}
         enrichmentEnabled={env.LEAD_ENRICHMENT_ENABLED === 'true'}
       />
     </div>

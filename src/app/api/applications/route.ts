@@ -12,12 +12,20 @@ const nullableDate = z
   .nullable()
   .optional();
 
+// Every field is optional (partial update): omitted = leave the stored value
+// untouched, null = explicitly clear. The application form sends the full set;
+// quick actions (kanban Applied-drop, review toggles) send only what they change.
 const requestSchema = z.object({
   leadId: z.string().min(1),
-  connectsSpent: z.number().int().min(0).max(999).nullable(),
+  connectsSpent: z.number().int().min(0).max(999).nullable().optional(),
   appliedAt: nullableDate,
   lastFollowUpAt: nullableDate,
-  notes: z.string().max(10_000).default(''),
+  notes: z.string().max(10_000).optional(),
+  connectsRefunded: z.number().int().min(0).max(999).nullable().optional(),
+  sentProposal: z.string().max(30_000).nullable().optional(),
+  proposalFeedback: z.string().max(10_000).nullable().optional(),
+  buReviewed: z.boolean().optional(),
+  proposalViewed: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -27,9 +35,14 @@ export async function POST(request: Request) {
     const application = await upsertApplication({
       leadId: payload.leadId,
       connectsSpent: payload.connectsSpent,
-      appliedAt: payload.appliedAt ?? null,
-      lastFollowUpAt: payload.lastFollowUpAt ?? null,
+      appliedAt: payload.appliedAt,
+      lastFollowUpAt: payload.lastFollowUpAt,
       notes: payload.notes,
+      connectsRefunded: payload.connectsRefunded,
+      sentProposal: payload.sentProposal,
+      proposalFeedback: payload.proposalFeedback,
+      buReviewed: payload.buReviewed,
+      proposalViewed: payload.proposalViewed,
     });
 
     return NextResponse.json({

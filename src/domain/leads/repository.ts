@@ -39,6 +39,24 @@ function mapEnrichment(value: unknown): LeadEnrichment | null {
   };
 }
 
+// lead.profileSuggestions JSON → typed list for the panel. Shape written by the
+// suggest-profiles job: { computedAt, suggestions: [{accountId, profile, fitScore}] }.
+function mapProfileSuggestions(value: unknown): LeadDetail['profileSuggestions'] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
+  const list = (value as { suggestions?: unknown }).suggestions;
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter(
+      (s): s is { accountId: string; profile: string; fitScore: number } =>
+        !!s &&
+        typeof s === 'object' &&
+        typeof (s as Record<string, unknown>).accountId === 'string' &&
+        typeof (s as Record<string, unknown>).profile === 'string' &&
+        typeof (s as Record<string, unknown>).fitScore === 'number',
+    )
+    .map((s) => ({ accountId: s.accountId, profile: s.profile, fitScore: s.fitScore }));
+}
+
 function formatRelative(date: Date) {
   const diffMs = Date.now() - date.getTime();
   const mins = Math.floor(diffMs / 60000);
@@ -244,12 +262,18 @@ export async function getLeadDetail(leadId: string) {
       ? {
           id: application.id,
           connectsSpent: application.connectsSpent,
+          connectsRefunded: application.connectsRefunded,
           appliedAt: application.appliedAt?.toISOString() ?? null,
           lastFollowUpAt: application.lastFollowUpAt?.toISOString() ?? null,
           notes: application.notes ?? '',
+          sentProposal: application.sentProposal ?? '',
+          proposalFeedback: application.proposalFeedback ?? '',
+          buReviewed: application.buReviewed,
+          proposalViewed: application.proposalViewed,
           updatedAt: formatDateTime(application.updatedAt),
         }
       : null,
+    profileSuggestions: mapProfileSuggestions(lead.profileSuggestions),
     proposals: lead.proposals.map((proposal) => ({
       id: proposal.id,
       content: proposal.content,

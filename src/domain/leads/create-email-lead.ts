@@ -112,9 +112,17 @@ export async function createLeadFromEmail(input: IngestEmailInput) {
 
   const evaluation = evaluateEmail({ subject, body, ...evalConfig });
 
+  // Leads WITH a job URL park in NEW only for the seconds until enrichment triages
+  // them (the judge resolves every scored lead to QUALIFIED or REJECTED). A lead with
+  // NO URL never gets that pass, so triage it here off the email evaluation — nothing
+  // is allowed to rot in New.
   const status = evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold
     ? LeadStatus.QUALIFIED
-    : LeadStatus.NEW;
+    : !input.sourceUrl
+      ? !evaluation.hardFilterPassed && evaluation.rejectionReasons.length > 0
+        ? LeadStatus.REJECTED
+        : LeadStatus.QUALIFIED
+      : LeadStatus.NEW;
 
   // "system" for the Gmail sync; the person's name for the manual Add-lead dialog.
   const actor = await getActorName();

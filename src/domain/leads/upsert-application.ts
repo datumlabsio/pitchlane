@@ -5,10 +5,18 @@ import { prisma } from '@/lib/prisma';
 
 export type UpsertApplicationInput = {
   leadId: string;
-  connectsSpent: number | null;
-  appliedAt: Date | null;
-  lastFollowUpAt: Date | null;
-  notes: string;
+  // Every field but leadId is partial: undefined leaves the stored value untouched
+  // (null explicitly clears). The full form sends everything; quick actions (kanban
+  // drop, review toggles) send only what they change, so they can't clobber the rest.
+  connectsSpent?: number | null;
+  appliedAt?: Date | null;
+  lastFollowUpAt?: Date | null;
+  notes?: string;
+  connectsRefunded?: number | null;
+  sentProposal?: string | null;
+  proposalFeedback?: string | null;
+  buReviewed?: boolean;
+  proposalViewed?: boolean;
 };
 
 export async function upsertApplication(input: UpsertApplicationInput) {
@@ -23,6 +31,18 @@ export async function upsertApplication(input: UpsertApplicationInput) {
 
   const actor = await getActorName();
 
+  const changedFields = {
+    ...(input.connectsSpent !== undefined ? { connectsSpent: input.connectsSpent } : {}),
+    ...(input.appliedAt !== undefined ? { appliedAt: input.appliedAt } : {}),
+    ...(input.lastFollowUpAt !== undefined ? { lastFollowUpAt: input.lastFollowUpAt } : {}),
+    ...(input.notes !== undefined ? { notes: input.notes || null } : {}),
+    ...(input.connectsRefunded !== undefined ? { connectsRefunded: input.connectsRefunded } : {}),
+    ...(input.sentProposal !== undefined ? { sentProposal: input.sentProposal || null } : {}),
+    ...(input.proposalFeedback !== undefined ? { proposalFeedback: input.proposalFeedback || null } : {}),
+    ...(input.buReviewed !== undefined ? { buReviewed: input.buReviewed } : {}),
+    ...(input.proposalViewed !== undefined ? { proposalViewed: input.proposalViewed } : {}),
+  };
+
   return prisma.$transaction(async (tx) => {
     const existing = await tx.application.findFirst({
       where: { leadId: input.leadId },
@@ -32,21 +52,21 @@ export async function upsertApplication(input: UpsertApplicationInput) {
     const application = existing
       ? await tx.application.update({
           where: { id: existing.id },
-          data: {
-            connectsSpent: input.connectsSpent,
-            appliedAt: input.appliedAt,
-            lastFollowUpAt: input.lastFollowUpAt,
-            notes: input.notes || null,
-          },
+          data: changedFields,
         })
       : await tx.application.create({
           data: {
             leadId: input.leadId,
             accountId: lead.accountId,
-            connectsSpent: input.connectsSpent,
-            appliedAt: input.appliedAt,
-            lastFollowUpAt: input.lastFollowUpAt,
+            connectsSpent: input.connectsSpent ?? null,
+            appliedAt: input.appliedAt ?? null,
+            lastFollowUpAt: input.lastFollowUpAt ?? null,
             notes: input.notes || null,
+            connectsRefunded: input.connectsRefunded ?? null,
+            sentProposal: input.sentProposal ?? null,
+            proposalFeedback: input.proposalFeedback ?? null,
+            buReviewed: input.buReviewed ?? false,
+            proposalViewed: input.proposalViewed ?? false,
           },
         });
 
@@ -76,12 +96,56 @@ export async function upsertApplication(input: UpsertApplicationInput) {
       });
     }
 
+    // Manager feedback and the review toggles get their own activity entries — the
+    // whole point is that BD can see WHO reviewed/left feedback, and managers can
+    // see the review actually happened.
+    if (input.proposalFeedback !== undefined && (input.proposalFeedback || null) !== (existing?.proposalFeedback ?? null)) {
+      await tx.leadEvent.create({
+        data: {
+          leadId: input.leadId,
+          type: 'proposal.feedback_updated',
+          payload: {
+            actor,
+            excerpt: input.proposalFeedback ? input.proposalFeedback.slice(0, 280) : null,
+          },
+        },
+      });
+    }
+    if (input.sentProposal !== undefined && (input.sentProposal || null) !== (existing?.sentProposal ?? null)) {
+      await tx.leadEvent.create({
+        data: {
+          leadId: input.leadId,
+          type: 'proposal.sent_recorded',
+          payload: { actor, chars: input.sentProposal?.length ?? 0 },
+        },
+      });
+    }
+    if (input.buReviewed !== undefined && input.buReviewed !== (existing?.buReviewed ?? false)) {
+      await tx.leadEvent.create({
+        data: {
+          leadId: input.leadId,
+          type: 'application.bu_review_updated',
+          payload: { actor, buReviewed: input.buReviewed },
+        },
+      });
+    }
+    if (input.proposalViewed !== undefined && input.proposalViewed !== (existing?.proposalViewed ?? false)) {
+      await tx.leadEvent.create({
+        data: {
+          leadId: input.leadId,
+          type: 'application.proposal_viewed_updated',
+          payload: { actor, proposalViewed: input.proposalViewed },
+        },
+      });
+    }
+
     await tx.leadEvent.create({
       data: {
         leadId: input.leadId,
         type: existing ? 'application.updated' : 'application.created',
         payload: {
           connectsSpent: input.connectsSpent,
+          ...(input.connectsRefunded !== undefined ? { connectsRefunded: input.connectsRefunded } : {}),
           appliedAt: input.appliedAt?.toISOString() ?? null,
           lastFollowUpAt: input.lastFollowUpAt?.toISOString() ?? null,
           actor,

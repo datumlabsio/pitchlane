@@ -110,6 +110,9 @@ model Lead {
   sourceCompleteness   SourceCompleteness   @default(PARTIAL)
   enrichment           Json?
   enrichedAt           DateTime?
+  // Other profiles this job also fits, judged in the background — suggestions only,
+  // a human copies via the multi-apply dialog. Shape: {computedAt, suggestions: []}.
+  profileSuggestions   Json?
   confidence           Int                  @default(50)
   dedupeKey            String               @unique
   status               LeadStatus           @default(NEW)
@@ -161,9 +164,19 @@ model Application {
   accountId            String
   leadId               String
   connectsSpent        Int?
+  // Connects Upwork gave back (job closed without hire, etc.) — offsets spend.
+  connectsRefunded     Int?
   appliedAt            DateTime?
   lastFollowUpAt       DateTime?
   notes                String?      @db.Text
+  // The proposal text actually submitted on Upwork (may differ from the AI drafts).
+  sentProposal         String?      @db.Text
+  // Manager feedback on the sent proposal, for BD to act on.
+  proposalFeedback     String?      @db.Text
+  // Review-tracking toggles: BU/manager reviewed this application; manager viewed
+  // the sent proposal. Fields, not lifecycle stages.
+  buReviewed           Boolean      @default(false)
+  proposalViewed       Boolean      @default(false)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   account              Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)

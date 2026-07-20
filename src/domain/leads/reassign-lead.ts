@@ -38,15 +38,13 @@ export async function reassignLead(leadId: string, accountId: string): Promise<R
   });
 
   // Only auto-adjust the screening statuses; never override a human decision (WON,
-  // APPLIED…). Against the new profile: qualify → QUALIFIED, hard reject → REJECTED,
-  // caution → NEW for a human look.
+  // APPLIED…). Against the new profile: hard reject → REJECTED, everything else
+  // (incl. borderline caution) → QUALIFIED — NEW is transient, nothing parks there.
   const nextStatus =
     lead.status === LeadStatus.NEW || lead.status === LeadStatus.QUALIFIED
-      ? ev.hardFilterPassed && ev.score >= cfg.scoreThreshold
-        ? LeadStatus.QUALIFIED
-        : !ev.hardFilterPassed && ev.rejectionReasons.length > 0
-          ? LeadStatus.REJECTED
-          : LeadStatus.NEW
+      ? !ev.hardFilterPassed && ev.rejectionReasons.length > 0
+        ? LeadStatus.REJECTED
+        : LeadStatus.QUALIFIED
       : lead.status;
 
   const actor = await getActorName();

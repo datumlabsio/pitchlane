@@ -76,12 +76,12 @@ export async function copyLeadToAccounts(leadId: string, accountIds: string[]): 
       body,
       budget: lead.extractedBudget,
     });
+    // Hard reject → REJECTED; everything else (incl. the judge's borderline caution)
+    // → QUALIFIED. NEW is transient — copies land ready to review, never parked.
     const status =
-      ev.hardFilterPassed && ev.score >= cfg.scoreThreshold
-        ? LeadStatus.QUALIFIED
-        : !ev.hardFilterPassed && ev.rejectionReasons.length > 0
-          ? LeadStatus.REJECTED
-          : LeadStatus.NEW;
+      !ev.hardFilterPassed && ev.rejectionReasons.length > 0
+        ? LeadStatus.REJECTED
+        : LeadStatus.QUALIFIED;
 
     try {
       const copy = await prisma.lead.create({

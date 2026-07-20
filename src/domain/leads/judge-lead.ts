@@ -73,7 +73,26 @@ const TOOL_SCHEMA = {
   required: ['fitScore', 'verdict', 'redFlags', 'betterFitProfile', 'reasoning', 'confidence'],
 };
 
-function buildSystem(brief: string): string {
+// The on-prem models can't do function calling, so that path asks for bare JSON in
+// the message content instead of a tool call — same fields as TOOL_SCHEMA.
+const JSON_OUTPUT_INSTRUCTION = [
+  'Respond with ONLY a single JSON object — no markdown fences, no prose before or after — with exactly these fields:',
+  '{',
+  '  "fitScore": <integer 0-100; 70+ strong fit worth applying, 40-69 partial/uncertain, below 40 poor fit>,',
+  '  "verdict": <"qualify" | "caution" | "reject">,',
+  '  "redFlags": <array of short strings; concrete concerns like budget-vs-scope mismatch or vague spec; [] if none>,',
+  '  "betterFitProfile": <string; if the work clearly belongs to a different specialty name it, else "">,',
+  '  "reasoning": <array of 2-4 terse strings justifying the verdict>,',
+  '  "confidence": <integer 0-100>',
+  '}',
+  // Smaller models happily list "out of scope" as a red flag and still say qualify —
+  // these mechanical rules force the verdict to agree with the flags they raise.
+  'Consistency requirements — apply them mechanically:',
+  '- If any redFlag says part of the CORE work is outside this freelancer\'s scope, the verdict must be "caution" or "reject", never "qualify", and fitScore must be below 70.',
+  '- "qualify" is reserved for jobs this freelancer could start tomorrow with no scope concerns. When in doubt between qualify and caution, pick caution.',
+].join('\n');
+
+function buildSystem(brief: string, output: 'tool' | 'json'): string {
   return [
     'You are a lead-qualification analyst for a freelance agency. Decide how well one specific Upwork job fits ONE freelancer, and whether they should pursue it.',
     '',
@@ -85,8 +104,24 @@ function buildSystem(brief: string): string {
     '- A strong generalist fits a job that uses only ONE of their stacks — do not require every skill at once.',
     '- Weigh viability, not just skills: a tiny fixed budget for a large multi-month build, or a vague spec, is a real red flag even when the skills match.',
     '- If the work is primarily a specialty this freelancer does NOT do, set betterFitProfile and lower the verdict accordingly.',
-    `Call ${TOOL_NAME} with your verdict. Do not write prose outside the tool.`,
+    output === 'tool'
+      ? `Call ${TOOL_NAME} with your verdict. Do not write prose outside the tool.`
+      : JSON_OUTPUT_INSTRUCTION,
   ].join('\n');
+}
+
+// Pull the first JSON object out of a completion that may wrap it in fences or stray
+// prose (small models do, despite instructions). Null on anything unparseable.
+function extractJson(text: string): unknown {
+  const cleaned = text.replace(/```(?:json)?/gi, '').trim();
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  if (start === -1 || end <= start) return null;
+  try {
+    return JSON.parse(cleaned.slice(start, end + 1));
+  } catch {
+    return null;
+  }
 }
 
 function buildUser(input: JudgeInput): string {
@@ -135,7 +170,7 @@ async function judgeViaAnthropic(input: JudgeInput): Promise<JudgeResult | null>
     const message = await anthropic.messages.create({
       model: SCORING_MODEL,
       max_tokens: 1024,
-      system: buildSystem(input.brief),
+      system: buildSystem(input.brief, 'tool'),
       tools: [{ name: TOOL_NAME, description: TOOL_DESCRIPTION, input_schema: TOOL_SCHEMA }],
       tool_choice: { type: 'tool', name: TOOL_NAME },
       messages: [{ role: 'user', content: buildUser(input) }],
@@ -148,9 +183,12 @@ async function judgeViaAnthropic(input: JudgeInput): Promise<JudgeResult | null>
   }
 }
 
-// On-prem LLM via the LiteLLM proxy (OpenAI-compatible Chat Completions + function
-// calling for the structured verdict). Returns null on any error so judgeLead falls
-// back to Anthropic — a flaky/unreachable proxy never blocks scoring.
+// On-prem LLM via the LiteLLM proxy (OpenAI-compatible Chat Completions). The served
+// models have NO function calling (tools are silently ignored), so the structured
+// verdict is requested as bare JSON in the content and parsed defensively. Returns
+// null on any error/timeout/unparseable output so judgeLead falls back to Anthropic —
+// a flaky proxy or an off-script completion never blocks scoring. Measured on
+// gemma-4-12b-it: 17–30s per judgment (reasoning-style serving), hence the timeout.
 async function judgeViaLiteLLM(input: JudgeInput): Promise<JudgeResult | null> {
   const base = process.env.LITELLM_BASE_URL;
   const key = process.env.LITELLM_API_KEY;
@@ -163,23 +201,25 @@ async function judgeViaLiteLLM(input: JudgeInput): Promise<JudgeResult | null> {
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: process.env.LITELLM_MODEL || 'smart',
-        max_tokens: 1024,
+        // Hidden reasoning shares the cap with the JSON answer on this serving.
+        max_tokens: 2048,
+        // Low temperature keeps the output on-schema and the verdicts stable.
+        temperature: 0.2,
         messages: [
-          { role: 'system', content: buildSystem(input.brief) },
+          { role: 'system', content: buildSystem(input.brief, 'json') },
           { role: 'user', content: buildUser(input) },
         ],
-        tools: [{ type: 'function', function: { name: TOOL_NAME, description: TOOL_DESCRIPTION, parameters: TOOL_SCHEMA } }],
-        tool_choice: { type: 'function', function: { name: TOOL_NAME } },
       }),
       signal: controller.signal,
     });
     if (!res.ok) return null;
     const json = (await res.json().catch(() => null)) as
-      | { choices?: Array<{ message?: { tool_calls?: Array<{ function?: { arguments?: string } }> } }> }
+      | { choices?: Array<{ message?: { content?: string } }> }
       | null;
-    const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    if (!args) return null;
-    return normalizeResult(typeof args === 'string' ? JSON.parse(args) : args);
+    const content = json?.choices?.[0]?.message?.content;
+    if (!content) return null;
+    const parsed = extractJson(content);
+    return parsed ? normalizeResult(parsed) : null;
   } catch {
     return null;
   } finally {

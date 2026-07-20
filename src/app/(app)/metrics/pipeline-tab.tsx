@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { DateWindow } from '@/lib/date-window';
-import type { LeadAppliedLatencyStat } from '@/domain/metrics/repository';
+import type { HeroMetricDelta, LatencyComparisonDelta, LeadAppliedLatencyStat } from '@/domain/metrics/repository';
 import {
   getLatencyMetrics,
   getPipelineActivitySeries,
   getPipelineFunnel,
   getPipelineHeroMetrics,
+  getSlaSeries,
   getStatusBreakdown,
-  getWeeklySlaSeries,
   SLA_TARGET_HOURS,
 } from '@/domain/metrics/repository';
 import { HeroMetricDeltaLine } from '@/components/metrics/hero-metric-delta';
@@ -35,22 +35,70 @@ function CoverageCaption({ stat }: { stat: LeadAppliedLatencyStat }) {
   );
 }
 
-function PercentileColumn({ label, value }: { label: string; value: string }) {
+function DeltaNote({ delta, invert = false }: { delta: HeroMetricDelta | LatencyComparisonDelta; invert?: boolean }) {
+  if (delta.kind === 'hidden') return null;
+  if (delta.kind === 'no-prior-data') return <p className="mt-1 text-xs text-stone-400">no prior data</p>;
+  if (delta.kind === 'n-too-small') {
+    return (
+      <Tooltip>
+        <TooltipTrigger className="mt-1 inline-block cursor-help text-xs text-stone-400">n too small</TooltipTrigger>
+        <TooltipContent>Delta hidden when either window has fewer than 5 valid rows.</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (delta.kind === 'pp') {
+    const color = delta.direction === 'up' ? 'text-emerald-700' : delta.direction === 'down' ? 'text-red-700' : 'text-stone-500';
+    const arrow = delta.direction === 'up' ? '↑' : delta.direction === 'down' ? '↓' : '→';
+    return (
+      <p className={`mt-1 text-xs ${color}`}>
+        vs {delta.previous}% · {arrow} {Math.abs(delta.ppDelta)}pp
+      </p>
+    );
+  }
+
+  if (delta.kind === 'duration') {
+    const betterIsDown = invert;
+    const color =
+      delta.direction === 'flat'
+        ? 'text-stone-500'
+        : betterIsDown
+          ? delta.direction === 'up'
+            ? 'text-emerald-700'
+            : 'text-red-700'
+          : delta.direction === 'up'
+            ? 'text-red-700'
+            : 'text-emerald-700';
+    const arrow = delta.direction === 'up' ? '↑' : delta.direction === 'down' ? '↓' : '→';
+    return (
+      <p className={`mt-1 text-xs ${color}`}>
+        vs {formatDuration(delta.previousMs)} · {arrow} {formatDuration(Math.abs(delta.deltaMs))}
+      </p>
+    );
+  }
+
+  return null;
+}
+
+function CombinedMetric({ label, value, delta, invert = false }: { label: string; value: string; delta: HeroMetricDelta | LatencyComparisonDelta; invert?: boolean }) {
   return (
-    <div className="text-center sm:text-left">
-      <p className="text-xs text-stone-400">{label}</p>
+    <div className="rounded-lg border border-stone-200 bg-stone-50/60 px-3 py-3">
+      <p className="text-xs text-stone-500">{label}</p>
       <p className="mt-0.5 text-2xl font-bold tracking-tight tabular-nums">{value}</p>
+      <DeltaNote delta={delta} invert={invert} />
     </div>
   );
 }
 
 export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateWindow; accountId?: string }) {
-  const [metrics, funnel, statusBreakdown, latency, weeklySla, pipelineActivity] = await Promise.all([
+  const [metrics, funnel, statusBreakdown, latency, slaDaily, slaWeekly, slaMonthly, pipelineActivity] = await Promise.all([
     getPipelineHeroMetrics(dateWindow, accountId),
     getPipelineFunnel(dateWindow, accountId),
     getStatusBreakdown(dateWindow, accountId),
     getLatencyMetrics(dateWindow, accountId),
-    getWeeklySlaSeries(dateWindow, accountId),
+    getSlaSeries(dateWindow, accountId, 'daily'),
+    getSlaSeries(dateWindow, accountId, 'weekly'),
+    getSlaSeries(dateWindow, accountId, 'monthly'),
     getPipelineActivitySeries(dateWindow, accountId),
   ]);
 
@@ -116,48 +164,33 @@ export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateW
         </CardContent>
       </Card>
 
-      {/* ── Lead → applied latency (PRD v1) ── */}
+      {/* ── Lead → applied latency (PRD v1.1) ── */}
       <section className="space-y-4">
         <Card className="relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-300 to-blue-400" />
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              Within {SLA_TARGET_HOURS}h
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Latency: posting → first application
               <Tooltip>
                 <TooltipTrigger className="cursor-help text-stone-400 hover:text-stone-600" aria-label="SLA info">
                   ⓘ
                 </TooltipTrigger>
-                <TooltipContent>Provisional target — revisit once reply volume is higher.</TooltipContent>
+                <TooltipContent>
+                  Provisional targets: within {SLA_TARGET_HOURS}h and {70}% trend line.
+                </TooltipContent>
               </Tooltip>
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold tracking-tight">{withinSla.pct}%</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Share of applications sent within {SLA_TARGET_HOURS} hours of the job being posted.
-            </p>
-            <HeroMetricDeltaLine delta={withinSla.delta} />
-            {withinSla.n > 0 && (
-              <p className="mt-1 text-xs text-stone-400">
-                {withinSla.n} of {response.reached} applied · {Math.round((withinSla.n / response.reached) * 100)}% coverage
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pipeline latency</CardTitle>
             <p className="text-sm text-muted-foreground">
-              How long after a job is posted we send the first application. p50 is the median (half applied
+              How fast we apply after a job is posted. Within 3h is the target share; p50 is the median (half applied
               faster); p75 and p90 show the slow tail.
             </p>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 sm:grid-cols-3">
-              <PercentileColumn label="p50 (median)" value={formatDuration(response.p50Ms)} />
-              <PercentileColumn label="p75" value={formatDuration(response.p75Ms)} />
-              <PercentileColumn label="p90" value={formatDuration(response.p90Ms)} />
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <CombinedMetric label={`Within ${SLA_TARGET_HOURS}h`} value={`${withinSla.pct}%`} delta={withinSla.delta} />
+              <CombinedMetric label="p50 (median)" value={formatDuration(response.p50Ms)} delta={latency.comparisons.p50.delta} invert />
+              <CombinedMetric label="p75" value={formatDuration(response.p75Ms)} delta={latency.comparisons.p75.delta} invert />
+              <CombinedMetric label="p90" value={formatDuration(response.p90Ms)} delta={latency.comparisons.p90.delta} invert />
             </div>
             <CoverageCaption stat={response} />
           </CardContent>
@@ -184,13 +217,10 @@ export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateW
         <Card>
           <CardHeader>
             <CardTitle>Are we getting faster or slower</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Each point is one week: the share of applications sent within {SLA_TARGET_HOURS} hours of posting.
-              Above the dashed line is on target.
-            </p>
+            <p className="text-sm text-muted-foreground">Trend of within-{SLA_TARGET_HOURS}h share across selected granularity.</p>
           </CardHeader>
           <CardContent>
-            <SlaTrendChart data={weeklySla} />
+            <SlaTrendChart dataByGranularity={{ daily: slaDaily, weekly: slaWeekly, monthly: slaMonthly }} />
             <CoverageCaption stat={response} />
           </CardContent>
         </Card>

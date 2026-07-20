@@ -16,7 +16,7 @@ import {
   YAxis,
 } from 'recharts';
 import { LeadStatus } from '@/domain/enums';
-import type { LatencyBucket, WeeklySlaPoint } from '@/domain/metrics/repository';
+import type { LatencyBucket, SlaGranularity, SlaSeriesPoint } from '@/domain/metrics/repository';
 import { SLA_TREND_TARGET } from '@/domain/metrics/repository';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -496,74 +496,89 @@ const slaTrendConfig = {
   target: { label: 'Target', color: 'oklch(0.65 0.02 80)' },
 };
 
-export function SlaTrendChart({ data }: { data: WeeklySlaPoint[] }) {
+export function SlaTrendChart({ dataByGranularity }: { dataByGranularity: Record<SlaGranularity, SlaSeriesPoint[]> }) {
+  const [grain, setGrain] = useState<SlaGranularity>('daily');
+  const data = dataByGranularity[grain];
   const interval = data.length > 16 ? Math.ceil(data.length / 12) : 0;
+  const subtitle =
+    grain === 'daily'
+      ? 'Each point is one day: the share of applications sent within 3 hours of posting. Above the dashed line is on target.'
+      : grain === 'weekly'
+        ? 'Each point is one week: the share of applications sent within 3 hours of posting. Above the dashed line is on target.'
+        : 'Each point is one month: the share of applications sent within 3 hours of posting. Above the dashed line is on target.';
 
   if (data.length === 0) {
-    return <p className="text-sm text-muted-foreground">No weekly SLA data in this range.</p>;
+    return <p className="text-sm text-muted-foreground">No SLA trend data in this range.</p>;
   }
 
   return (
-    <ChartContainer config={slaTrendConfig} className="h-64 w-full">
-      <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 4 }}>
-        <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
-        <XAxis
-          dataKey="label"
-          tickLine={false}
-          axisLine={false}
-          interval={interval}
-          tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
-        />
-        <YAxis
-          tickLine={false}
-          axisLine={false}
-          tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
-          width={32}
-          domain={[0, 100]}
-          tickFormatter={(v) => `${v}%`}
-        />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              formatter={(value, _name, item) => {
-                const row = item.payload as WeeklySlaPoint;
-                const suffix = row.lowSample ? ' · low sample' : row.partial ? ' · partial week' : '';
-                return (
-                  <span className="font-mono tabular-nums">
-                    {value}% ({row.n} applies){suffix}
-                  </span>
-                );
-              }}
-            />
-          }
-        />
-        <ReferenceLine
-          y={SLA_TREND_TARGET}
-          stroke="oklch(0.65 0.02 80)"
-          strokeDasharray="4 4"
-          label={{
-            value: `${SLA_TREND_TARGET}% target (provisional)`,
-            position: 'insideTopRight',
-            fill: 'oklch(0.55 0 0)',
-            fontSize: 11,
-          }}
-        />
-        <Line
-          type="monotone"
-          dataKey="pct"
-          stroke="var(--color-pct)"
-          strokeWidth={2}
-          dot={({ cx, cy, payload }) => {
-            const row = payload as WeeklySlaPoint;
-            const fill = row.lowSample ? 'oklch(0.78 0 0)' : 'var(--color-pct)';
-            if (cx == null || cy == null) return <g />;
-            return (
-              <circle key={row.weekStart} cx={cx} cy={cy} r={row.lowSample ? 3 : 4} fill={fill} stroke="white" strokeWidth={1.5} />
-            );
-          }}
-          activeDot={{ r: 5 }}
-        />
-      </LineChart>
-    </ChartContainer>
+    <div className="space-y-3">
+      <div className="flex justify-between gap-3">
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <GrainToggle value={grain} onChange={(g) => setGrain(g as SlaGranularity)} />
+      </div>
+      <ChartContainer config={slaTrendConfig} className="h-64 w-full">
+        <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 4 }}>
+          <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            interval={interval}
+            tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
+            width={32}
+            domain={[0, 100]}
+            tickFormatter={(v) => `${v}%`}
+          />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, _name, item) => {
+                  const row = item.payload as SlaSeriesPoint;
+                  const suffix = row.lowSample ? ' · low sample' : row.partial ? ' · partial period' : '';
+                  return (
+                    <span className="font-mono tabular-nums">
+                      {value}% · {row.withinCount} of {row.n}
+                      {suffix}
+                    </span>
+                  );
+                }}
+              />
+            }
+          />
+          <ReferenceLine
+            y={SLA_TREND_TARGET}
+            stroke="oklch(0.65 0.02 80)"
+            strokeDasharray="4 4"
+            label={{
+              value: `${SLA_TREND_TARGET}% target (provisional)`,
+              position: 'insideTopRight',
+              fill: 'oklch(0.55 0 0)',
+              fontSize: 11,
+            }}
+          />
+          <Line
+            type="monotone"
+            dataKey="pct"
+            stroke="var(--color-pct)"
+            strokeWidth={2}
+            dot={({ cx, cy, payload }) => {
+              const row = payload as SlaSeriesPoint;
+              const fill = row.lowSample ? 'oklch(0.78 0 0)' : 'var(--color-pct)';
+              if (cx == null || cy == null) return <g />;
+              return (
+                <circle key={row.periodStart} cx={cx} cy={cy} r={row.lowSample ? 3 : 4} fill={fill} stroke="white" strokeWidth={1.5} />
+              );
+            }}
+            activeDot={{ r: 5 }}
+          />
+        </LineChart>
+      </ChartContainer>
+    </div>
   );
 }

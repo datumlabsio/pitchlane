@@ -528,17 +528,36 @@ export type LeadAppliedLatencyStat = {
   buckets: LatencyBucket[];
 };
 
-export type WithinSlaScorecard = {
-  pct: number;
+export type LatencyComparisonDelta =
+  | { kind: 'hidden' }
+  | { kind: 'no-prior-data' }
+  | { kind: 'n-too-small' }
+  | { kind: 'duration'; previousMs: number; deltaMs: number; direction: 'up' | 'down' | 'flat' };
+
+export type LatencyComparisonMetric = {
+  valueMs: number | null;
+  previousMs: number | null;
   n: number;
+  previousN: number;
+  delta: LatencyComparisonDelta;
+};
+
+export type WithinSlaComparison = {
+  pct: number;
+  previousPct: number;
+  n: number;
+  previousN: number;
   delta: HeroMetricDelta;
 };
 
-export type WeeklySlaPoint = {
-  weekStart: string;
+export type SlaGranularity = 'daily' | 'weekly' | 'monthly';
+
+export type SlaSeriesPoint = {
+  periodStart: string;
   label: string;
   pct: number;
   n: number;
+  withinCount: number;
   partial: boolean;
   lowSample: boolean;
 };
@@ -582,6 +601,14 @@ const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 
 function weekLabel(weekStart: Date): string {
   return `${MONTH_SHORT[weekStart.getUTCMonth()]} ${weekStart.getUTCDate()}`;
+}
+
+function dayLabel(d: Date): string {
+  return `${MONTH_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`;
+}
+
+function monthLabel(d: Date): string {
+  return `${MONTH_SHORT[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`;
 }
 
 function earliestAppliedAt(applications: { appliedAt: Date | null }[]): number | null {
@@ -652,14 +679,33 @@ function withinSlaPct(responseMs: number[]): number {
   return Math.round((within / responseMs.length) * 100);
 }
 
+function buildDurationDelta(
+  currentMs: number | null,
+  previousMs: number | null,
+  currentN: number,
+  previousN: number,
+  resolved: ResolvedWindow,
+  noPriorData: boolean,
+): LatencyComparisonDelta {
+  if (resolved.kind === 'none') return { kind: 'hidden' };
+  if (noPriorData) return { kind: 'no-prior-data' };
+  if (currentN < 5 || previousN < 5) return { kind: 'n-too-small' };
+  if (currentMs == null || previousMs == null) return { kind: 'no-prior-data' };
+  const deltaMs = currentMs - previousMs;
+  return { kind: 'duration', previousMs, deltaMs, direction: directionOf(-deltaMs) };
+}
+
 function buildWithinSlaDelta(
   currentPct: number,
   previousPct: number,
+  currentN: number,
+  previousN: number,
   resolved: ResolvedWindow,
   noPriorData: boolean,
 ): HeroMetricDelta {
   if (resolved.kind === 'none') return { kind: 'hidden' };
   if (noPriorData) return { kind: 'no-prior-data' };
+  if (currentN < 5 || previousN < 5) return { kind: 'n-too-small' };
   const ppDelta = Math.round((currentPct - previousPct) * 10) / 10;
   return { kind: 'pp', previous: previousPct, ppDelta, direction: directionOf(ppDelta) };
 }
@@ -695,10 +741,12 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
   const cmp = comparisonWindow(resolved);
   const noPriorData = Boolean(cmp && cmp.start.getTime() < TRACKING_START_DATE.getTime());
   let previousPct = 0;
+  let previous: LeadAppliedLatencyResult = { responseMs: [], reached: 0, missingAppliedDate: 0, excludedCount: 0 };
   if (cmp && !noPriorData) {
     const prevWindow = windowFromResolved({ start: cmp.start, end: cmp.end, kind: resolved.kind, partial: false });
     const prevLeads = await fetchLeadsForLatency(prevWindow, accountId);
-    previousPct = withinSlaPct(computeLeadAppliedLatencies(prevLeads).responseMs);
+    previous = computeLeadAppliedLatencies(prevLeads);
+    previousPct = withinSlaPct(previous.responseMs);
   }
 
   const applyToReplyMs: number[] = [];
@@ -742,8 +790,61 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
     response: buildLeadAppliedStat(current),
     withinSla: {
       pct: currentPct,
+      previousPct,
       n: current.responseMs.length,
-      delta: buildWithinSlaDelta(currentPct, previousPct, resolved, noPriorData),
+      previousN: previous.responseMs.length,
+      delta: buildWithinSlaDelta(
+        currentPct,
+        previousPct,
+        current.responseMs.length,
+        previous.responseMs.length,
+        resolved,
+        noPriorData,
+      ),
+    },
+    comparisons: {
+      p50: {
+        valueMs: percentile(current.responseMs, 50),
+        previousMs: percentile(previous.responseMs, 50),
+        n: current.responseMs.length,
+        previousN: previous.responseMs.length,
+        delta: buildDurationDelta(
+          percentile(current.responseMs, 50),
+          percentile(previous.responseMs, 50),
+          current.responseMs.length,
+          previous.responseMs.length,
+          resolved,
+          noPriorData,
+        ),
+      },
+      p75: {
+        valueMs: percentile(current.responseMs, 75),
+        previousMs: percentile(previous.responseMs, 75),
+        n: current.responseMs.length,
+        previousN: previous.responseMs.length,
+        delta: buildDurationDelta(
+          percentile(current.responseMs, 75),
+          percentile(previous.responseMs, 75),
+          current.responseMs.length,
+          previous.responseMs.length,
+          resolved,
+          noPriorData,
+        ),
+      },
+      p90: {
+        valueMs: percentile(current.responseMs, 90),
+        previousMs: percentile(previous.responseMs, 90),
+        n: current.responseMs.length,
+        previousN: previous.responseMs.length,
+        delta: buildDurationDelta(
+          percentile(current.responseMs, 90),
+          percentile(previous.responseMs, 90),
+          current.responseMs.length,
+          previous.responseMs.length,
+          resolved,
+          noPriorData,
+        ),
+      },
     },
     applyToReply: downstreamStat(applyToReplyMs, repliedReached),
     replyToCall: downstreamStat(replyToCallMs, callReached),
@@ -751,17 +852,38 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
 }
 
 /**
- * Weekly SLA trend: Monday-start weeks, % of valid leads applied within SLA_TARGET_HOURS.
- * Stays weekly regardless of other chart grain toggles.
+ * SLA trend series at selectable granularity.
  */
-export async function getWeeklySlaSeries(window: DateWindow = {}, accountId?: string): Promise<WeeklySlaPoint[]> {
+export async function getSlaSeries(
+  window: DateWindow = {},
+  accountId?: string,
+  granularity: SlaGranularity = 'daily',
+): Promise<SlaSeriesPoint[]> {
   const resolved = resolveWindow(window);
   const rangeStart = resolved.start ?? TRACKING_START_DATE;
   const rangeEnd = resolved.end ?? new Date();
   const now = new Date();
 
   const leads = await fetchLeadsForLatency(window, accountId);
-  const byWeek = new Map<string, number[]>();
+  const byPeriod = new Map<string, number[]>();
+
+  const startOfPeriod = (d: Date): Date => {
+    if (granularity === 'weekly') return mondayStartUTC(d);
+    if (granularity === 'monthly') return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  };
+
+  const nextPeriod = (d: Date): Date => {
+    if (granularity === 'weekly') return addUtcDays(d, 7);
+    if (granularity === 'monthly') return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1));
+    return addUtcDays(d, 1);
+  };
+
+  const toLabel = (d: Date): string => {
+    if (granularity === 'weekly') return weekLabel(d);
+    if (granularity === 'monthly') return monthLabel(d);
+    return dayLabel(d);
+  };
 
   for (const lead of leads) {
     if (!APPLIED_STATUSES.includes(lead.status)) continue;
@@ -770,35 +892,36 @@ export async function getWeeklySlaSeries(window: DateWindow = {}, accountId?: st
     const gap = appliedAt - lead.createdAt.getTime();
     if (gap < 0 || gap > MAX_LATENCY_MS) continue;
 
-    const weekStart = mondayStartUTC(lead.createdAt);
-    const key = weekStart.toISOString().slice(0, 10);
-    const arr = byWeek.get(key) ?? [];
+    const periodStart = startOfPeriod(lead.createdAt);
+    const key = periodStart.toISOString().slice(0, 10);
+    const arr = byPeriod.get(key) ?? [];
     arr.push(gap);
-    byWeek.set(key, arr);
+    byPeriod.set(key, arr);
   }
 
-  const weeks: WeeklySlaPoint[] = [];
-  let cursor = mondayStartUTC(rangeStart);
-  const endMonday = mondayStartUTC(rangeEnd);
+  const points: SlaSeriesPoint[] = [];
+  let cursor = startOfPeriod(rangeStart);
+  const endPeriod = startOfPeriod(rangeEnd);
 
-  while (cursor.getTime() <= endMonday.getTime()) {
+  while (cursor.getTime() <= endPeriod.getTime()) {
     const key = cursor.toISOString().slice(0, 10);
-    const latencies = byWeek.get(key) ?? [];
+    const latencies = byPeriod.get(key) ?? [];
     const n = latencies.length;
     const within = latencies.filter((ms) => ms <= SLA_TARGET_MS).length;
-    const weekEnd = addUtcDays(cursor, 7);
-    weeks.push({
-      weekStart: key,
-      label: weekLabel(cursor),
+    const periodEnd = nextPeriod(cursor);
+    points.push({
+      periodStart: key,
+      label: toLabel(cursor),
       pct: n > 0 ? Math.round((within / n) * 100) : 0,
       n,
-      partial: weekEnd.getTime() > now.getTime(),
+      withinCount: within,
+      partial: periodEnd.getTime() > now.getTime(),
       lowSample: n < 5,
     });
-    cursor = addUtcDays(cursor, 7);
+    cursor = nextPeriod(cursor);
   }
 
-  return weeks;
+  return points;
 }
 
 export type PipelineDay = { date: string; received: number; applied: number };

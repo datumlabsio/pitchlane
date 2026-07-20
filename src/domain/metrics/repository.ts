@@ -485,25 +485,188 @@ export async function getProfileConversionTable(
 }
 
 function median(values: number[]): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+  return percentile(values, 50);
 }
 
-/**
- * Pipeline latency, computed from data we already store:
- *  - response: lead.createdAt → application.appliedAt (how fast we apply after a lead lands)
- *  - applyToReply / replyToCall: from the timestamps of `lead.status_updated` events,
- *    which record every status transition with a `{ from, to }` payload.
- * Each figure is a median (P50) in milliseconds with `n` (leads with a usable pair
- * of timestamps) and `reached` (leads that reached that stage at all). n < reached
- * means the rest are missing a timestamp — e.g. an applied lead with no applied-date.
- */
-export async function getLatencyMetrics(window: DateWindow = {}, accountId?: string) {
-  const base = leadWhere(window, accountId);
-  const leads = await prisma.lead.findMany({
-    where: base,
+function percentile(values: number[], p: number): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const idx = (p / 100) * (sorted.length - 1);
+  const lower = Math.floor(idx);
+  const upper = Math.ceil(idx);
+  if (lower === upper) return sorted[lower];
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower);
+}
+
+/** Provisional SLA targets — surfaced in UI with a tooltip. */
+export const SLA_TARGET_HOURS = 3;
+export const SLA_TREND_TARGET = 70;
+const SLA_TARGET_MS = SLA_TARGET_HOURS * 60 * 60 * 1000;
+const MAX_LATENCY_MS = 72 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+
+const LATENCY_BUCKET_DEFS = [
+  { label: '<1h', minMs: 0, maxMs: HOUR_MS },
+  { label: '1–3h', minMs: HOUR_MS, maxMs: 3 * HOUR_MS },
+  { label: '3–6h', minMs: 3 * HOUR_MS, maxMs: 6 * HOUR_MS },
+  { label: '6–12h', minMs: 6 * HOUR_MS, maxMs: 12 * HOUR_MS },
+  { label: '12–24h', minMs: 12 * HOUR_MS, maxMs: 24 * HOUR_MS },
+  { label: '>24h', minMs: 24 * HOUR_MS, maxMs: MAX_LATENCY_MS + 1 },
+] as const;
+
+export type LatencyBucket = { label: string; count: number };
+
+export type LeadAppliedLatencyStat = {
+  p50Ms: number | null;
+  p75Ms: number | null;
+  p90Ms: number | null;
+  n: number;
+  reached: number;
+  missingAppliedDate: number;
+  excludedCount: number;
+  withinSlaCount: number;
+  buckets: LatencyBucket[];
+};
+
+export type WithinSlaScorecard = {
+  pct: number;
+  n: number;
+  delta: HeroMetricDelta;
+};
+
+export type WeeklySlaPoint = {
+  weekStart: string;
+  label: string;
+  pct: number;
+  n: number;
+  partial: boolean;
+  lowSample: boolean;
+};
+
+/** Retained for downstream latency stats (not shown in v1 UI). */
+export type LatencyStat = {
+  p50Ms: number | null;
+  p75Ms: number | null;
+  n: number;
+  reached: number;
+};
+
+type LeadLatencyRow = {
+  status: LeadStatus;
+  createdAt: Date;
+  applications: { appliedAt: Date | null }[];
+};
+
+type LeadAppliedLatencyResult = {
+  responseMs: number[];
+  reached: number;
+  missingAppliedDate: number;
+  excludedCount: number;
+};
+
+function mondayStartUTC(d: Date): Date {
+  const day = d.getUTCDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  start.setUTCDate(start.getUTCDate() + diffToMonday);
+  return start;
+}
+
+function addUtcDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setUTCDate(r.getUTCDate() + n);
+  return r;
+}
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+function weekLabel(weekStart: Date): string {
+  return `${MONTH_SHORT[weekStart.getUTCMonth()]} ${weekStart.getUTCDate()}`;
+}
+
+function earliestAppliedAt(applications: { appliedAt: Date | null }[]): number | null {
+  const times = applications
+    .map((a) => a.appliedAt?.getTime())
+    .filter((t): t is number => typeof t === 'number');
+  return times.length ? Math.min(...times) : null;
+}
+
+/** latency = min(application.appliedAt) - lead.createdAt; 0–72h valid range. */
+function computeLeadAppliedLatencies(leads: LeadLatencyRow[]): LeadAppliedLatencyResult {
+  const responseMs: number[] = [];
+  let reached = 0;
+  let missingAppliedDate = 0;
+  let excludedCount = 0;
+
+  for (const lead of leads) {
+    if (!APPLIED_STATUSES.includes(lead.status)) continue;
+    reached++;
+
+    const appliedAt = earliestAppliedAt(lead.applications);
+    if (appliedAt == null) {
+      missingAppliedDate++;
+      continue;
+    }
+
+    const gap = appliedAt - lead.createdAt.getTime();
+    if (gap < 0 || gap > MAX_LATENCY_MS) {
+      excludedCount++;
+      continue;
+    }
+    responseMs.push(gap);
+  }
+
+  if (excludedCount > 0 && process.env.NODE_ENV === 'development') {
+    console.warn(`[latency] excluded ${excludedCount} leads with gap < 0 or > 72h`);
+  }
+
+  return { responseMs, reached, missingAppliedDate, excludedCount };
+}
+
+function buildLatencyBuckets(responseMs: number[]): LatencyBucket[] {
+  return LATENCY_BUCKET_DEFS.map(({ label, minMs, maxMs }) => ({
+    label,
+    count: responseMs.filter((ms) => ms >= minMs && ms < maxMs).length,
+  }));
+}
+
+function buildLeadAppliedStat(result: LeadAppliedLatencyResult): LeadAppliedLatencyStat {
+  const { responseMs, reached, missingAppliedDate, excludedCount } = result;
+  const withinSlaCount = responseMs.filter((ms) => ms <= SLA_TARGET_MS).length;
+  return {
+    p50Ms: median(responseMs),
+    p75Ms: percentile(responseMs, 75),
+    p90Ms: percentile(responseMs, 90),
+    n: responseMs.length,
+    reached,
+    missingAppliedDate,
+    excludedCount,
+    withinSlaCount,
+    buckets: buildLatencyBuckets(responseMs),
+  };
+}
+
+function withinSlaPct(responseMs: number[]): number {
+  if (responseMs.length === 0) return 0;
+  const within = responseMs.filter((ms) => ms <= SLA_TARGET_MS).length;
+  return Math.round((within / responseMs.length) * 100);
+}
+
+function buildWithinSlaDelta(
+  currentPct: number,
+  previousPct: number,
+  resolved: ResolvedWindow,
+  noPriorData: boolean,
+): HeroMetricDelta {
+  if (resolved.kind === 'none') return { kind: 'hidden' };
+  if (noPriorData) return { kind: 'no-prior-data' };
+  const ppDelta = Math.round((currentPct - previousPct) * 10) / 10;
+  return { kind: 'pp', previous: previousPct, ppDelta, direction: directionOf(ppDelta) };
+}
+
+async function fetchLeadsForLatency(window: DateWindow, accountId?: string) {
+  return prisma.lead.findMany({
+    where: leadWhere(window, accountId),
     select: {
       status: true,
       createdAt: true,
@@ -515,41 +678,47 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
       },
     },
   });
+}
 
-  const responseMs: number[] = [];
+/**
+ * Lead → applied latency analytics (PRD v1):
+ *  - response: lead.createdAt → min(application.appliedAt), 0–72h valid
+ *  - withinSla: % of valid leads applied within SLA_TARGET_HOURS, vs prior window
+ *  - applyToReply / replyToCall retained for future UI (reply volume too low for v1)
+ */
+export async function getLatencyMetrics(window: DateWindow = {}, accountId?: string) {
+  const resolved = resolveWindow(window);
+  const leads = await fetchLeadsForLatency(window, accountId);
+  const current = computeLeadAppliedLatencies(leads);
+  const currentPct = withinSlaPct(current.responseMs);
+
+  const cmp = comparisonWindow(resolved);
+  const noPriorData = Boolean(cmp && cmp.start.getTime() < TRACKING_START_DATE.getTime());
+  let previousPct = 0;
+  if (cmp && !noPriorData) {
+    const prevWindow = windowFromResolved({ start: cmp.start, end: cmp.end, kind: resolved.kind, partial: false });
+    const prevLeads = await fetchLeadsForLatency(prevWindow, accountId);
+    previousPct = withinSlaPct(computeLeadAppliedLatencies(prevLeads).responseMs);
+  }
+
   const applyToReplyMs: number[] = [];
   const replyToCallMs: number[] = [];
-  let appliedReached = 0;
   let repliedReached = 0;
   let callReached = 0;
 
   for (const lead of leads) {
-    const isApplied = APPLIED_STATUSES.includes(lead.status);
     const isReplied = REPLIED_STATUSES.includes(lead.status);
     const isCall = CALL_STATUSES.includes(lead.status);
-    if (isApplied) appliedReached++;
     if (isReplied) repliedReached++;
     if (isCall) callReached++;
 
-    // Earliest applied timestamp across this lead's applications.
-    const appliedTimes = lead.applications
-      .map((a) => a.appliedAt?.getTime())
-      .filter((t): t is number => typeof t === 'number');
-    const appliedAt = appliedTimes.length ? Math.min(...appliedTimes) : null;
-
-    if (isApplied && appliedAt != null) {
-      const gap = appliedAt - lead.createdAt.getTime();
-      if (gap >= 0) responseMs.push(gap);
-    }
-
-    // First time the lead reached each downstream status, from transition events.
+    const appliedAt = earliestAppliedAt(lead.applications);
     const firstReached: Partial<Record<string, number>> = {};
     for (const ev of lead.events) {
       const to = (ev.payload as { to?: string } | null)?.to;
       if (to && firstReached[to] === undefined) firstReached[to] = ev.createdAt.getTime();
     }
 
-    // apply → reply: prefer the recorded appliedAt, fall back to the APPLIED transition.
     const applyBaseline = appliedAt ?? firstReached[LeadStatus.APPLIED] ?? null;
     const repliedAt = firstReached[LeadStatus.CLIENT_REPLIED] ?? null;
     const callAt = firstReached[LeadStatus.INTRO_CALL] ?? null;
@@ -562,11 +731,74 @@ export async function getLatencyMetrics(window: DateWindow = {}, accountId?: str
     }
   }
 
+  const downstreamStat = (values: number[], reached: number): LatencyStat => ({
+    p50Ms: median(values),
+    p75Ms: percentile(values, 75),
+    n: values.length,
+    reached,
+  });
+
   return {
-    response: { p50Ms: median(responseMs), n: responseMs.length, reached: appliedReached },
-    applyToReply: { p50Ms: median(applyToReplyMs), n: applyToReplyMs.length, reached: repliedReached },
-    replyToCall: { p50Ms: median(replyToCallMs), n: replyToCallMs.length, reached: callReached },
+    response: buildLeadAppliedStat(current),
+    withinSla: {
+      pct: currentPct,
+      n: current.responseMs.length,
+      delta: buildWithinSlaDelta(currentPct, previousPct, resolved, noPriorData),
+    },
+    applyToReply: downstreamStat(applyToReplyMs, repliedReached),
+    replyToCall: downstreamStat(replyToCallMs, callReached),
   };
+}
+
+/**
+ * Weekly SLA trend: Monday-start weeks, % of valid leads applied within SLA_TARGET_HOURS.
+ * Stays weekly regardless of other chart grain toggles.
+ */
+export async function getWeeklySlaSeries(window: DateWindow = {}, accountId?: string): Promise<WeeklySlaPoint[]> {
+  const resolved = resolveWindow(window);
+  const rangeStart = resolved.start ?? TRACKING_START_DATE;
+  const rangeEnd = resolved.end ?? new Date();
+  const now = new Date();
+
+  const leads = await fetchLeadsForLatency(window, accountId);
+  const byWeek = new Map<string, number[]>();
+
+  for (const lead of leads) {
+    if (!APPLIED_STATUSES.includes(lead.status)) continue;
+    const appliedAt = earliestAppliedAt(lead.applications);
+    if (appliedAt == null) continue;
+    const gap = appliedAt - lead.createdAt.getTime();
+    if (gap < 0 || gap > MAX_LATENCY_MS) continue;
+
+    const weekStart = mondayStartUTC(lead.createdAt);
+    const key = weekStart.toISOString().slice(0, 10);
+    const arr = byWeek.get(key) ?? [];
+    arr.push(gap);
+    byWeek.set(key, arr);
+  }
+
+  const weeks: WeeklySlaPoint[] = [];
+  let cursor = mondayStartUTC(rangeStart);
+  const endMonday = mondayStartUTC(rangeEnd);
+
+  while (cursor.getTime() <= endMonday.getTime()) {
+    const key = cursor.toISOString().slice(0, 10);
+    const latencies = byWeek.get(key) ?? [];
+    const n = latencies.length;
+    const within = latencies.filter((ms) => ms <= SLA_TARGET_MS).length;
+    const weekEnd = addUtcDays(cursor, 7);
+    weeks.push({
+      weekStart: key,
+      label: weekLabel(cursor),
+      pct: n > 0 ? Math.round((within / n) * 100) : 0,
+      n,
+      partial: weekEnd.getTime() > now.getTime(),
+      lowSample: n < 5,
+    });
+    cursor = addUtcDays(cursor, 7);
+  }
+
+  return weeks;
 }
 
 export type PipelineDay = { date: string; received: number; applied: number };

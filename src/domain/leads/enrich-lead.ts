@@ -172,8 +172,16 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   // (force only bypasses the already-enriched guard above, not this.) Keeps the inline
   // path fast too: most leads skip the slow generation step entirely.
   const hasExistingProposal = lead.proposals.length > 0;
+  // On the on-prem LiteLLM provider, drafts take 60–80s each — too slow for the
+  // cron/inline enrichment windows, and an aborted generation would save the junk
+  // template as the primary draft. Qualified leads stay draft-less and the team
+  // generates on demand from the proposal tab (that route allows the time).
+  const onPremProvider = process.env.LLM_PROVIDER === 'litellm';
   const shouldWriteProposal =
-    !hasExistingProposal && evaluation.hardFilterPassed && evaluation.score >= profileConfig.scoreThreshold;
+    !onPremProvider &&
+    !hasExistingProposal &&
+    evaluation.hardFilterPassed &&
+    evaluation.score >= profileConfig.scoreThreshold;
 
   // Portfolio evidence: pick the profile's most relevant projects for this job so
   // the draft can cite real work (with links) instead of generic claims.

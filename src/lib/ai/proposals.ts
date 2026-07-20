@@ -127,7 +127,10 @@ export async function generateProposalDraft(input: ProposalGenerationInput) {
 // error/timeout so a flaky on-prem model never blocks ingestion.
 async function generateViaLiteLLM(input: ProposalGenerationInput) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 60_000);
+  // The on-prem 12B needs 60–80s for a full proposal prompt; the proposals route
+  // allows 90s, so cap just under it. Anything slower falls back to Anthropic-less
+  // template — callers on tighter budgets shouldn't route here at all.
+  const timer = setTimeout(() => controller.abort(), 80_000);
   try {
     const res = await fetch(`${env.LITELLM_BASE_URL!.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
@@ -141,7 +144,9 @@ async function generateViaLiteLLM(input: ProposalGenerationInput) {
           { role: 'system', content: buildSystemPrompt(input) },
           { role: 'user', content: buildUserPrompt(input) },
         ],
-        max_tokens: 2048,
+        // Reasoning-style servings (e.g. Gemma via Ollama) spend tokens on hidden
+        // reasoning before the visible content — the cap must cover both.
+        max_tokens: 4096,
         temperature: 0.7,
       }),
       signal: controller.signal,

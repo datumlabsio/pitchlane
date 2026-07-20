@@ -2,8 +2,22 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, Legend, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  Legend,
+  Line,
+  LineChart,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { LeadStatus } from '@/domain/enums';
+import type { LatencyBucket, WeeklySlaPoint } from '@/domain/metrics/repository';
+import { SLA_TREND_TARGET } from '@/domain/metrics/repository';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { leadStatusLabelMap } from '@/domain/leads/types';
@@ -409,5 +423,147 @@ export function VisibilityChart({ data }: { data: VisibilityPoint[] }) {
         </LineChart>
       </ChartContainer>
     </div>
+  );
+}
+
+// ─── Lead → applied latency histogram ───────────────────────────────────────────
+
+const latencyHistogramConfig = {
+  count: { label: 'Applications', color: 'oklch(0.55 0.12 230)' },
+};
+
+function histogramBarColor(label: string): string {
+  if (label === '<1h' || label === '1–3h') return 'oklch(0.55 0.12 230)';
+  if (label === '12–24h' || label === '>24h') return 'oklch(0.58 0.18 25)';
+  return 'oklch(0.72 0.02 80)';
+}
+
+export function LatencyHistogramChart({ buckets, total }: { buckets: LatencyBucket[]; total: number }) {
+  const rows = buckets.map((b) => ({ ...b, pct: total > 0 ? Math.round((b.count / total) * 100) : 0 }));
+  const lowSample = total < 5;
+
+  return (
+    <div className="space-y-2">
+      {lowSample && (
+        <p className="text-xs text-amber-700">Low sample: {total} apply{total === 1 ? '' : 'ies'}</p>
+      )}
+      <ChartContainer config={latencyHistogramConfig} className="h-64 w-full">
+        <BarChart data={rows} margin={{ top: 16, right: 8, left: -12, bottom: 4 }}>
+          <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
+            width={28}
+            allowDecimals={false}
+          />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, _name, item) => {
+                  const pct = (item.payload as { pct?: number }).pct ?? 0;
+                  return (
+                    <span className="font-mono tabular-nums">
+                      {value} ({pct}%)
+                    </span>
+                  );
+                }}
+              />
+            }
+          />
+          <Bar dataKey="count" radius={[3, 3, 0, 0]}>
+            {rows.map((row) => (
+              <Cell key={row.label} fill={histogramBarColor(row.label)} />
+            ))}
+            <LabelList dataKey="count" position="top" style={barLabelStyle} formatter={hideZero} />
+          </Bar>
+        </BarChart>
+      </ChartContainer>
+    </div>
+  );
+}
+
+// ─── Weekly SLA trend ───────────────────────────────────────────────────────────
+
+const slaTrendConfig = {
+  pct: { label: 'Within 3h', color: 'oklch(0.55 0.12 230)' },
+  target: { label: 'Target', color: 'oklch(0.65 0.02 80)' },
+};
+
+export function SlaTrendChart({ data }: { data: WeeklySlaPoint[] }) {
+  const interval = data.length > 16 ? Math.ceil(data.length / 12) : 0;
+
+  if (data.length === 0) {
+    return <p className="text-sm text-muted-foreground">No weekly SLA data in this range.</p>;
+  }
+
+  return (
+    <ChartContainer config={slaTrendConfig} className="h-64 w-full">
+      <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 4 }}>
+        <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
+        <XAxis
+          dataKey="label"
+          tickLine={false}
+          axisLine={false}
+          interval={interval}
+          tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
+          width={32}
+          domain={[0, 100]}
+          tickFormatter={(v) => `${v}%`}
+        />
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              formatter={(value, _name, item) => {
+                const row = item.payload as WeeklySlaPoint;
+                const suffix = row.lowSample ? ' · low sample' : row.partial ? ' · partial week' : '';
+                return (
+                  <span className="font-mono tabular-nums">
+                    {value}% ({row.n} applies){suffix}
+                  </span>
+                );
+              }}
+            />
+          }
+        />
+        <ReferenceLine
+          y={SLA_TREND_TARGET}
+          stroke="oklch(0.65 0.02 80)"
+          strokeDasharray="4 4"
+          label={{
+            value: `${SLA_TREND_TARGET}% target (provisional)`,
+            position: 'insideTopRight',
+            fill: 'oklch(0.55 0 0)',
+            fontSize: 11,
+          }}
+        />
+        <Line
+          type="monotone"
+          dataKey="pct"
+          stroke="var(--color-pct)"
+          strokeWidth={2}
+          dot={({ cx, cy, payload }) => {
+            const row = payload as WeeklySlaPoint;
+            const fill = row.lowSample ? 'oklch(0.78 0 0)' : 'var(--color-pct)';
+            if (cx == null || cy == null) return <g />;
+            return (
+              <circle key={row.weekStart} cx={cx} cy={cy} r={row.lowSample ? 3 : 4} fill={fill} stroke="white" strokeWidth={1.5} />
+            );
+          }}
+          activeDot={{ r: 5 }}
+        />
+      </LineChart>
+    </ChartContainer>
   );
 }

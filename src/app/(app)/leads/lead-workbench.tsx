@@ -7,10 +7,10 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  CheckCheck,
   Columns3,
   Copy,
   ExternalLink,
-  Eye,
   FileEdit,
   Mail,
   Plus,
@@ -1188,22 +1188,35 @@ export function LeadWorkbench({
   }
 
   // Instant-save toggles — a manager ticking "viewed" shouldn't need to find Save.
-  function toggleBuReviewed(next: boolean) {
-    setBuReviewed(next);
-    postApplication(
-      appliedAt || null,
-      next ? "Marked as BU reviewed." : "BU review unmarked.",
-      { buReviewed: next },
-    );
-  }
-
-  function toggleProposalViewed(next: boolean) {
-    setProposalViewed(next);
-    postApplication(
-      appliedAt || null,
-      next ? "Marked proposal as viewed." : "Proposal viewed unmarked.",
-      { proposalViewed: next },
-    );
+  // These deliberately do NOT go through postApplication: that would persist the
+  // whole half-edited form and refresh the panel (resetting every field mid-edit).
+  // Instead: optimistic flip, a minimal partial POST of just this field, and a
+  // revert if the save fails. No refresh — the rest of the form stays untouched.
+  async function saveReviewToggle(
+    field: "buReviewed" | "proposalViewed",
+    next: boolean,
+  ) {
+    if (!selectedLead) return;
+    const setter = field === "buReviewed" ? setBuReviewed : setProposalViewed;
+    const label = field === "buReviewed" ? "BU reviewed" : "Proposal viewed";
+    setter(next);
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId: selectedLead.id, [field]: next }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        throw new Error(result.error ?? "Request failed");
+      }
+      setStatusMessage(next ? `Marked “${label}”.` : `Unmarked “${label}”.`);
+    } catch (error) {
+      setter(!next); // roll back — the server never got it
+      setStatusMessage(
+        `Could not save “${label}” — ${error instanceof Error ? error.message : "unknown error"}.`,
+      );
+    }
   }
 
   function submitApplication() {
@@ -1617,11 +1630,14 @@ export function LeadWorkbench({
                           {lead.status}
                         </span>
                         {lead.proposalViewed !== null && (
-                          <Eye
+                          // WhatsApp-style read receipt: double green tick = the BU
+                          // manager viewed the sent proposal; grey = not yet.
+                          <CheckCheck
+                            strokeWidth={2.5}
                             className={cn(
-                              "size-3.5 shrink-0",
+                              "size-4.5 shrink-0",
                               lead.proposalViewed
-                                ? "text-emerald-600"
+                                ? "text-emerald-500"
                                 : "text-stone-300",
                             )}
                             aria-label={
@@ -1635,7 +1651,7 @@ export function LeadWorkbench({
                                 ? "Proposal viewed by BU"
                                 : "Awaiting BU review"}
                             </title>
-                          </Eye>
+                          </CheckCheck>
                         )}
                       </span>
                     </TableCell>
@@ -2486,8 +2502,12 @@ export function LeadWorkbench({
                           <input
                             type="checkbox"
                             checked={buReviewed}
-                            disabled={isPending}
-                            onChange={(e) => toggleBuReviewed(e.target.checked)}
+                            onChange={(e) =>
+                              void saveReviewToggle(
+                                "buReviewed",
+                                e.target.checked,
+                              )
+                            }
                             className="size-4 accent-amber-600"
                           />
                           BU reviewed
@@ -2496,9 +2516,11 @@ export function LeadWorkbench({
                           <input
                             type="checkbox"
                             checked={proposalViewed}
-                            disabled={isPending}
                             onChange={(e) =>
-                              toggleProposalViewed(e.target.checked)
+                              void saveReviewToggle(
+                                "proposalViewed",
+                                e.target.checked,
+                              )
                             }
                             className="size-4 accent-amber-600"
                           />

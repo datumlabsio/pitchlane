@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye } from 'lucide-react';
+import { CheckCheck } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -172,10 +172,11 @@ export function LeadKanban({
                         {lead.matchScore}%
                       </span>
                       {lead.proposalViewed !== null && (
-                        <Eye
+                        <CheckCheck
+                          strokeWidth={2.5}
                           className={cn(
-                            'size-3 shrink-0',
-                            lead.proposalViewed ? 'text-emerald-600' : 'text-stone-300',
+                            'size-3.5 shrink-0',
+                            lead.proposalViewed ? 'text-emerald-500' : 'text-stone-300',
                           )}
                         >
                           <title>
@@ -183,7 +184,7 @@ export function LeadKanban({
                               ? 'Proposal viewed by BU'
                               : 'Awaiting BU review'}
                           </title>
-                        </Eye>
+                        </CheckCheck>
                       )}
                       <span className="ml-auto truncate text-[10px] text-stone-400">
                         {lead.createdAt}

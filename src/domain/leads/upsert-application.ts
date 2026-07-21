@@ -139,19 +139,30 @@ export async function upsertApplication(input: UpsertApplicationInput) {
       });
     }
 
-    await tx.leadEvent.create({
-      data: {
-        leadId: input.leadId,
-        type: existing ? 'application.updated' : 'application.created',
-        payload: {
-          connectsSpent: input.connectsSpent,
-          ...(input.connectsRefunded !== undefined ? { connectsRefunded: input.connectsRefunded } : {}),
-          appliedAt: input.appliedAt?.toISOString() ?? null,
-          lastFollowUpAt: input.lastFollowUpAt?.toISOString() ?? null,
-          actor,
+    // The generic saved-event only when core application fields were part of the
+    // call — a review-toggle-only save already logged its own specific event above,
+    // and shouldn't add an "application updated" noise entry on top.
+    const coreFieldsTouched =
+      input.connectsSpent !== undefined ||
+      input.appliedAt !== undefined ||
+      input.lastFollowUpAt !== undefined ||
+      input.notes !== undefined ||
+      input.connectsRefunded !== undefined;
+    if (!existing || coreFieldsTouched) {
+      await tx.leadEvent.create({
+        data: {
+          leadId: input.leadId,
+          type: existing ? 'application.updated' : 'application.created',
+          payload: {
+            ...(input.connectsSpent !== undefined ? { connectsSpent: input.connectsSpent } : {}),
+            ...(input.connectsRefunded !== undefined ? { connectsRefunded: input.connectsRefunded } : {}),
+            appliedAt: input.appliedAt?.toISOString() ?? null,
+            lastFollowUpAt: input.lastFollowUpAt?.toISOString() ?? null,
+            actor,
+          },
         },
-      },
-    });
+      });
+    }
 
     return application;
   });

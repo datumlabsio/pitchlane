@@ -1017,6 +1017,7 @@ export function LeadWorkbench({
   const [isPending, startTransition] = useTransition();
   const [proposalDraft, setProposalDraft] = useState("");
   const [copied, setCopied] = useState(false);
+  const [sentCopied, setSentCopied] = useState(false);
   const [proposalFeedback, setProposalFeedback] = useState("");
   const [citedProjectIds, setCitedProjectIds] = useState<string[]>([]);
   // Lifecycle pills select a pending status; Apply commits it. A single stray
@@ -1290,6 +1291,16 @@ export function LeadWorkbench({
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => setStatusMessage("Could not copy to clipboard."));
+  }
+
+  function copySentProposal() {
+    navigator.clipboard
+      .writeText(sentProposal)
+      .then(() => {
+        setSentCopied(true);
+        setTimeout(() => setSentCopied(false), 1500);
       })
       .catch(() => setStatusMessage("Could not copy to clipboard."));
   }
@@ -2546,14 +2557,32 @@ export function LeadWorkbench({
                               </Button>
                             )}
                           </div>
-                          <Textarea
-                            id="app-sent-proposal"
-                            rows={6}
-                            value={sentProposal}
-                            onChange={(e) => setSentProposal(e.target.value)}
-                            placeholder="Paste the proposal exactly as it was submitted on Upwork — so managers review what the client actually saw."
-                            className="bg-white"
-                          />
+                          {/* Same dark editor treatment as the Proposal tab, so
+                              "the proposal" looks like one thing across the panel. */}
+                          <div className="relative">
+                            <Textarea
+                              id="app-sent-proposal"
+                              className="min-h-52 w-full rounded-xl border border-stone-300 bg-stone-950 p-4 pr-20 text-sm leading-6 text-stone-100 outline-none transition focus:border-stone-500 focus-visible:ring-0"
+                              value={sentProposal}
+                              onChange={(e) => setSentProposal(e.target.value)}
+                              placeholder="Paste the proposal exactly as it was submitted on Upwork — so managers review what the client actually saw."
+                            />
+                            {sentProposal.trim() && (
+                              <button
+                                type="button"
+                                onClick={copySentProposal}
+                                title="Copy the sent proposal"
+                                className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-medium text-stone-200 backdrop-blur transition hover:bg-white/20"
+                              >
+                                {sentCopied ? (
+                                  <Check className="size-3.5" />
+                                ) : (
+                                  <Copy className="size-3.5" />
+                                )}
+                                {sentCopied ? "Copied" : "Copy"}
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="app-sent-feedback">

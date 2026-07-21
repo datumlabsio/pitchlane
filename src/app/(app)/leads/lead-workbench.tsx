@@ -10,6 +10,7 @@ import {
   Columns3,
   Copy,
   ExternalLink,
+  Eye,
   FileEdit,
   Mail,
   Plus,
@@ -1432,37 +1433,6 @@ export function LeadWorkbench({
         subtitle="All leads from forwarded Upwork emails, scored and ranked by profile rules."
         actions={
           <>
-            <FilterBar accounts={accounts} currentFilters={currentFilters} />
-            <div className="flex overflow-hidden rounded-md border border-stone-200">
-              <button
-                type="button"
-                onClick={() => switchView("list")}
-                title="List view"
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition",
-                  view === "list"
-                    ? "bg-stone-800 text-white"
-                    : "bg-white text-stone-500 hover:bg-stone-50",
-                )}
-              >
-                <Rows3 className="size-3.5" />
-                List
-              </button>
-              <button
-                type="button"
-                onClick={() => switchView("kanban")}
-                title="Kanban board — drag cards between stages"
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition",
-                  view === "kanban"
-                    ? "bg-stone-800 text-white"
-                    : "bg-white text-stone-500 hover:bg-stone-50",
-                )}
-              >
-                <Columns3 className="size-3.5" />
-                Board
-              </button>
-            </div>
             <LiveIndicator paused={Boolean(selectedLeadId)} />
             <button
               type="button"
@@ -1495,6 +1465,42 @@ export function LeadWorkbench({
           </>
         }
       />
+
+      {/* Toolbar row: filters live on their own line so the page header stays
+          just title + primary actions — no more everything crammed into one row. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <FilterBar accounts={accounts} currentFilters={currentFilters} />
+        <div className="ml-auto flex shrink-0 overflow-hidden rounded-md border border-stone-200">
+          <button
+            type="button"
+            onClick={() => switchView("list")}
+            title="List view"
+            className={cn(
+              "inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition",
+              view === "list"
+                ? "bg-stone-800 text-white"
+                : "bg-white text-stone-500 hover:bg-stone-50",
+            )}
+          >
+            <Rows3 className="size-3.5" />
+            List
+          </button>
+          <button
+            type="button"
+            onClick={() => switchView("kanban")}
+            title="Kanban board — drag cards between stages"
+            className={cn(
+              "inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition",
+              view === "kanban"
+                ? "bg-stone-800 text-white"
+                : "bg-white text-stone-500 hover:bg-stone-50",
+            )}
+          >
+            <Columns3 className="size-3.5" />
+            Board
+          </button>
+        </div>
+      </div>
 
       {!selectedLeadId && statusMessage && (
         <p className="text-xs text-stone-500">{statusMessage}</p>
@@ -1601,13 +1607,36 @@ export function LeadWorkbench({
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
-                          statusBadgeVariant(lead.statusCode),
+                      <span className="inline-flex items-center gap-1.5">
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                            statusBadgeVariant(lead.statusCode),
+                          )}
+                        >
+                          {lead.status}
+                        </span>
+                        {lead.proposalViewed !== null && (
+                          <Eye
+                            className={cn(
+                              "size-3.5 shrink-0",
+                              lead.proposalViewed
+                                ? "text-emerald-600"
+                                : "text-stone-300",
+                            )}
+                            aria-label={
+                              lead.proposalViewed
+                                ? "Proposal viewed by BU"
+                                : "Awaiting BU review"
+                            }
+                          >
+                            <title>
+                              {lead.proposalViewed
+                                ? "Proposal viewed by BU"
+                                : "Awaiting BU review"}
+                            </title>
+                          </Eye>
                         )}
-                      >
-                        {lead.status}
                       </span>
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-stone-600">

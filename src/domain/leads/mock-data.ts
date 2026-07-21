@@ -56,6 +56,7 @@ export const leadSummaries: LeadSummary[] = [
     proposal: "",
     summary: mockEvaluation.summary,
     sourceUrl: "https://www.upwork.com/jobs/~lead-001",
+    proposalViewed: null,
   },
   {
     id: "lead-002",
@@ -72,6 +73,7 @@ export const leadSummaries: LeadSummary[] = [
     proposal: "",
     summary: ["Good keyword overlap, but application data is still missing."],
     sourceUrl: "https://www.upwork.com/jobs/~lead-002",
+    proposalViewed: null,
   },
   {
     id: "lead-003",
@@ -88,6 +90,7 @@ export const leadSummaries: LeadSummary[] = [
     proposal: "",
     summary: ["Qualified lead already converted into an application workflow."],
     sourceUrl: "https://www.upwork.com/jobs/~lead-003",
+    proposalViewed: true,
   },
 ];
 

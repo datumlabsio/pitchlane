@@ -154,6 +154,11 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
+        applications: {
+          orderBy: { updatedAt: 'desc' },
+          take: 1,
+          select: { proposalViewed: true, appliedAt: true },
+        },
       },
     }),
     prisma.lead.count({ where }),
@@ -180,6 +185,8 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
       proposal: proposal?.content ?? '',
       summary: evaluation?.summary ?? [],
       sourceUrl: lead.sourceUrl,
+      // null = never applied; boolean = whether a manager viewed the sent proposal.
+      proposalViewed: lead.applications[0]?.appliedAt ? lead.applications[0].proposalViewed : null,
     };
   });
 

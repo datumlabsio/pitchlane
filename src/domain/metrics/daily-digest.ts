@@ -23,6 +23,8 @@ type ProfileRow = {
   leadsIn: number;
   qualified: number;
   applied: number;
+  // Of that day's applied, how many sent proposals a manager has viewed (so far).
+  appliedViewed: number;
   replies: number;
   calls: number;
   won: number;
@@ -35,6 +37,9 @@ export type DailyDigest = {
   totals: Omit<ProfileRow, 'profile'>;
   unactionedQualified: number;
   oldestUnactionedDays: number | null;
+  // Applications sent in the last 7 days whose proposal no manager has viewed yet —
+  // the BU-review backlog.
+  unviewedRecentApplied: number;
 };
 
 /**
@@ -45,36 +50,43 @@ export type DailyDigest = {
  * application — the pile someone should be working through.
  */
 export async function computeDailyDigest(window = pktYesterdayWindow()): Promise<DailyDigest> {
-  const [accounts, leadsIn, statusEvents, appliedApps, unactioned] = await Promise.all([
-    prisma.account.findMany({ where: { isActive: true }, select: { id: true, personName: true } }),
-    prisma.lead.groupBy({
-      by: ['accountId'],
-      where: { createdAt: { gte: window.start, lt: window.end } },
-      _count: { _all: true },
-    }),
-    prisma.leadEvent.findMany({
-      where: { type: 'lead.status_updated', createdAt: { gte: window.start, lt: window.end } },
-      select: { payload: true, lead: { select: { accountId: true } } },
-    }),
-    prisma.application.findMany({
-      where: { appliedAt: { gte: window.start, lt: window.end } },
-      select: { accountId: true, connectsSpent: true },
-    }),
-    prisma.lead.findMany({
-      where: {
-        status: LeadStatus.QUALIFIED,
-        createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        applications: { none: { appliedAt: { not: null } } },
-      },
-      select: { createdAt: true },
-      orderBy: { createdAt: 'asc' },
-    }),
-  ]);
+  const [accounts, leadsIn, statusEvents, appliedApps, unactioned, unviewedRecentApplied] =
+    await Promise.all([
+      prisma.account.findMany({ where: { isActive: true }, select: { id: true, personName: true } }),
+      prisma.lead.groupBy({
+        by: ['accountId'],
+        where: { createdAt: { gte: window.start, lt: window.end } },
+        _count: { _all: true },
+      }),
+      prisma.leadEvent.findMany({
+        where: { type: 'lead.status_updated', createdAt: { gte: window.start, lt: window.end } },
+        select: { payload: true, lead: { select: { accountId: true } } },
+      }),
+      prisma.application.findMany({
+        where: { appliedAt: { gte: window.start, lt: window.end } },
+        select: { accountId: true, connectsSpent: true, proposalViewed: true },
+      }),
+      prisma.lead.findMany({
+        where: {
+          status: LeadStatus.QUALIFIED,
+          createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          applications: { none: { appliedAt: { not: null } } },
+        },
+        select: { createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.application.count({
+        where: {
+          appliedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          proposalViewed: false,
+        },
+      }),
+    ]);
 
   const byAccount = new Map<string, ProfileRow>(
     accounts.map((a) => [
       a.id,
-      { profile: a.personName, leadsIn: 0, qualified: 0, applied: 0, replies: 0, calls: 0, won: 0, connectsSpent: 0 },
+      { profile: a.personName, leadsIn: 0, qualified: 0, applied: 0, appliedViewed: 0, replies: 0, calls: 0, won: 0, connectsSpent: 0 },
     ]),
   );
 
@@ -95,6 +107,7 @@ export async function computeDailyDigest(window = pktYesterdayWindow()): Promise
     const row = byAccount.get(app.accountId);
     if (!row) continue;
     row.applied += 1;
+    if (app.proposalViewed) row.appliedViewed += 1;
     row.connectsSpent += app.connectsSpent ?? 0;
   }
 
@@ -104,12 +117,13 @@ export async function computeDailyDigest(window = pktYesterdayWindow()): Promise
       leadsIn: t.leadsIn + r.leadsIn,
       qualified: t.qualified + r.qualified,
       applied: t.applied + r.applied,
+      appliedViewed: t.appliedViewed + r.appliedViewed,
       replies: t.replies + r.replies,
       calls: t.calls + r.calls,
       won: t.won + r.won,
       connectsSpent: t.connectsSpent + r.connectsSpent,
     }),
-    { leadsIn: 0, qualified: 0, applied: 0, replies: 0, calls: 0, won: 0, connectsSpent: 0 },
+    { leadsIn: 0, qualified: 0, applied: 0, appliedViewed: 0, replies: 0, calls: 0, won: 0, connectsSpent: 0 },
   );
 
   const oldest = unactioned[0]?.createdAt;
@@ -121,6 +135,7 @@ export async function computeDailyDigest(window = pktYesterdayWindow()): Promise
     oldestUnactionedDays: oldest
       ? Math.floor((Date.now() - oldest.getTime()) / (24 * 60 * 60 * 1000))
       : null,
+    unviewedRecentApplied,
   };
 }
 
@@ -139,6 +154,7 @@ export function buildDailyDigestBody(digest: DailyDigest): {
     ? active
         .map((r) => {
           const extras = [
+            r.applied ? `👀 ${r.appliedViewed}/${r.applied} BU-viewed` : null,
             r.replies ? `${r.replies} replies` : null,
             r.calls ? `${r.calls} calls` : null,
             r.won ? `🏆 ${r.won} won` : null,
@@ -156,12 +172,22 @@ export function buildDailyDigestBody(digest: DailyDigest): {
       fields: [
         { type: 'mrkdwn', text: `*Leads in:* ${t.leadsIn}` },
         { type: 'mrkdwn', text: `*Qualified:* ${t.qualified}` },
-        { type: 'mrkdwn', text: `*Applied:* ${t.applied} (${t.connectsSpent} connects)` },
+        { type: 'mrkdwn', text: `*Applied:* ${t.applied} (${t.appliedViewed} BU-viewed · ${t.connectsSpent} connects)` },
         { type: 'mrkdwn', text: `*Replies / Calls / Won:* ${t.replies} / ${t.calls} / ${t.won}` },
       ],
     },
     { type: 'section', text: { type: 'mrkdwn', text: profileLines } },
   ];
+
+  if (digest.unviewedRecentApplied > 0) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `👀 *${digest.unviewedRecentApplied} sent proposal${digest.unviewedRecentApplied === 1 ? '' : 's'} from the last 7 days await BU review* — managers, tick “Proposal viewed” after reading.`,
+      },
+    });
+  }
 
   if (digest.unactionedQualified > 0) {
     blocks.push({

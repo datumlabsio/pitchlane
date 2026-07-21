@@ -1138,13 +1138,9 @@ export function LeadWorkbench({
   // Persist the application. `appliedAtValue` is passed explicitly so the quick
   // "Mark applied" actions can set it without depending on the field's state
   // (the rest of the form — connects/follow-up/notes — is preserved as-is).
-  function postApplication(
-    appliedAtValue: string | null,
-    message: string,
-    // The review toggles save instantly on click; React state is async, so the
-    // flipped value rides in as an override instead of being read back from state.
-    overrides?: { buReviewed?: boolean; proposalViewed?: boolean },
-  ) {
+  // Saves ONLY the operational fields (connects, dates, notes) — the review-trail
+  // card and the toggles each save their own fields, so no card can clobber another.
+  function postApplication(appliedAtValue: string | null, message: string) {
     if (!selectedLead) return;
     const parsedConnects =
       connectsSpent.trim().length > 0 ? Number(connectsSpent) : null;
@@ -1176,14 +1172,27 @@ export function LeadWorkbench({
           appliedAt: appliedAtValue,
           lastFollowUpAt: lastFollowUpAt || null,
           notes,
-          sentProposal: sentProposal || null,
-          proposalFeedback: sentFeedback || null,
-          buReviewed,
-          proposalViewed,
-          ...overrides,
         }),
       },
       message,
+    );
+  }
+
+  // Saves the review-trail texts (sent proposal + manager feedback) — nothing else.
+  function saveReviewTrail() {
+    if (!selectedLead) return;
+    void runRequest(
+      "/api/applications",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: selectedLead.id,
+          sentProposal: sentProposal || null,
+          proposalFeedback: sentFeedback || null,
+        }),
+      },
+      "Review saved.",
     );
   }
 
@@ -2332,30 +2341,20 @@ export function LeadWorkbench({
 
                     {/* ── Application ── */}
                     <TabsContent value="application" className="space-y-4 mt-0">
-                      <div className="grid gap-4 sm:grid-cols-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="app-connects">Connects spent</Label>
-                          <Input
-                            id="app-connects"
-                            inputMode="numeric"
-                            value={connectsSpent}
-                            onChange={(e) => setConnectsSpent(e.target.value)}
-                          />
+                      {/* Card 1 — BD's operational log */}
+                      <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-4">
+                        <div>
+                          <p className="text-sm font-semibold text-stone-800">
+                            Application log
+                          </p>
+                          <p className="text-xs text-stone-500">
+                            When it was sent, what it cost, and where the
+                            conversation stands.
+                          </p>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="app-connects-refunded">
-                            Connects refunded
-                          </Label>
-                          <Input
-                            id="app-connects-refunded"
-                            inputMode="numeric"
-                            value={connectsRefunded}
-                            onChange={(e) => setConnectsRefunded(e.target.value)}
-                            title="Connects Upwork returned (e.g. job closed without a hire)"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label>Applied at</Label>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label>Applied at</Label>
                           {appliedAt ? (
                             <div className="flex h-9 items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5">
                               <Check className="size-3.5 shrink-0 text-emerald-600" />
@@ -2434,117 +2433,194 @@ export function LeadWorkbench({
                             </div>
                           )}
                         </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="app-followup-at">
+                              Last follow-up
+                            </Label>
+                            <Input
+                              id="app-followup-at"
+                              type="datetime-local"
+                              value={lastFollowUpAt}
+                              onChange={(e) =>
+                                setLastFollowUpAt(e.target.value)
+                              }
+                              className="bg-white"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="app-connects">Connects spent</Label>
+                            <Input
+                              id="app-connects"
+                              inputMode="numeric"
+                              value={connectsSpent}
+                              onChange={(e) => setConnectsSpent(e.target.value)}
+                              placeholder="e.g. 16"
+                              className="bg-white"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="app-connects-refunded">
+                              Connects refunded
+                            </Label>
+                            <Input
+                              id="app-connects-refunded"
+                              inputMode="numeric"
+                              value={connectsRefunded}
+                              onChange={(e) =>
+                                setConnectsRefunded(e.target.value)
+                              }
+                              placeholder="If Upwork returned them"
+                              title="Connects Upwork returned (e.g. job closed without a hire)"
+                              className="bg-white"
+                            />
+                          </div>
+                        </div>
                         <div className="space-y-1.5">
-                          <Label htmlFor="app-followup-at">
-                            Last follow-up
-                          </Label>
-                          <Input
-                            id="app-followup-at"
-                            type="datetime-local"
-                            value={lastFollowUpAt}
-                            onChange={(e) => setLastFollowUpAt(e.target.value)}
+                          <Label htmlFor="app-notes">Notes</Label>
+                          <Textarea
+                            id="app-notes"
+                            rows={3}
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Operational notes about this application..."
+                            className="bg-white"
                           />
                         </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="app-notes">Notes</Label>
-                        <Textarea
-                          id="app-notes"
-                          rows={5}
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Operational notes about this application..."
-                        />
-                      </div>
-
-                      <Separator />
-
-                      {/* ── Sent proposal + manager review ── */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="app-sent-proposal">
-                            Proposal used to apply
-                          </Label>
-                          {proposalDraft.trim() && (
-                            <button
-                              type="button"
-                              disabled={isPending}
-                              onClick={() => setSentProposal(proposalDraft)}
-                              className="text-xs text-amber-700 transition hover:text-amber-800 disabled:opacity-50"
-                              title="Copy the current draft from the Proposal tab into this field"
-                            >
-                              Copy from current draft
-                            </button>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            size="sm"
+                            disabled={isPending}
+                            onClick={submitApplication}
+                          >
+                            {isPending ? "Saving..." : "Save log"}
+                          </Button>
+                          {selectedLead.application && (
+                            <p className="text-xs text-stone-400">
+                              Last saved {selectedLead.application.updatedAt}
+                            </p>
                           )}
                         </div>
-                        <Textarea
-                          id="app-sent-proposal"
-                          rows={7}
-                          value={sentProposal}
-                          onChange={(e) => setSentProposal(e.target.value)}
-                          placeholder="Paste the proposal exactly as it was submitted on Upwork — so managers review what the client actually saw."
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="app-sent-feedback">
-                          Manager feedback on the sent proposal
-                        </Label>
-                        <Textarea
-                          id="app-sent-feedback"
-                          rows={3}
-                          value={sentFeedback}
-                          onChange={(e) => setSentFeedback(e.target.value)}
-                          placeholder="Managers: what should BD do differently next time? Shows in Activity with your name."
-                        />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-4">
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-stone-700">
-                          <input
-                            type="checkbox"
-                            checked={buReviewed}
-                            onChange={(e) =>
-                              void saveReviewToggle(
-                                "buReviewed",
-                                e.target.checked,
-                              )
-                            }
-                            className="size-4 accent-amber-600"
-                          />
-                          BU reviewed
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-stone-700">
-                          <input
-                            type="checkbox"
-                            checked={proposalViewed}
-                            onChange={(e) =>
-                              void saveReviewToggle(
-                                "proposalViewed",
-                                e.target.checked,
-                              )
-                            }
-                            className="size-4 accent-amber-600"
-                          />
-                          Proposal viewed
-                        </label>
-                        <span className="text-xs text-stone-400">
-                          Toggles save instantly, with your name in Activity.
-                        </span>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <Button
-                          size="sm"
-                          disabled={isPending}
-                          onClick={submitApplication}
-                        >
-                          {isPending ? "Saving..." : "Save application"}
-                        </Button>
-                        {selectedLead.application && (
-                          <p className="text-xs text-stone-500">
-                            Last saved {selectedLead.application.updatedAt}
-                          </p>
-                        )}
+                      {/* Card 2 — the sent proposal + the manager's review of it */}
+                      <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-stone-800">
+                              Sent proposal &amp; BU review
+                            </p>
+                            <p className="text-xs text-stone-500">
+                              What the client actually received — and the
+                              manager&apos;s read on it.
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                              proposalViewed
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : "border-stone-200 bg-white text-stone-500",
+                            )}
+                          >
+                            <CheckCheck className="size-3.5" strokeWidth={2.5} />
+                            {proposalViewed ? "Viewed by BU" : "Awaiting BU review"}
+                          </span>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="app-sent-proposal">
+                              Proposal used to apply
+                            </Label>
+                            {proposalDraft.trim() && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={isPending}
+                                onClick={() => setSentProposal(proposalDraft)}
+                                className="h-7 gap-1.5 text-xs"
+                                title="Copy the current draft from the Proposal tab into this field"
+                              >
+                                <Copy className="size-3" />
+                                Copy from draft
+                              </Button>
+                            )}
+                          </div>
+                          <Textarea
+                            id="app-sent-proposal"
+                            rows={6}
+                            value={sentProposal}
+                            onChange={(e) => setSentProposal(e.target.value)}
+                            placeholder="Paste the proposal exactly as it was submitted on Upwork — so managers review what the client actually saw."
+                            className="bg-white"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="app-sent-feedback">
+                            Manager feedback
+                          </Label>
+                          <Textarea
+                            id="app-sent-feedback"
+                            rows={3}
+                            value={sentFeedback}
+                            onChange={(e) => setSentFeedback(e.target.value)}
+                            placeholder="Managers: what should BD do differently next time? Lands in Activity with your name."
+                            className="bg-white"
+                          />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void saveReviewToggle("buReviewed", !buReviewed)
+                            }
+                            title="Did the BU/manager review this application? Saves instantly."
+                            className={cn(
+                              "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition",
+                              buReviewed
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : "border-stone-200 bg-white text-stone-500 hover:border-stone-300",
+                            )}
+                          >
+                            <Check className="size-3.5" strokeWidth={2.5} />
+                            BU reviewed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void saveReviewToggle(
+                                "proposalViewed",
+                                !proposalViewed,
+                              )
+                            }
+                            title="Did a manager read the sent proposal? Saves instantly — shows as the double tick in the list."
+                            className={cn(
+                              "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition",
+                              proposalViewed
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : "border-stone-200 bg-white text-stone-500 hover:border-stone-300",
+                            )}
+                          >
+                            <CheckCheck className="size-3.5" strokeWidth={2.5} />
+                            Proposal viewed
+                          </button>
+                          <div className="ml-auto">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isPending}
+                              onClick={saveReviewTrail}
+                            >
+                              {isPending ? "Saving..." : "Save review"}
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-stone-400">
+                          The pills save instantly with your name in Activity;
+                          “Save review” stores the proposal and feedback text.
+                        </p>
                       </div>
+
                       {statusMessage && (
                         <p className="text-xs text-stone-500">
                           {statusMessage}

@@ -23,6 +23,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),
   SLACK_WEBHOOK_URL: z.string().optional(),
+  // USD per Upwork connect for digest spend estimates (boosts skew real cost).
+  CONNECT_RATE_USD: z.coerce.number().positive().default(0.15),
   CRON_SECRET: z.string().optional(),
   ZENROWS_API_KEY: z.string().optional(),
   BRIGHTDATA_API_TOKEN: z.string().optional(),
@@ -51,6 +53,7 @@ export const env = envSchema.parse({
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
   SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL,
+  CONNECT_RATE_USD: process.env.CONNECT_RATE_USD,
   CRON_SECRET: process.env.CRON_SECRET,
   ZENROWS_API_KEY: process.env.ZENROWS_API_KEY,
   BRIGHTDATA_API_TOKEN: process.env.BRIGHTDATA_API_TOKEN,

@@ -224,9 +224,9 @@ export default function DocsPage() {
           </p>
           <H3>Daily digest</H3>
           <p>
-            Every morning at 9:00 (PKT) Slack gets yesterday&apos;s per-profile numbers — leads in,
-            qualified, applied (with connects), replies, calls, wins — plus how many qualified
-            leads have been sitting unapplied for over 24 hours.
+            Every morning at 9:00 (PKT) Slack gets yesterday&apos;s funnel rates, connect spend,
+            and a per-profile table (In / Qual / App / Proposal viewed / BU reviewed) with a
+            severity signal so low convertors float to the top.
           </p>
           <H3>Metrics drill-down</H3>
           <p>

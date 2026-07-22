@@ -188,7 +188,7 @@ export default function DocsPage() {
           <p>A lead pings Slack only when all of these hold:</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>it just enriched for the first time (crons and re-enrichment stay quiet),</li>
-            <li>the match score is above 30%,</li>
+            <li>it qualified — alerts mirror the triage outcome (a Settings “alert floor”, default 0, can silence low-scoring qualified leads if the channel gets noisy),</li>
             <li>the judge didn&apos;t reject it,</li>
             <li>the alert email is less than <strong>24 hours old</strong> (backfilled or stale jobs never ping),</li>
             <li>no sibling profile already alerted for the same job.</li>

@@ -7,7 +7,7 @@ import { fetchUpworkJob, isScrapeConfigured, type EnrichOutcome } from '@/lib/sc
 import { fetchUpworkJobViaApi, isUpworkApiEnabled } from '@/lib/upwork/api';
 import { generateProposalDraft } from '@/lib/ai/proposals';
 import { appendProjectsToSummary, relevantProjectsForJob } from '@/domain/projects/relevant-projects';
-import { getSlackMinScore } from '@/domain/integrations/repository';
+import { getSlackAlertFloor, getSlackMinScore } from '@/domain/integrations/repository';
 import { findDuplicateSiblings } from '@/domain/leads/duplicates';
 import { notifySlackNewLead } from '@/lib/slack';
 
@@ -18,9 +18,9 @@ function confidenceLabel(c: number): string {
   return 'Low';
 }
 
-// Only Slack-alert leads scoring above this Match % — low-fit leads stay out of
-// the channel. The 🟢/⚪ dot (slackMinScore) still flags the strong ones above it.
-const SLACK_ALERT_MIN_MATCH = 30;
+// Alerting is aligned with triage: every lead that ends up QUALIFIED pings Slack
+// (rejected leads never do). The Settings "alert floor" (default 0) can silence
+// low scorers if the channel gets noisy; the 🟢/⚪ dot still marks the hot ones.
 
 // Never Slack-alert a job whose alert arrived more than this long ago — speed is
 // the whole point of the ping, and backfills/re-syncs ingest days-old mail whose
@@ -73,7 +73,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   });
   if (!profileConfig) return { ok: false, reason: 'No active profile configuration for this lead.' };
 
-  const slackMinScore = await getSlackMinScore();
+  const [slackMinScore, slackAlertFloor] = await Promise.all([getSlackMinScore(), getSlackAlertFloor()]);
   const freshLead = !lead.enrichedAt && (lead.status === LeadStatus.NEW || lead.status === LeadStatus.QUALIFIED);
   const alertAgeOk = Date.now() - lead.createdAt.getTime() <= SLACK_ALERT_MAX_AGE_MS;
 
@@ -81,7 +81,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   // lead on another profile, stay quiet here — one job shouldn't ping twice (and
   // shouldn't be pursued by two profiles). The lead panel shows the cross-profile link.
   const siblings = await findDuplicateSiblings({ leadId, sourceUrl: lead.sourceUrl, accountId: lead.accountId });
-  const siblingAlreadyAlerted = siblings.some((s) => s.enrichedAt && s.score > SLACK_ALERT_MIN_MATCH && !s.rejected);
+  const siblingAlreadyAlerted = siblings.some((s) => s.enrichedAt && s.score >= slackAlertFloor && !s.rejected);
 
   // API-first (fast, official public marketplace search), then fall back to the
   // Bright Data scraper for anything the API can't return (invite-only / closed /
@@ -132,12 +132,11 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
       );
     }
     await prisma.$transaction(unfetchedOps);
-    // Alert on every fresh lead, even when we couldn't fetch the full job — the
-    // email-derived meta still tells the user it landed. enrichedAt is set above, so
-    // retries won't re-alert (freshLead turns false once it's been attempted).
+    // Alert on every fresh lead that qualified, even when we couldn't fetch the full
+    // job — the email-derived meta still tells the user it landed. enrichedAt is set
+    // above, so retries won't re-alert (freshLead turns false once attempted).
     const existingScore = lead.evaluations[0]?.score ?? 0;
-    const existingRejected = (lead.evaluations[0]?.rejectionReasons?.length ?? 0) > 0;
-    if (freshLead && alertAgeOk && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected && !siblingAlreadyAlerted) {
+    if (freshLead && alertAgeOk && unfetchedNext === LeadStatus.QUALIFIED && existingScore >= slackAlertFloor && !siblingAlreadyAlerted) {
       // Awaited on purpose: a floating send gets killed when the serverless
       // instance freezes right after this return — alerts vanished silently.
       const slack = await notifySlackNewLead({
@@ -317,7 +316,7 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
 
   // Rich meta alert on every fresh lead above the match floor (first enrichment
   // only, so re-enriching is quiet). The dot is 🟢 when the score clears "hot".
-  if (freshLead && alertAgeOk && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0 && !siblingAlreadyAlerted) {
+  if (freshLead && alertAgeOk && nextStatus === LeadStatus.QUALIFIED && evaluation.score >= slackAlertFloor && !siblingAlreadyAlerted) {
     const clientLocation = [c.location, c.country].map((s) => s?.trim()).filter(Boolean).join(', ') || null;
     // Awaited on purpose: this runs at the tail of the request/after() work, and a
     // floating send gets killed when the instance freezes — alerts vanished silently.

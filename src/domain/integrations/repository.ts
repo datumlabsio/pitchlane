@@ -96,6 +96,25 @@ export async function getSlackMinScore(): Promise<number> {
   return getMetaSlackMinScore(connection?.metadata);
 }
 
+// Minimum score for a QUALIFIED lead to ping Slack at all. Default 0: alerting is
+// aligned with the triage outcome (every qualified lead alerts) unless the team
+// raises the floor from Settings because the channel gets noisy.
+export function getMetaSlackAlertFloor(metadata: unknown): number {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    const m = metadata as Record<string, unknown>;
+    if (typeof m.slackAlertFloor === 'number' && m.slackAlertFloor >= 0 && m.slackAlertFloor <= 100) {
+      return m.slackAlertFloor;
+    }
+  }
+  return 0;
+}
+
+/** Read the global Slack alert floor from the Gmail connection metadata. */
+export async function getSlackAlertFloor(): Promise<number> {
+  const connection = await getGoogleConnection();
+  return getMetaSlackAlertFloor(connection?.metadata);
+}
+
 export async function getGoogleConnectionStatus() {
   const connection = await getGoogleConnection();
   const latestSync = await prisma.syncRun.findFirst({
@@ -110,6 +129,7 @@ export async function getGoogleConnectionStatus() {
     updatedAt: connection?.updatedAt ?? null,
     syncIntervalMinutes: getMetaSyncInterval(connection?.metadata),
     slackMinScore: getMetaSlackMinScore(connection?.metadata),
+    slackAlertFloor: getMetaSlackAlertFloor(connection?.metadata),
     latestSync: latestSync
       ? {
           startedAt: latestSync.startedAt,
@@ -177,6 +197,18 @@ export async function updateSlackMinScore(score: number) {
     where: { provider: IntegrationProvider.GOOGLE_GMAIL },
     update: { metadata: { ...currentMeta, slackMinScore: score } },
     create: { provider: IntegrationProvider.GOOGLE_GMAIL, metadata: { slackMinScore: score } },
+  });
+}
+
+export async function updateSlackAlertFloor(score: number) {
+  const connection = await getGoogleConnection();
+  const currentMeta = (connection?.metadata && typeof connection.metadata === 'object' && !Array.isArray(connection.metadata))
+    ? (connection.metadata as Record<string, unknown>)
+    : {};
+  return prisma.integrationConnection.upsert({
+    where: { provider: IntegrationProvider.GOOGLE_GMAIL },
+    update: { metadata: { ...currentMeta, slackAlertFloor: score } },
+    create: { provider: IntegrationProvider.GOOGLE_GMAIL, metadata: { slackAlertFloor: score } },
   });
 }
 

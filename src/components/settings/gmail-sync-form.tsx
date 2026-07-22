@@ -15,12 +15,14 @@ type Props = {
   connected: boolean;
   hasModifyScope: boolean;
   slackMinScore: number;
+  slackAlertFloor: number;
 };
 
 export function GmailSyncForm({
   connected,
   hasModifyScope,
   slackMinScore: initialSlackScore,
+  slackAlertFloor: initialAlertFloor,
 }: Props) {
   const [syncPending, setSyncPending] = useState(false);
   const [labelPending, setLabelPending] = useState(false);
@@ -29,6 +31,9 @@ export function GmailSyncForm({
   const [slackScore, setSlackScore] = useState(initialSlackScore);
   const [savedSlackScore, setSavedSlackScore] = useState(initialSlackScore);
   const [slackSaving, setSlackSaving] = useState(false);
+  const [alertFloor, setAlertFloor] = useState(initialAlertFloor);
+  const [savedAlertFloor, setSavedAlertFloor] = useState(initialAlertFloor);
+  const [floorSaving, setFloorSaving] = useState(false);
   const [error, setError] = useState('');
 
   const canAct = connected && hasModifyScope;
@@ -84,6 +89,25 @@ export function GmailSyncForm({
     }
   }
 
+  async function onSaveAlertFloor(score: number) {
+    setFloorSaving(true);
+    setError('');
+    try {
+      const res = await fetch('/api/integrations/gmail/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slackAlertFloor: score }),
+      });
+      const payload = await res.json();
+      if (!res.ok || !payload.ok) { setError(payload.error || 'Failed to save alert floor'); return; }
+      setSavedAlertFloor(score);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save alert floor');
+    } finally {
+      setFloorSaving(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {connected && !hasModifyScope && (
@@ -92,7 +116,7 @@ export function GmailSyncForm({
         </p>
       )}
 
-      {/* Slack alert threshold */}
+      {/* Slack alert thresholds */}
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-xs text-stone-400 shrink-0">🟢 Hot lead threshold</p>
         <div className="flex items-center gap-2">
@@ -120,8 +144,38 @@ export function GmailSyncForm({
           )}
         </div>
       </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-xs text-stone-400 shrink-0">🔕 Alert floor</p>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step={5}
+            value={alertFloor}
+            onChange={(e) => setAlertFloor(Math.max(0, Math.min(100, Math.round(Number(e.target.value)) || 0)))}
+            className="w-20 rounded-lg border border-white/15 bg-white/8 px-3 py-1.5 text-xs text-stone-200 focus:outline-none focus:ring-1 focus:ring-white/30"
+          />
+          <span className="text-xs text-stone-500">% match</span>
+          {alertFloor !== savedAlertFloor ? (
+            <button
+              type="button"
+              disabled={floorSaving}
+              onClick={() => onSaveAlertFloor(alertFloor)}
+              className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-medium text-stone-950 transition hover:bg-amber-300 disabled:opacity-50"
+            >
+              {floorSaving ? 'Saving…' : 'Save'}
+            </button>
+          ) : (
+            <span className="text-xs text-stone-500">· saved</span>
+          )}
+        </div>
+      </div>
       <p className="text-xs text-stone-500">
-        Leads scoring above 30% Match are posted to Slack once enrichment finishes; lower ones are skipped. Those at or above this threshold are flagged 🟢 hot (others ⚪). Default 40%.
+        Every lead the judge qualifies is posted to Slack (rejected leads never are). Raise the alert
+        floor to silence qualified leads scoring below it if the channel gets noisy — at 0 (default),
+        all qualified leads alert. The hot threshold only controls the 🟢/⚪ dot. Re-enrichment, stale
+        emails (24h+), and same-job siblings stay quiet as before.
       </p>
 
       {/* Action buttons */}

@@ -442,6 +442,18 @@ function ActivityItem({
           title: "Also fits other profiles",
           tint: "bg-amber-100 text-amber-700",
         };
+      case "lead.slack_alerted":
+        return payload.delivered === false
+          ? {
+              icon: X,
+              title: "Slack alert failed",
+              tint: "bg-rose-100 text-rose-700",
+            }
+          : {
+              icon: Mail,
+              title: "Slack alert sent",
+              tint: "bg-emerald-100 text-emerald-700",
+            };
       case "proposal.feedback_updated":
         return {
           icon: FileEdit,

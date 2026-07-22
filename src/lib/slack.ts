@@ -141,17 +141,24 @@ export async function notifySlackSyncDown(minutesSince: number | null): Promise<
   }
 }
 
-export async function notifySlackNewLead(payload: SlackLeadPayload): Promise<void> {
+export type SlackSendResult = { delivered: boolean; status: number | null };
+
+// Never throws — callers MUST await it (a floating promise gets killed when the
+// serverless instance freezes after the response; that silently ate alerts) and
+// should record the result so delivery is visible in the lead's activity trail.
+export async function notifySlackNewLead(payload: SlackLeadPayload): Promise<SlackSendResult> {
   const webhookUrl = env.SLACK_WEBHOOK_URL;
-  if (!webhookUrl) return;
+  if (!webhookUrl) return { delivered: false, status: null };
 
   try {
-    await fetch(webhookUrl, {
+    const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(buildLeadAlertBody(payload)),
     });
+    return { delivered: res.ok, status: res.status };
   } catch {
     // Slack notifications are best-effort — never fail the caller.
+    return { delivered: false, status: null };
   }
 }

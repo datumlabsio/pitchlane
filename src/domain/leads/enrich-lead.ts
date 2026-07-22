@@ -138,7 +138,9 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
     const existingScore = lead.evaluations[0]?.score ?? 0;
     const existingRejected = (lead.evaluations[0]?.rejectionReasons?.length ?? 0) > 0;
     if (freshLead && alertAgeOk && existingScore > SLACK_ALERT_MIN_MATCH && !existingRejected && !siblingAlreadyAlerted) {
-      void notifySlackNewLead({
+      // Awaited on purpose: a floating send gets killed when the serverless
+      // instance freezes right after this return — alerts vanished silently.
+      const slack = await notifySlackNewLead({
         variant: outcome.status, // 'private' | 'failed'
         profileName: lead.account.personName,
         title: lead.title,
@@ -152,6 +154,13 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
         receivedAt: lead.createdAt,
         leadId,
         sourceUrl: lead.sourceUrl,
+      });
+      await prisma.leadEvent.create({
+        data: {
+          leadId,
+          type: 'lead.slack_alerted',
+          payload: { delivered: slack.delivered, status: slack.status, score: existingScore, actor: 'system' },
+        },
       });
     }
     return { ok: true, outcome: outcome.status };
@@ -310,7 +319,9 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
   // only, so re-enriching is quiet). The dot is 🟢 when the score clears "hot".
   if (freshLead && alertAgeOk && evaluation.score > SLACK_ALERT_MIN_MATCH && evaluation.rejectionReasons.length === 0 && !siblingAlreadyAlerted) {
     const clientLocation = [c.location, c.country].map((s) => s?.trim()).filter(Boolean).join(', ') || null;
-    void notifySlackNewLead({
+    // Awaited on purpose: this runs at the tail of the request/after() work, and a
+    // floating send gets killed when the instance freezes — alerts vanished silently.
+    const slack = await notifySlackNewLead({
       variant: 'enriched',
       profileName: lead.account.personName,
       title: lead.title,
@@ -330,6 +341,15 @@ export async function enrichLead(leadId: string, opts?: { force?: boolean }): Pr
       receivedAt: lead.createdAt,
       leadId,
       sourceUrl: lead.sourceUrl,
+    });
+    // Delivery goes on the record — "did this lead ping Slack?" is answerable from
+    // the Activity tab instead of by archaeology.
+    await prisma.leadEvent.create({
+      data: {
+        leadId,
+        type: 'lead.slack_alerted',
+        payload: { delivered: slack.delivered, status: slack.status, score: evaluation.score, actor: 'system' },
+      },
     });
   }
 

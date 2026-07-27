@@ -181,8 +181,8 @@ export function LeadKanban({
                         >
                           <title>
                             {lead.proposalViewed
-                              ? 'Proposal viewed by BU'
-                              : 'Awaiting BU review'}
+                              ? 'Client viewed the proposal'
+                              : 'Not viewed by the client yet'}
                           </title>
                         </CheckCheck>
                       )}

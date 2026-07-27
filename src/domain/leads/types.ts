@@ -62,7 +62,7 @@ export type LeadSummary = {
   proposal: string;
   summary: string[];
   sourceUrl: string | null;
-  // null = never applied; else whether a manager has viewed the sent proposal.
+  // null = never applied; else whether the CLIENT viewed the proposal on Upwork.
   proposalViewed: boolean | null;
 };
 

@@ -25,7 +25,8 @@ export type ProfileRow = {
   leadsIn: number;
   qualified: number;
   applied: number;
-  // Of that day's applied, how many have proposalViewed / buReviewed ticked so far.
+  // Of that day's applied: proposalViewed = the CLIENT viewed it on Upwork ("PV"
+  // column); buReviewed = internal BU review done ("BU" column).
   proposalViewed: number;
   buReviewed: number;
   replies: number;

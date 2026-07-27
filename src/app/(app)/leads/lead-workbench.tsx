@@ -472,8 +472,8 @@ function ActivityItem({
           icon: Check,
           title:
             payload.proposalViewed === false
-              ? "Proposal viewed unmarked"
-              : "Proposal viewed",
+              ? "Client-viewed unmarked"
+              : "Proposal viewed by client",
           tint: "bg-sky-100 text-sky-700",
         };
       default:
@@ -1209,7 +1209,7 @@ export function LeadWorkbench({
     );
   }
 
-  // Instant-save toggles — a manager ticking "viewed" shouldn't need to find Save.
+  // Instant-save toggles — ticking a box shouldn't need a Save hunt.
   // These deliberately do NOT go through postApplication: that would persist the
   // whole half-edited form and refresh the panel (resetting every field mid-edit).
   // Instead: optimistic flip, a minimal partial POST of just this field, and a
@@ -1220,7 +1220,8 @@ export function LeadWorkbench({
   ) {
     if (!selectedLead) return;
     const setter = field === "buReviewed" ? setBuReviewed : setProposalViewed;
-    const label = field === "buReviewed" ? "BU reviewed" : "Proposal viewed";
+    const label =
+      field === "buReviewed" ? "BU reviewed" : "Proposal viewed by client";
     setter(next);
     try {
       const res = await fetch("/api/applications", {
@@ -1662,8 +1663,8 @@ export function LeadWorkbench({
                           {lead.status}
                         </span>
                         {lead.proposalViewed !== null && (
-                          // WhatsApp-style read receipt: double green tick = the BU
-                          // manager viewed the sent proposal; grey = not yet.
+                          // WhatsApp-style read receipt: double green tick = the
+                          // CLIENT viewed the proposal on Upwork; grey = not yet.
                           <CheckCheck
                             strokeWidth={2.5}
                             className={cn(
@@ -1674,14 +1675,14 @@ export function LeadWorkbench({
                             )}
                             aria-label={
                               lead.proposalViewed
-                                ? "Proposal viewed by BU"
-                                : "Awaiting BU review"
+                                ? "Client viewed the proposal"
+                                : "Not viewed by the client yet"
                             }
                           >
                             <title>
                               {lead.proposalViewed
-                                ? "Proposal viewed by BU"
-                                : "Awaiting BU review"}
+                                ? "Client viewed the proposal"
+                                : "Not viewed by the client yet"}
                             </title>
                           </CheckCheck>
                         )}
@@ -2546,7 +2547,9 @@ export function LeadWorkbench({
                             )}
                           >
                             <CheckCheck className="size-3.5" strokeWidth={2.5} />
-                            {proposalViewed ? "Viewed by BU" : "Awaiting BU review"}
+                            {proposalViewed
+                              ? "Viewed by client"
+                              : "Not viewed by client yet"}
                           </span>
                         </div>
                         <div className="space-y-1.5">
@@ -2634,7 +2637,7 @@ export function LeadWorkbench({
                                 !proposalViewed,
                               )
                             }
-                            title="Did a manager read the sent proposal? Saves instantly — shows as the double tick in the list."
+                            title="Did the CLIENT view the proposal on Upwork? Saves instantly — shows as the double tick in the list."
                             className={cn(
                               "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition",
                               proposalViewed
@@ -2643,7 +2646,7 @@ export function LeadWorkbench({
                             )}
                           >
                             <CheckCheck className="size-3.5" strokeWidth={2.5} />
-                            Proposal viewed
+                            Viewed by client
                           </button>
                           <div className="ml-auto">
                             <Button

@@ -173,8 +173,8 @@ model Application {
   sentProposal         String?      @db.Text
   // Manager feedback on the sent proposal, for BD to act on.
   proposalFeedback     String?      @db.Text
-  // Review-tracking toggles: BU/manager reviewed this application; manager viewed
-  // the sent proposal. Fields, not lifecycle stages.
+  // Tracking toggles (fields, not lifecycle stages): BU/manager reviewed this
+  // application; the CLIENT viewed the proposal on Upwork ("viewed by client").
   buReviewed           Boolean      @default(false)
   proposalViewed       Boolean      @default(false)
   createdAt            DateTime     @default(now())

@@ -185,7 +185,7 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
       proposal: proposal?.content ?? '',
       summary: evaluation?.summary ?? [],
       sourceUrl: lead.sourceUrl,
-      // null = never applied; boolean = whether a manager viewed the sent proposal.
+      // null = never applied; boolean = whether the CLIENT viewed the proposal on Upwork.
       proposalViewed: lead.applications[0]?.appliedAt ? lead.applications[0].proposalViewed : null,
     };
   });

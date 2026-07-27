@@ -178,9 +178,11 @@ export default function DocsPage() {
             On the <strong>Application tab</strong>, paste the proposal exactly as submitted into{' '}
             <strong>“Proposal used to apply”</strong> (one click copies the current draft). Managers
             review it there, leave <strong>feedback</strong> for BD (it lands in the Activity feed
-            with their name), and tick <strong>Proposal viewed</strong> / <strong>BU reviewed</strong> so
-            everyone can see the review actually happened. Log <strong>connects refunded</strong> on the
-            same tab when Upwork returns connects for a closed job.
+            with their name), and tick <strong>BU reviewed</strong> once the internal review happened.
+            Separately, tick <strong>Viewed by client</strong> when Upwork shows the client opened the
+            proposal — it becomes the green double tick on the lead (grey = not viewed yet). Log{' '}
+            <strong>connects refunded</strong> on the same tab when Upwork returns connects for a
+            closed job.
           </p>
         </Section>
 

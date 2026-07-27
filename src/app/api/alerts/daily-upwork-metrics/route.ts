@@ -10,15 +10,27 @@ function cronAuthorized(request: NextRequest) {
   return request.headers.get('authorization') === `Bearer ${secret}`;
 }
 
-// Fired by the external cron at 04:00 UTC (09:00 PKT): posts yesterday's per-profile
-// performance digest to the team Slack channel. The digest JSON is returned too, so
-// a manual hit doubles as a debug view.
+// daily-upwork-metrics — external cron at 23:00 UTC Mon–Fri (4:00 PKT Tue–Sat).
+// Posts yesterday's per-profile metrics when yesterday (PKT) was a weekday.
+// Skips Sun/Mon 4am runs (weekend data). ?force=1 posts anyway. Manual hit doubles as debug.
 export async function GET(request: NextRequest) {
   if (!cronAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const digest = await sendDailyDigest();
-  return NextResponse.json({ ok: true, digest });
+
+  const force = request.nextUrl.searchParams.get('force') === '1';
+  const result = await sendDailyDigest({ force });
+
+  if (result.skipped) {
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      reason: result.reason,
+      digest: result.digest,
+    });
+  }
+
+  return NextResponse.json({ ok: true, digest: result.digest });
 }
 
 export async function POST(request: NextRequest) {

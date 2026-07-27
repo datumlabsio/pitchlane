@@ -7,7 +7,9 @@ import {
   formatConPerApp,
   formatFraction,
   formatPct,
+  pktYesterdayWindow,
   rowSignal,
+  shouldSendDailyDigest,
   type DailyDigest,
   type ProfileRow,
 } from '@/domain/metrics/daily-digest';
@@ -75,22 +77,42 @@ function allText(body: { text: string; blocks: Array<Record<string, unknown>> })
   return JSON.stringify(body);
 }
 
+/** PKT 4:00 on a given calendar date → UTC instant (PKT = UTC+5). */
+function pktAt(isoDate: string, hour = 4): Date {
+  const [y, m, d] = isoDate.split('-').map(Number) as [number, number, number];
+  return new Date(Date.UTC(y, m - 1, d, hour - 5, 0, 0));
+}
+
 describe('rowSignal', () => {
-  it('marks qualified with zero applied as red', () => {
-    expect(rowSignal({ qualified: 12, applied: 0 })).toBe('red');
+  it('marks applied under 3 as red', () => {
+    expect(rowSignal({ applied: 0 })).toBe('red');
+    expect(rowSignal({ applied: 2 })).toBe('red');
   });
 
-  it('marks applied with zero qualified as red', () => {
-    expect(rowSignal({ qualified: 0, applied: 3 })).toBe('red');
+  it('marks applied 3+ as green', () => {
+    expect(rowSignal({ applied: 3 })).toBe('green');
+    expect(rowSignal({ applied: 6 })).toBe('green');
+  });
+});
+
+describe('shouldSendDailyDigest', () => {
+  it('sends Tue–Sat 4am PKT (yesterday was Mon–Fri)', () => {
+    // Tue 2026-07-28 4am PKT → yesterday Mon
+    expect(shouldSendDailyDigest(pktAt('2026-07-28'))).toBe(true);
+    // Sat 2026-07-25 4am PKT → yesterday Fri
+    expect(shouldSendDailyDigest(pktAt('2026-07-25'))).toBe(true);
   });
 
-  it('marks applied/qualified under 50% as yellow', () => {
-    expect(rowSignal({ qualified: 5, applied: 1 })).toBe('yellow');
+  it('skips Sun and Mon 4am PKT (yesterday was Sat/Sun)', () => {
+    // Sun 2026-07-26 4am PKT → yesterday Sat
+    expect(shouldSendDailyDigest(pktAt('2026-07-26'))).toBe(false);
+    // Mon 2026-07-27 4am PKT → yesterday Sun
+    expect(shouldSendDailyDigest(pktAt('2026-07-27'))).toBe(false);
   });
 
-  it('marks healthy convertors as green', () => {
-    expect(rowSignal({ qualified: 4, applied: 6 })).toBe('green');
-    expect(rowSignal({ qualified: 4, applied: 2 })).toBe('green');
+  it('pktYesterdayWindow labels match the calendar day before the fire time', () => {
+    expect(pktYesterdayWindow(pktAt('2026-07-25')).label).toBe('2026-07-24');
+    expect(pktYesterdayWindow(pktAt('2026-07-27')).label).toBe('2026-07-26');
   });
 });
 
@@ -100,7 +122,7 @@ describe('format helpers', () => {
     expect(formatConPerApp(20, 0)).toBe('–');
   });
 
-  it('formats PV/BU fractions and con/app', () => {
+  it('formats Proposal view / BU review fractions and con/app', () => {
     expect(formatFraction(1, 6)).toBe('1/6');
     expect(formatConPerApp(115, 6)).toBe('19');
   });
@@ -112,9 +134,9 @@ describe('format helpers', () => {
 });
 
 describe('buildDigestTableRows', () => {
-  it('sorts red → yellow → green, then leadsIn desc, and appends Total', () => {
+  it('sorts red → green, then leadsIn desc, without a Total row', () => {
     const profiles = buildDigestTableRows(SAMPLE).map((r) => r.profile);
-    expect(profiles).toEqual(['Humayun Jawad', 'Abdur Rehman', 'Faizan Khan', 'Total']);
+    expect(profiles).toEqual(['Abdur Rehman', 'Humayun Jawad', 'Faizan Khan']);
   });
 
   it('drops inactive profiles', () => {
@@ -123,50 +145,29 @@ describe('buildDigestTableRows', () => {
 });
 
 describe('buildDailyDigestBody', () => {
-  it('renders funnel rates, spend, and a native table with PV/BU columns', () => {
+  it('renders funnel, spend, compact profile rows, and context total', () => {
     const body = buildDailyDigestBody(SAMPLE, { connectRateUsd: 0.15 });
     const text = allText(body);
 
-    expect(body.text).toContain('Daily digest — 2026-07-21');
+    expect(body.text).toContain('Daily Upwork metrics — 2026-07-21');
     expect(text).toContain('46 in → 24 qualified (52%) → 14 applied (58%)');
-    expect(text).toContain('270 connects · $40.50 spent · 19 con/app');
-    expect(text).toContain('Replies 1 · Calls 1 · Won 0');
+    expect(text).toContain('💰 270 connects • $40.50 • 19 con/app');
+    expect(text).not.toContain('Replies');
 
-    const table = body.blocks.find((b) => b.type === 'table') as {
-      rows: Array<Array<{ text: string }>>;
-    };
-    expect(table).toBeTruthy();
-    const header = table.rows[0]!.map((c) => c.text);
-    expect(header).toEqual(['', 'Profile', 'In', 'Qual', 'App', 'PV', 'BU', 'Con/App']);
+    expect(body.blocks.some((b) => b.type === 'table')).toBe(false);
+    expect(body.blocks.filter((b) => b.type === 'divider')).toHaveLength(2);
 
-    const humayun = table.rows.find((r) => r[1]?.text === 'Humayun Jawad');
-    expect(humayun?.[0]?.text).toBe('🔴');
-    expect(humayun?.[5]?.text).toBe('–');
-    expect(humayun?.[6]?.text).toBe('–');
-
-    const faizan = table.rows.find((r) => r[1]?.text === 'Faizan Khan');
-    expect(faizan?.[0]?.text).toBe('🟢');
-    expect(faizan?.[5]?.text).toBe('1/6');
-    expect(faizan?.[6]?.text).toBe('0/6');
-    expect(faizan?.[7]?.text).toBe('19');
-
-    const total = table.rows[table.rows.length - 1]!;
-    expect(total[1]?.text).toBe('Total');
-    expect(total[5]?.text).toBe('1/14');
-    expect(total[6]?.text).toBe('0/14');
+    expect(text).toContain('🔴 *Abdur Rehman*   14 in • 5 qual • 1 app • 0/1 Proposal view • 0/1 BU review');
+    expect(text).toContain('🔴 *Humayun Jawad*   13 in • 12 qual • 0 app • – Proposal view • – BU review');
+    expect(text).toContain(
+      '🟢 *Faizan Khan*   11 in • 4 qual • 6 app • 1/6 Proposal view • 0/6 BU review',
+    );
+    expect(text).toContain('Total: 14 applied • 1/14 Proposal view • 0/14 BU review');
   });
 
   it('respects a custom connect rate for spend', () => {
     const body = buildDailyDigestBody(SAMPLE, { connectRateUsd: 0.2 });
-    expect(allText(body)).toContain('$54.00 spent');
-  });
-
-  it('omits the replies line when all three are zero', () => {
-    const quiet: DailyDigest = {
-      ...SAMPLE,
-      totals: { ...SAMPLE.totals, replies: 0, calls: 0, won: 0 },
-    };
-    expect(allText(buildDailyDigestBody(quiet))).not.toContain('Replies');
+    expect(allText(body)).toContain('$54.00');
   });
 
   it('has no eye emoji and no footer backlog copy', () => {
@@ -183,15 +184,9 @@ describe('buildDailyDigestBody', () => {
 });
 
 describe('buildDailyDigestFallbackBody', () => {
-  it('renders a monospace matrix with the same sort and fractions', () => {
-    const body = buildDailyDigestFallbackBody(SAMPLE, { connectRateUsd: 0.15 });
-    const text = allText(body);
-    expect(body.blocks.some((b) => b.type === 'table')).toBe(false);
-    expect(text).toContain('```');
-    expect(text).toContain('Humayun Jawad');
-    expect(text).toContain('1/6');
-    expect(text).toContain('0/6');
-    expect(text).toContain('$40.50 spent');
-    expect(text).not.toContain('👀');
+  it('matches the primary compact body', () => {
+    const primary = buildDailyDigestBody(SAMPLE, { connectRateUsd: 0.15 });
+    const fallback = buildDailyDigestFallbackBody(SAMPLE, { connectRateUsd: 0.15 });
+    expect(fallback).toEqual(primary);
   });
 });

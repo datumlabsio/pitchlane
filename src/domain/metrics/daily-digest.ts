@@ -4,11 +4,11 @@ import { env } from '@/lib/env';
 // The team works in Pakistan time; the digest covers a PKT calendar day.
 const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
 
-const SIGNAL_RANK = { red: 0, yellow: 1, green: 2 } as const;
+const SIGNAL_RANK = { red: 0, green: 1 } as const;
 
 export type DigestWindow = { start: Date; end: Date; label: string };
 
-export type DigestSignal = 'red' | 'yellow' | 'green';
+export type DigestSignal = 'red' | 'green';
 
 /** Yesterday as a PKT calendar day, expressed in UTC instants. */
 export function pktYesterdayWindow(now = new Date()): DigestWindow {
@@ -18,6 +18,17 @@ export function pktYesterdayWindow(now = new Date()): DigestWindow {
   const start = new Date(pktMidnightUtcMs - 24 * 60 * 60 * 1000);
   const label = new Date(start.getTime() + PKT_OFFSET_MS).toISOString().slice(0, 10);
   return { start, end: new Date(pktMidnightUtcMs), label };
+}
+
+/**
+ * Send when yesterday (PKT) was Mon–Fri. Skips Sun 4am (Sat data) and Mon 4am (Sun data).
+ * Cron fires Tue–Sat 4:00 PKT (`0 23 * * 1-5` UTC).
+ */
+export function shouldSendDailyDigest(now = new Date()): boolean {
+  const { start } = pktYesterdayWindow(now);
+  const pktYesterday = new Date(start.getTime() + PKT_OFFSET_MS);
+  const day = pktYesterday.getUTCDay(); // 0=Sun … 6=Sat
+  return day >= 1 && day <= 5;
 }
 
 export type ProfileRow = {
@@ -141,20 +152,13 @@ export async function computeDailyDigest(window = pktYesterdayWindow()): Promise
   return { windowLabel: window.label, rows, totals };
 }
 
-/** Severity for a profile row (exported for tests). */
-export function rowSignal(row: Pick<ProfileRow, 'qualified' | 'applied'>): DigestSignal {
-  if ((row.qualified > 0 && row.applied === 0) || (row.applied > 0 && row.qualified === 0)) {
-    return 'red';
-  }
-  if (row.qualified > 0 && row.applied / row.qualified < 0.5) {
-    return 'yellow';
-  }
-  return 'green';
+/** Red if applied < 3, green otherwise. No other conditions. */
+export function rowSignal(row: Pick<ProfileRow, 'applied'>): DigestSignal {
+  return row.applied < 3 ? 'red' : 'green';
 }
 
 const SIGNAL_EMOJI: Record<DigestSignal, string> = {
   red: '🔴',
-  yellow: '🟡',
   green: '🟢',
 };
 
@@ -181,43 +185,9 @@ function compareProfileRows(a: ProfileRow, b: ProfileRow): number {
   return b.leadsIn - a.leadsIn;
 }
 
-type TableCell = { type: 'raw_text'; text: string };
-
-function rawCell(text: string): TableCell {
-  return { type: 'raw_text', text };
-}
-
-function profileCells(row: ProfileRow, signal: DigestSignal | null): TableCell[] {
-  return [
-    rawCell(signal ? SIGNAL_EMOJI[signal] : ''),
-    rawCell(row.profile),
-    rawCell(String(row.leadsIn)),
-    rawCell(String(row.qualified)),
-    rawCell(String(row.applied)),
-    rawCell(formatFraction(row.proposalViewed, row.applied)),
-    rawCell(formatFraction(row.buReviewed, row.applied)),
-    rawCell(formatConPerApp(row.connectsSpent, row.applied)),
-  ];
-}
-
-/** Active rows sorted red→yellow→green, then leadsIn desc, plus a totals row. */
+/** Active rows sorted red → green, then leadsIn desc. */
 export function buildDigestTableRows(digest: DailyDigest): ProfileRow[] {
-  const active = digest.rows.filter(isActiveRow).sort(compareProfileRows);
-  return [
-    ...active,
-    {
-      profile: 'Total',
-      leadsIn: digest.totals.leadsIn,
-      qualified: digest.totals.qualified,
-      applied: digest.totals.applied,
-      proposalViewed: digest.totals.proposalViewed,
-      buReviewed: digest.totals.buReviewed,
-      replies: digest.totals.replies,
-      calls: digest.totals.calls,
-      won: digest.totals.won,
-      connectsSpent: digest.totals.connectsSpent,
-    },
-  ];
+  return digest.rows.filter(isActiveRow).sort(compareProfileRows);
 }
 
 function resolveConnectRate(options?: DigestBuildOptions): number {
@@ -225,19 +195,11 @@ function resolveConnectRate(options?: DigestBuildOptions): number {
   return env.CONNECT_RATE_USD;
 }
 
-function buildHeadlineLines(digest: DailyDigest, connectRateUsd: number): string[] {
-  const t = digest.totals;
-  const spend = (t.connectsSpent * connectRateUsd).toFixed(2);
-  const conApp = formatConPerApp(t.connectsSpent, t.applied);
-  const lines = [
-    `📊 Daily digest — ${digest.windowLabel}`,
-    `${t.leadsIn} in → ${t.qualified} qualified (${formatPct(t.qualified, t.leadsIn)}) → ${t.applied} applied (${formatPct(t.applied, t.qualified)})`,
-    `${t.connectsSpent} connects · $${spend} spent · ${conApp} con/app`,
-  ];
-  if (t.replies || t.calls || t.won) {
-    lines.push(`Replies ${t.replies} · Calls ${t.calls} · Won ${t.won}`);
-  }
-  return lines;
+function profileRowLine(row: ProfileRow): string {
+  const signal = SIGNAL_EMOJI[rowSignal(row)];
+  const pv = formatFraction(row.proposalViewed, row.applied);
+  const bu = formatFraction(row.buReviewed, row.applied);
+  return `${signal} *${row.profile}*   ${row.leadsIn} in • ${row.qualified} qual • ${row.applied} app • ${pv} Proposal view • ${bu} BU review`;
 }
 
 function actionsBlock(): Record<string, unknown> | null {
@@ -256,75 +218,48 @@ function actionsBlock(): Record<string, unknown> | null {
   };
 }
 
-function pad(value: string, width: number): string {
-  return value.length >= width ? value : `${value}${' '.repeat(width - value.length)}`;
-}
-
-/** Monospace matrix for when Slack rejects the native table block. */
-export function buildDailyDigestFallbackBody(
-  digest: DailyDigest,
-  options?: DigestBuildOptions,
-): { text: string; blocks: Array<Record<string, unknown>> } {
-  const connectRateUsd = resolveConnectRate(options);
-  const lines = buildHeadlineLines(digest, connectRateUsd);
-  const tableRows = buildDigestTableRows(digest);
-  const headers = ['', 'Profile', 'In', 'Qual', 'App', 'PV', 'BU', 'Con/App'];
-  const matrix = tableRows.map((row) => {
-    const isTotal = row.profile === 'Total';
-    const signal = isTotal ? '' : SIGNAL_EMOJI[rowSignal(row)];
-    return [
-      signal,
-      row.profile,
-      String(row.leadsIn),
-      String(row.qualified),
-      String(row.applied),
-      formatFraction(row.proposalViewed, row.applied),
-      formatFraction(row.buReviewed, row.applied),
-      formatConPerApp(row.connectsSpent, row.applied),
-    ];
-  });
-  const widths = headers.map((h, i) =>
-    Math.max(h.length, ...matrix.map((r) => r[i]?.length ?? 0)),
-  );
-  const formatLine = (cols: string[]) => cols.map((c, i) => pad(c, widths[i]!)).join('  ');
-  const code = [formatLine(headers), ...matrix.map(formatLine)].join('\n');
-
-  const blocks: Array<Record<string, unknown>> = [
-    { type: 'header', text: { type: 'plain_text', text: `📊 Daily digest — ${digest.windowLabel}`, emoji: true } },
-    { type: 'section', text: { type: 'mrkdwn', text: lines.slice(1).join('\n') } },
-    { type: 'section', text: { type: 'mrkdwn', text: `\`\`\`\n${code}\n\`\`\`` } },
-  ];
-  const actions = actionsBlock();
-  if (actions) blocks.push(actions);
-
-  return { text: lines.join(' · '), blocks };
-}
-
-/** Block Kit body with native table (pure — exported for tests). */
+/** Compact Block Kit body for daily-upwork-metrics (pure — exported for tests). */
 export function buildDailyDigestBody(
   digest: DailyDigest,
   options?: DigestBuildOptions,
 ): { text: string; blocks: Array<Record<string, unknown>> } {
   const connectRateUsd = resolveConnectRate(options);
-  const lines = buildHeadlineLines(digest, connectRateUsd);
-  const tableRows = buildDigestTableRows(digest);
-
-  const headerRow = ['', 'Profile', 'In', 'Qual', 'App', 'PV', 'BU', 'Con/App'].map(rawCell);
-  const dataRows = tableRows.map((row) => {
-    const isTotal = row.profile === 'Total';
-    return profileCells(row, isTotal ? null : rowSignal(row));
-  });
+  const t = digest.totals;
+  const spend = (t.connectsSpent * connectRateUsd).toFixed(2);
+  const conApp = formatConPerApp(t.connectsSpent, t.applied);
+  const header = `📊 Daily Upwork metrics — ${digest.windowLabel}`;
+  const funnel = `${t.leadsIn} in → ${t.qualified} qualified (${formatPct(t.qualified, t.leadsIn)}) → ${t.applied} applied (${formatPct(t.applied, t.qualified)})`;
+  const spendLine = `💰 ${t.connectsSpent} connects • $${spend} • ${conApp} con/app`;
+  const profiles = buildDigestTableRows(digest);
+  const profileText = profiles.map(profileRowLine).join('\n');
+  const totalPv = formatFraction(t.proposalViewed, t.applied);
+  const totalBu = formatFraction(t.buReviewed, t.applied);
+  const totalLine = `Total: ${t.applied} applied • ${totalPv} Proposal view • ${totalBu} BU review`;
 
   const blocks: Array<Record<string, unknown>> = [
-    { type: 'header', text: { type: 'plain_text', text: `📊 Daily digest — ${digest.windowLabel}`, emoji: true } },
-    { type: 'section', text: { type: 'mrkdwn', text: lines.slice(1).join('\n') } },
-    { type: 'table', rows: [headerRow, ...dataRows] },
+    { type: 'header', text: { type: 'plain_text', text: header, emoji: true } },
+    { type: 'section', text: { type: 'mrkdwn', text: `${funnel}\n${spendLine}` } },
+    { type: 'divider' },
+    { type: 'section', text: { type: 'mrkdwn', text: profileText || '_No active profiles_' } },
+    { type: 'divider' },
+    { type: 'context', elements: [{ type: 'mrkdwn', text: totalLine }] },
   ];
 
   const actions = actionsBlock();
   if (actions) blocks.push(actions);
 
-  return { text: lines.join(' · '), blocks };
+  return {
+    text: `${header} • ${funnel} • ${spendLine}`,
+    blocks,
+  };
+}
+
+/** Alias — same payload (no separate table fallback). */
+export function buildDailyDigestFallbackBody(
+  digest: DailyDigest,
+  options?: DigestBuildOptions,
+): { text: string; blocks: Array<Record<string, unknown>> } {
+  return buildDailyDigestBody(digest, options);
 }
 
 async function postWebhook(
@@ -340,21 +275,28 @@ async function postWebhook(
   return { ok: res.ok, text };
 }
 
+export type SendDailyDigestResult = {
+  digest: DailyDigest;
+  skipped: boolean;
+  reason?: 'weekend_yesterday';
+};
+
 /** Compute + post to the team webhook. Best-effort like all Slack sends. */
-export async function sendDailyDigest(): Promise<DailyDigest> {
+export async function sendDailyDigest(options?: {
+  force?: boolean;
+}): Promise<SendDailyDigestResult> {
   const digest = await computeDailyDigest();
+  if (!options?.force && !shouldSendDailyDigest()) {
+    return { digest, skipped: true, reason: 'weekend_yesterday' };
+  }
+
   const webhookUrl = env.SLACK_WEBHOOK_URL;
   if (webhookUrl) {
     try {
-      const primary = await postWebhook(webhookUrl, buildDailyDigestBody(digest));
-      // Incoming webhooks often reject native `table` blocks (invalid_blocks);
-      // any non-2xx gets one monospace retry.
-      if (!primary.ok) {
-        await postWebhook(webhookUrl, buildDailyDigestFallbackBody(digest));
-      }
+      await postWebhook(webhookUrl, buildDailyDigestBody(digest));
     } catch {
       // best-effort
     }
   }
-  return digest;
+  return { digest, skipped: false };
 }

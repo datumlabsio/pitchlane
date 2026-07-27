@@ -95,6 +95,7 @@ Two safety nets run alongside:
 | Gmail sync (+ inline enrich + alert) | `/api/integrations/gmail/sync` | every 1 min |
 | Enrich safety-net | `/api/leads/enrich-pending` | ~10–15 min |
 | Sync heartbeat (dead-man's-switch) | `/api/health/sync-heartbeat` | ~5–10 min |
+| Daily Upwork metrics | `/api/alerts/daily-upwork-metrics` | `0 23 * * 1-5` UTC (4:00 PKT Tue–Sat) |
 
 ---
 

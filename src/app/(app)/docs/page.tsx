@@ -224,11 +224,12 @@ export default function DocsPage() {
             the connects spent and stamps the applied time, exactly like the panel flow. Clicking
             a card opens the usual lead panel. Filters apply to the board too.
           </p>
-          <H3>Daily digest</H3>
+          <H3>Daily Upwork metrics</H3>
           <p>
-            Every morning at 9:00 (PKT) Slack gets yesterday&apos;s funnel rates, connect spend,
-            and a per-profile table (In / Qual / App / Proposal viewed / BU reviewed) with a
-            severity signal so low convertors float to the top.
+            At 4:00 (PKT) Tue–Sat, Slack gets yesterday&apos;s funnel rates, connect spend, and
+            per-profile rows (in / qual / app / Proposal view / BU review). Profiles with fewer
+            than 3 applies show red; others green. No message on Sunday or Monday 4am (weekend
+            data is skipped). Friday&apos;s numbers arrive Saturday morning.
           </p>
           <H3>Metrics drill-down</H3>
           <p>

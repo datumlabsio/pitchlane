@@ -44,11 +44,13 @@ For production scheduling you have two options:
 2. Vercel Hobby: use an external scheduler to call these endpoints with `Authorization: Bearer $CRON_SECRET`:
    - `GET /api/integrations/gmail/sync`
    - `GET /api/leads/enrich-pending`
+   - `GET /api/alerts/daily-upwork-metrics`
 
 Recommended schedules:
 
 - Gmail sync: every 1 minute
 - Lead enrichment: every 5 minutes
+- Daily Upwork metrics: `0 23 * * 1-5` UTC (4:00 PKT Tue–Sat; skips weekend data)
 
 The Gmail sync endpoint already checks the database-configured `syncIntervalMinutes` and will skip early runs when the minimum interval has not elapsed.
 

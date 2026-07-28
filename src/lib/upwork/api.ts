@@ -102,6 +102,7 @@ function toEnrichment(job: JobNode): JobEnrichment {
 
   return {
     source: 'upwork_api',
+    title: job.content?.title?.trim() || undefined,
     description: job.content?.description?.trim() || undefined,
     budget,
     paymentType,

@@ -6,6 +6,8 @@ export type EnrichmentSource = 'upwork_api' | 'bright_data';
 export type JobEnrichment = {
   // How the description was obtained — surfaced as a badge in the lead panel.
   source?: EnrichmentSource;
+  // The job posting's own title — used to prefill the Add-lead-by-URL flow.
+  title?: string;
   description?: string;
   budget?: string;
   paymentType?: string;
@@ -194,6 +196,7 @@ function budgetFromSalary(salary: unknown): { budget?: string; paymentType?: str
 export function parseUpworkJobHtml(html: string): JobEnrichment {
   const ld = parseJsonLd(html) ?? {};
 
+  const title = typeof ld.title === 'string' && ld.title.trim() ? stripTags(ld.title).trim() : undefined;
   const description = typeof ld.description === 'string' ? stripTags(ld.description) : undefined;
   const { budget, paymentType } = budgetFromSalary(ld.baseSalary);
 
@@ -233,6 +236,7 @@ export function parseUpworkJobHtml(html: string): JobEnrichment {
 
   return {
     source: 'bright_data',
+    title,
     description,
     budget,
     paymentType,

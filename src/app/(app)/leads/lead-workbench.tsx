@@ -771,9 +771,6 @@ function Pagination({
 // Manual ingest dialog form
 // ---------------------------------------------------------------------------
 
-const DEFAULT_BODY =
-  "We need a Power BI specialist with SQL and dashboard design experience to improve weekly executive reporting. Budget is $1,500 fixed.";
-
 const LEAD_SOURCES = [
   { value: "EMAIL_FORWARD", label: "Email forward" },
   { value: "INVITE", label: "Invite (client-initiated)" },
@@ -790,23 +787,84 @@ function ManualIngestDialogContent({
   const [ingestStatus, setIngestStatus] = useState("");
   const [ingestPending, setIngestPending] = useState(false);
   const [gmailLabel, setGmailLabel] = useState(labels[0] ?? "");
-  const [source, setSource] = useState<string>("EMAIL_FORWARD");
-  const [sender, setSender] = useState("alerts@upwork.com");
-  const [subject, setSubject] = useState(
-    "Power BI Dashboard Optimization for Executive Team",
-  );
-  const [body, setBody] = useState(DEFAULT_BODY);
-  const [sourceUrl, setSourceUrl] = useState(
-    "https://www.upwork.com/jobs/~manual-test-lead",
-  );
-  const [budget, setBudget] = useState("$1,500 fixed");
-  const [skills, setSkills] = useState("power bi, sql, dashboard");
+  const [source, setSource] = useState<string>("MANUAL");
+  const [sender, setSender] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [budget, setBudget] = useState("");
+  const [skills, setSkills] = useState("");
+  // Fetch-from-URL: pulls title/description/budget/skills off the job page so
+  // adding a manually-found job is paste-URL → fetch → pick profile → create.
+  const [fetchPending, setFetchPending] = useState(false);
+  const [fetchNote, setFetchNote] = useState("");
+
+  async function fetchJobDetails() {
+    const url = sourceUrl.trim();
+    if (!url) {
+      setFetchNote("Paste an Upwork job URL first.");
+      return;
+    }
+    setFetchPending(true);
+    setFetchNote("");
+    try {
+      const res = await fetch("/api/leads/job-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        setFetchNote(result.error ?? "Could not fetch the job.");
+        return;
+      }
+      if (result.outcome === "private") {
+        setFetchNote(
+          "This job is private / invite-only — Upwork won't show it to us. Paste the details manually.",
+        );
+        return;
+      }
+      if (result.outcome !== "enriched" || !result.job) {
+        setFetchNote(
+          "Couldn't fetch the job (closed, blocked, or unusual URL) — paste the details manually.",
+        );
+        return;
+      }
+      const job = result.job as {
+        title: string;
+        description: string;
+        budget: string;
+        skills: string[];
+        clientSummary: string;
+        source: string | null;
+      };
+      if (job.title) setSubject(job.title);
+      if (job.description) setBody(job.description);
+      if (job.budget) setBudget(job.budget);
+      if (job.skills.length) setSkills(job.skills.join(", "));
+      setFetchNote(
+        `Fetched${job.source === "upwork_api" ? " via the Upwork API" : ""}${job.clientSummary ? ` · ${job.clientSummary}` : ""} — review, pick the profile, and create.`,
+      );
+    } catch (error) {
+      setFetchNote(
+        error instanceof Error ? error.message : "Could not fetch the job.",
+      );
+    } finally {
+      setFetchPending(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (source === "INVITE" && !sourceUrl.trim()) {
       setIngestStatus("Upwork job URL is required for invites.");
+      return;
+    }
+    if (!subject.trim() || !body.trim()) {
+      setIngestStatus(
+        "Title and description are required — fetch them from the job URL or fill them in.",
+      );
       return;
     }
 
@@ -816,11 +874,11 @@ function ManualIngestDialogContent({
     const payload = {
       gmailLabel,
       source,
-      from: sender,
+      from: sender.trim() || undefined,
       subject,
       body,
-      sourceUrl,
-      extractedBudget: budget,
+      sourceUrl: sourceUrl.trim() || undefined,
+      extractedBudget: budget.trim() || undefined,
       extractedSkills: skills
         .split(",")
         .map((v) => v.trim())
@@ -839,8 +897,10 @@ function ManualIngestDialogContent({
       } else {
         setIngestStatus(
           result.duplicate
-            ? `Duplicate ignored for "${subject}".`
-            : `Lead created with status ${result.status}.`,
+            ? `Duplicate ignored for "${subject}" — this job already exists on that profile.`
+            : sourceUrl.trim()
+              ? "Lead created — enriching and scoring in the background; it will triage to Qualified or Rejected in a minute."
+              : `Lead created with status ${result.status}.`,
         );
         onSuccess();
       }
@@ -855,6 +915,35 @@ function ManualIngestDialogContent({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* URL-first: paste the job link, fetch, and the form fills itself. */}
+      <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50/50 p-3">
+        <Label htmlFor="ingest-source-url">Upwork job URL{source === "INVITE" ? " *" : ""}</Label>
+        <div className="flex gap-2">
+          <Input
+            id="ingest-source-url"
+            value={sourceUrl}
+            onChange={(e) => setSourceUrl(e.target.value)}
+            placeholder="https://www.upwork.com/jobs/~02..."
+            required={source === "INVITE"}
+            className="bg-white"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={fetchPending || !sourceUrl.trim()}
+            onClick={() => void fetchJobDetails()}
+            className="shrink-0 gap-1.5 bg-white"
+          >
+            <Sparkles className={cn("size-3.5", fetchPending && "animate-pulse")} />
+            {fetchPending ? "Fetching…" : "Fetch details"}
+          </Button>
+        </div>
+        <p className="text-xs leading-5 text-stone-500">
+          {fetchNote ||
+            "Paste the job link and fetch — title, description, budget, and skills fill in automatically. Private/invite-only jobs can't be fetched; fill those by hand."}
+        </p>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="ingest-label">Profile label</Label>
@@ -898,52 +987,33 @@ function ManualIngestDialogContent({
           </Select>
         </div>
       </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="ingest-subject">Job title</Label>
+        <Input
+          id="ingest-subject"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Fetched from the URL, or type it"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="ingest-body">Job description</Label>
+        <Textarea
+          id="ingest-body"
+          rows={6}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Fetched from the URL, or paste the posting text — the judge scores against this."
+        />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="ingest-sender">Sender</Label>
-          <Input
-            id="ingest-sender"
-            value={sender}
-            onChange={(e) => setSender(e.target.value)}
-          />
-        </div>
         <div className="space-y-1.5">
           <Label htmlFor="ingest-budget">Budget</Label>
           <Input
             id="ingest-budget"
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
-          />
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="ingest-subject">Subject / Title</Label>
-        <Input
-          id="ingest-subject"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="ingest-body">Email body / Job description</Label>
-        <Textarea
-          id="ingest-body"
-          rows={5}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="ingest-source-url">
-            Upwork job URL{source === "INVITE" ? " *" : ""}
-          </Label>
-          <Input
-            id="ingest-source-url"
-            value={sourceUrl}
-            onChange={(e) => setSourceUrl(e.target.value)}
-            placeholder="https://www.upwork.com/jobs/~..."
-            required={source === "INVITE"}
+            placeholder="e.g. $1,500 fixed or $30-50/hr"
           />
         </div>
         <div className="space-y-1.5">
@@ -952,9 +1022,18 @@ function ManualIngestDialogContent({
             id="ingest-skills"
             value={skills}
             onChange={(e) => setSkills(e.target.value)}
-            placeholder="power bi, sql, dashboard"
+            placeholder="e.g. power bi, sql, dashboard"
           />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="ingest-sender">Sender (optional)</Label>
+        <Input
+          id="ingest-sender"
+          value={sender}
+          onChange={(e) => setSender(e.target.value)}
+          placeholder="Only for forwarded emails — leave empty for manual finds"
+        />
       </div>
       <div className="flex items-center justify-between gap-4 pt-1">
         <Button type="submit" disabled={ingestPending}>

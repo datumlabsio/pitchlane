@@ -2,7 +2,8 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { syncGmailInbox } from '@/domain/integrations/gmail-sync';
-import { enrichLead } from '@/domain/leads/enrich-lead';
+import { ensureGmailWatch } from '@/domain/integrations/gmail-watch';
+import { enrichNewLeads } from '@/domain/integrations/enrich-new-leads';
 
 // Ingest returns fast; enrichment + Slack alerts run in after() (up to maxDuration).
 // Vercel caps this to the plan limit (300s on Pro, 60s on Hobby).
@@ -35,22 +36,16 @@ async function manualAuthorized(request: NextRequest) {
 async function runSync() {
   const result = await syncGmailInbox();
 
-  // Enrich + alert each freshly-created lead right after responding. API-first
-  // enrichment is ~1-2s, so the batch usually finishes well within maxDuration;
-  // anything that spills (e.g. a slow Bright Data fallback, or the function being
-  // cut off on Hobby's 60s) is swept up by the enrich-pending safety-net cron.
-  // Sequential keeps us frugal with the Upwork API rate limit.
-  if (result.newLeadIds.length) {
-    after(async () => {
-      for (const id of result.newLeadIds) {
-        try {
-          await enrichLead(id);
-        } catch {
-          // Best-effort — the safety-net cron retries stragglers.
-        }
-      }
-    });
-  }
+  after(async () => {
+    // Keep the Gmail push watch alive (7-day expiry) — cheap no-op when current.
+    await ensureGmailWatch();
+    // Enrich + alert each freshly-created lead right after responding, a few at a
+    // time so one lead's judge call doesn't hold up the next lead's Slack alert.
+    // Anything that spills is swept up by the enrich-pending safety-net cron.
+    if (result.newLeadIds.length) {
+      await enrichNewLeads(result.newLeadIds);
+    }
+  });
 
   return NextResponse.json({ ok: true, ...result });
 }

@@ -26,6 +26,9 @@ const envSchema = z.object({
   // USD per Upwork connect for digest spend estimates (boosts skew real cost).
   CONNECT_RATE_USD: z.coerce.number().positive().default(0.15),
   CRON_SECRET: z.string().optional(),
+  // Gmail push (Pub/Sub): full topic name + the shared token the webhook validates.
+  GMAIL_PUSH_TOPIC: z.string().optional(),
+  GMAIL_PUSH_TOKEN: z.string().optional(),
   ZENROWS_API_KEY: z.string().optional(),
   BRIGHTDATA_API_TOKEN: z.string().optional(),
   BRIGHTDATA_ZONE: z.string().optional(),
@@ -55,6 +58,8 @@ export const env = envSchema.parse({
   SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL,
   CONNECT_RATE_USD: process.env.CONNECT_RATE_USD,
   CRON_SECRET: process.env.CRON_SECRET,
+  GMAIL_PUSH_TOPIC: process.env.GMAIL_PUSH_TOPIC,
+  GMAIL_PUSH_TOKEN: process.env.GMAIL_PUSH_TOKEN,
   ZENROWS_API_KEY: process.env.ZENROWS_API_KEY,
   BRIGHTDATA_API_TOKEN: process.env.BRIGHTDATA_API_TOKEN,
   BRIGHTDATA_ZONE: process.env.BRIGHTDATA_ZONE,

@@ -30,12 +30,10 @@ export function ProfileConversionDeltaLine({ delta }: { delta: ProfileConversion
       : Math.abs(delta.absDelta);
   const abs = money ? usd(absRaw) : String(absRaw);
   const prev = money ? usd(delta.previous) : String(delta.previous);
-  const pct = delta.pctDelta === null ? '' : ` (${delta.pctDelta > 0 ? '+' : ''}${delta.pctDelta}%)`;
 
   return (
     <p className={cn('mt-0.5 text-xs', color)}>
       vs {prev} · {arrow} {abs}
-      {pct}
     </p>
   );
 }

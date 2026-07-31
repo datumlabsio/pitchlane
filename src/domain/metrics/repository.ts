@@ -254,6 +254,8 @@ type ProfileVolumeCounts = {
   leads: number;
   qualified: number;
   applied: number;
+  proposalViewed: number;
+  buReviewed: number;
   replied: number;
   callBooked: number;
   won: number;
@@ -269,7 +271,10 @@ async function profileVolumeCounts(window: DateWindow, accountId?: string): Prom
     where: { isActive: true, ...(accountIds.length ? { id: { in: accountIds } } : {}) },
     include: {
       leads: { where: createdAt ? { createdAt } : undefined, select: { status: true } },
-      applications: { where: createdAt ? { createdAt } : undefined, select: { connectsSpent: true } },
+      applications: {
+        where: createdAt ? { createdAt } : undefined,
+        select: { connectsSpent: true, proposalViewed: true, buReviewed: true },
+      },
     },
     orderBy: { name: 'asc' },
   });
@@ -281,6 +286,8 @@ async function profileVolumeCounts(window: DateWindow, accountId?: string): Prom
     const replied = account.leads.filter((l) => REPLIED_STATUSES.includes(l.status as LeadStatus)).length;
     const callBooked = account.leads.filter((l) => CALL_STATUSES.includes(l.status as LeadStatus)).length;
     const won = account.leads.filter((l) => l.status === LeadStatus.WON).length;
+    const proposalViewed = account.applications.filter((a) => a.proposalViewed).length;
+    const buReviewed = account.applications.filter((a) => a.buReviewed).length;
     const connects = account.applications.reduce((sum, a) => sum + (a.connectsSpent ?? 0), 0);
     return {
       accountId: account.id,
@@ -288,6 +295,8 @@ async function profileVolumeCounts(window: DateWindow, accountId?: string): Prom
       leads,
       qualified,
       applied,
+      proposalViewed,
+      buReviewed,
       replied,
       callBooked,
       won,
@@ -337,6 +346,8 @@ export type ProfileConversionTableRow = {
   leads: ProfileConversionCell;
   qualified: ProfileConversionCell;
   applied: ProfileConversionCell;
+  proposalViewed: ProfileConversionCell;
+  buReviewed: ProfileConversionCell;
   replied: ProfileConversionCell;
   calls: ProfileConversionCell;
   won: ProfileConversionCell;
@@ -384,6 +395,8 @@ function emptyVolume(accountId: string, profile: string): ProfileVolumeCounts {
     leads: 0,
     qualified: 0,
     applied: 0,
+    proposalViewed: 0,
+    buReviewed: 0,
     replied: 0,
     callBooked: 0,
     won: 0,
@@ -398,13 +411,26 @@ function sumVolumes(rows: ProfileVolumeCounts[]): Omit<ProfileVolumeCounts, 'acc
       leads: acc.leads + r.leads,
       qualified: acc.qualified + r.qualified,
       applied: acc.applied + r.applied,
+      proposalViewed: acc.proposalViewed + r.proposalViewed,
+      buReviewed: acc.buReviewed + r.buReviewed,
       replied: acc.replied + r.replied,
       callBooked: acc.callBooked + r.callBooked,
       won: acc.won + r.won,
       connects: acc.connects + r.connects,
       spend: acc.spend + r.spend,
     }),
-    { leads: 0, qualified: 0, applied: 0, replied: 0, callBooked: 0, won: 0, connects: 0, spend: 0 },
+    {
+      leads: 0,
+      qualified: 0,
+      applied: 0,
+      proposalViewed: 0,
+      buReviewed: 0,
+      replied: 0,
+      callBooked: 0,
+      won: 0,
+      connects: 0,
+      spend: 0,
+    },
   );
 }
 
@@ -425,6 +451,8 @@ function buildConversionCells(
     leads: mk('leads'),
     qualified: mk('qualified'),
     applied: mk('applied'),
+    proposalViewed: mk('proposalViewed'),
+    buReviewed: mk('buReviewed'),
     replied: mk('replied'),
     calls: mk('callBooked'),
     won: mk('won'),
@@ -499,7 +527,7 @@ function percentile(values: number[], p: number): number | null {
 }
 
 /** Provisional SLA targets — surfaced in UI with a tooltip. */
-export const SLA_TARGET_HOURS = 3;
+export const SLA_TARGET_HOURS = 1;
 export const SLA_TREND_TARGET = 70;
 const SLA_TARGET_MS = SLA_TARGET_HOURS * 60 * 60 * 1000;
 const MAX_LATENCY_MS = 72 * 60 * 60 * 1000;

@@ -18,12 +18,10 @@ export function ProfileVisibilityDeltaLine({ delta }: { delta: ProfileVisibility
     delta.direction === 'down' && delta.currentValue === 0
       ? delta.previous
       : Math.abs(delta.absDelta);
-  const pct = delta.pctDelta === null ? '' : ` (${delta.pctDelta > 0 ? '+' : ''}${delta.pctDelta}%)`;
 
   return (
     <p className={cn('mt-0.5 text-xs', color)}>
       vs {delta.previous} · {arrow} {abs}
-      {pct}
     </p>
   );
 }

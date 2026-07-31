@@ -181,8 +181,8 @@ export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateW
               </Tooltip>
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              How fast we apply after a job is posted. Within 3h is the target share; p50 is the median (half applied
-              faster); p75 and p90 show the slow tail.
+              How fast we apply after a job is posted. Within {SLA_TARGET_HOURS}h is the target share; p50 is the median
+              (half applied faster); p75 and p90 show the slow tail.
             </p>
           </CardHeader>
           <CardContent>

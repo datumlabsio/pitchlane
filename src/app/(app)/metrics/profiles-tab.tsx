@@ -41,11 +41,18 @@ function ConversionMetricCell({
   );
 }
 
+/** Fixed lookback for the visibility trend chart — independent of the page date filter. */
+function lastThreeMonthsWindow(now = new Date()): DateWindow {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, now.getUTCDate()));
+  return { from: start.toISOString().slice(0, 10) };
+}
+
 export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateWindow; accountId?: string }) {
+  const visibilityWindow = lastThreeMonthsWindow();
   const [profileRows, conversionTable, visibility, visibilityTable] = await Promise.all([
     getProfilePerformanceRows(dateWindow, accountId),
     getProfileConversionTable(dateWindow, accountId),
-    getVisibilitySeries(dateWindow, accountId),
+    getVisibilitySeries(visibilityWindow, accountId),
     getProfileVisibilityTable(dateWindow, accountId),
   ]);
 
@@ -83,6 +90,8 @@ export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateW
                   <TableHead className="text-right">Leads</TableHead>
                   <TableHead className="text-right">Qualified</TableHead>
                   <TableHead className="text-right">Applied</TableHead>
+                  <TableHead className="text-right">Proposal viewed</TableHead>
+                  <TableHead className="text-right">BU reviewed</TableHead>
                   <TableHead className="text-right">Replied</TableHead>
                   <TableHead className="text-right">Calls</TableHead>
                   <TableHead className="text-right">Won</TableHead>
@@ -104,6 +113,8 @@ export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateW
                     <TableCell><ConversionMetricCell cell={row.leads} /></TableCell>
                     <TableCell><ConversionMetricCell cell={row.qualified} /></TableCell>
                     <TableCell><ConversionMetricCell cell={row.applied} /></TableCell>
+                    <TableCell><ConversionMetricCell cell={row.proposalViewed} /></TableCell>
+                    <TableCell><ConversionMetricCell cell={row.buReviewed} /></TableCell>
                     <TableCell><ConversionMetricCell cell={row.replied} /></TableCell>
                     <TableCell><ConversionMetricCell cell={row.calls} /></TableCell>
                     <TableCell><ConversionMetricCell cell={row.won} /></TableCell>
@@ -116,6 +127,8 @@ export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateW
                   <TableCell><ConversionMetricCell bold cell={conversionTable.total.leads} /></TableCell>
                   <TableCell><ConversionMetricCell bold cell={conversionTable.total.qualified} /></TableCell>
                   <TableCell><ConversionMetricCell bold cell={conversionTable.total.applied} /></TableCell>
+                  <TableCell><ConversionMetricCell bold cell={conversionTable.total.proposalViewed} /></TableCell>
+                  <TableCell><ConversionMetricCell bold cell={conversionTable.total.buReviewed} /></TableCell>
                   <TableCell><ConversionMetricCell bold cell={conversionTable.total.replied} /></TableCell>
                   <TableCell><ConversionMetricCell bold cell={conversionTable.total.calls} /></TableCell>
                   <TableCell><ConversionMetricCell bold cell={conversionTable.total.won} /></TableCell>
@@ -124,26 +137,6 @@ export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateW
                 </TableRow>
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── Profile visibility ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile visibility over time</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Weekly Upwork views, invites, impressions, and clicks, summed across the selected profiles. Entered
-            manually per profile under Profiles → Stats.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {visibility.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No stats in this range yet. Add weekly numbers under Profiles → Stats.
-            </p>
-          ) : (
-            <VisibilityChart data={visibility} />
           )}
         </CardContent>
       </Card>
@@ -189,6 +182,26 @@ export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateW
                 </TableRow>
               </TableBody>
             </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Profile visibility over time (always last 3 months) ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile visibility over time</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Last 3 months of weekly Upwork views, invites, impressions, and clicks, summed across the selected
+            profiles. Entered manually per profile under Profiles → Stats.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {visibility.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No stats in the last 3 months yet. Add weekly numbers under Profiles → Stats.
+            </p>
+          ) : (
+            <VisibilityChart data={visibility} />
           )}
         </CardContent>
       </Card>

@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 import { LeadStatus } from '@/domain/enums';
 import type { LatencyBucket, SlaGranularity, SlaSeriesPoint } from '@/domain/metrics/repository';
-import { SLA_TREND_TARGET } from '@/domain/metrics/repository';
+import { SLA_TARGET_HOURS, SLA_TREND_TARGET } from '@/domain/metrics/repository';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { leadStatusLabelMap } from '@/domain/leads/types';
@@ -459,7 +459,7 @@ const latencyHistogramConfig = {
 };
 
 function histogramBarColor(label: string): string {
-  if (label === '<1h' || label === '1–3h') return 'oklch(0.55 0.12 230)';
+  if (label === '<1h') return 'oklch(0.55 0.12 230)';
   if (label === '12–24h' || label === '>24h') return 'oklch(0.58 0.18 25)';
   return 'oklch(0.72 0.02 80)';
 }
@@ -518,7 +518,7 @@ export function LatencyHistogramChart({ buckets, total }: { buckets: LatencyBuck
 // ─── Weekly SLA trend ───────────────────────────────────────────────────────────
 
 const slaTrendConfig = {
-  pct: { label: 'Within 3h', color: 'oklch(0.55 0.12 230)' },
+  pct: { label: `Within ${SLA_TARGET_HOURS}h`, color: 'oklch(0.55 0.12 230)' },
   target: { label: 'Target', color: 'oklch(0.65 0.02 80)' },
 };
 
@@ -526,12 +526,13 @@ export function SlaTrendChart({ dataByGranularity }: { dataByGranularity: Record
   const [grain, setGrain] = useState<SlaGranularity>('daily');
   const data = dataByGranularity[grain];
   const interval = data.length > 16 ? Math.ceil(data.length / 12) : 0;
+  const withinLabel = `within ${SLA_TARGET_HOURS} hour${SLA_TARGET_HOURS === 1 ? '' : 's'}`;
   const subtitle =
     grain === 'daily'
-      ? 'Each point is one day: the share of applications sent within 3 hours of posting. Above the dashed line is on target.'
+      ? `Each point is one day: the share of applications sent ${withinLabel} of posting. Above the dashed line is on target.`
       : grain === 'weekly'
-        ? 'Each point is one week: the share of applications sent within 3 hours of posting. Above the dashed line is on target.'
-        : 'Each point is one month: the share of applications sent within 3 hours of posting. Above the dashed line is on target.';
+        ? `Each point is one week: the share of applications sent ${withinLabel} of posting. Above the dashed line is on target.`
+        : `Each point is one month: the share of applications sent ${withinLabel} of posting. Above the dashed line is on target.`;
 
   if (data.length === 0) {
     return <p className="text-sm text-muted-foreground">No SLA trend data in this range.</p>;
@@ -544,7 +545,7 @@ export function SlaTrendChart({ dataByGranularity }: { dataByGranularity: Record
         <GrainToggle value={grain} onChange={(g) => setGrain(g as SlaGranularity)} />
       </div>
       <ChartContainer config={slaTrendConfig} className="h-64 w-full">
-        <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 4 }}>
+        <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
           <CartesianGrid vertical={false} stroke="oklch(0.93 0 0)" />
           <XAxis
             dataKey="label"
@@ -557,8 +558,9 @@ export function SlaTrendChart({ dataByGranularity }: { dataByGranularity: Record
             tickLine={false}
             axisLine={false}
             tick={{ fontSize: 11, fill: 'oklch(0.55 0 0)' }}
-            width={32}
+            width={40}
             domain={[0, 100]}
+            ticks={[0, 25, 50, 75, 100]}
             tickFormatter={(v) => `${v}%`}
           />
           <ChartTooltip

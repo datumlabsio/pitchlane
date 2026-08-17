@@ -29,6 +29,13 @@ const envSchema = z.object({
   // Gmail push (Pub/Sub): full topic name + the shared token the webhook validates.
   GMAIL_PUSH_TOPIC: z.string().optional(),
   GMAIL_PUSH_TOKEN: z.string().optional(),
+  // Robust Gmail auth: base64 of a service-account key JSON + the Workspace mailbox
+  // it impersonates (domain-wide delegation). When both are set, Gmail access no
+  // longer depends on anyone's OAuth login/password. GMAIL_CONNECT_ALLOWED locks the
+  // Settings connect flow to one mailbox so a stray login can't clobber the connection.
+  GOOGLE_SA_KEY_B64: z.string().optional(),
+  GMAIL_IMPERSONATE: z.string().optional(),
+  GMAIL_CONNECT_ALLOWED: z.string().optional(),
   ZENROWS_API_KEY: z.string().optional(),
   BRIGHTDATA_API_TOKEN: z.string().optional(),
   BRIGHTDATA_ZONE: z.string().optional(),
@@ -60,6 +67,9 @@ export const env = envSchema.parse({
   CRON_SECRET: process.env.CRON_SECRET,
   GMAIL_PUSH_TOPIC: process.env.GMAIL_PUSH_TOPIC,
   GMAIL_PUSH_TOKEN: process.env.GMAIL_PUSH_TOKEN,
+  GOOGLE_SA_KEY_B64: process.env.GOOGLE_SA_KEY_B64,
+  GMAIL_IMPERSONATE: process.env.GMAIL_IMPERSONATE,
+  GMAIL_CONNECT_ALLOWED: process.env.GMAIL_CONNECT_ALLOWED,
   ZENROWS_API_KEY: process.env.ZENROWS_API_KEY,
   BRIGHTDATA_API_TOKEN: process.env.BRIGHTDATA_API_TOKEN,
   BRIGHTDATA_ZONE: process.env.BRIGHTDATA_ZONE,

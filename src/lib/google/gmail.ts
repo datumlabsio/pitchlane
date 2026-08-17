@@ -16,7 +16,27 @@ export function createGoogleOAuthClient() {
   );
 }
 
+// Service-account path: impersonate the shared mailbox via domain-wide delegation.
+// Immune to password changes, logouts, and stray reconnects — it only breaks if a
+// Workspace admin removes the delegation. Preferred whenever configured.
+function createServiceAccountGmailClient() {
+  const decoded = Buffer.from(env.GOOGLE_SA_KEY_B64!, 'base64').toString('utf8');
+  const key = JSON.parse(decoded) as { client_email: string; private_key: string };
+  const auth = new google.auth.JWT({
+    email: key.client_email,
+    key: key.private_key,
+    scopes: ['https://www.googleapis.com/auth/gmail.modify'],
+    subject: env.GMAIL_IMPERSONATE,
+  });
+  return google.gmail({ version: 'v1', auth });
+}
+
 export async function createAuthenticatedGmailClient() {
+  if (env.GOOGLE_SA_KEY_B64 && env.GMAIL_IMPERSONATE) {
+    return createServiceAccountGmailClient();
+  }
+
+  // Fallback: the classic user-OAuth connection from the Settings connect flow.
   const connection = await getGoogleConnection();
 
   if (!connection?.refreshToken && !connection?.accessToken) {

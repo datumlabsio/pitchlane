@@ -10,6 +10,19 @@ export async function upsertGoogleConnection(input: {
   scopes?: string[];
   metadata?: Prisma.InputJsonValue;
 }) {
+  // MERGE metadata on reconnect — replacing it wholesale wiped sync watermarks,
+  // the Gmail watch state, and the Slack thresholds every time someone re-authed.
+  const existing = await getGoogleConnection();
+  const existingMeta =
+    existing?.metadata && typeof existing.metadata === 'object' && !Array.isArray(existing.metadata)
+      ? (existing.metadata as Record<string, unknown>)
+      : {};
+  const inputMeta =
+    input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
+      ? (input.metadata as Record<string, unknown>)
+      : {};
+  const mergedMeta = { ...existingMeta, ...inputMeta } as Prisma.InputJsonValue;
+
   return prisma.integrationConnection.upsert({
     where: { provider: IntegrationProvider.GOOGLE_GMAIL },
     update: {
@@ -18,7 +31,7 @@ export async function upsertGoogleConnection(input: {
       refreshToken: input.refreshToken,
       expiryDate: input.expiryDate ?? null,
       scopes: input.scopes ?? [],
-      metadata: input.metadata,
+      metadata: mergedMeta,
     },
     create: {
       provider: IntegrationProvider.GOOGLE_GMAIL,

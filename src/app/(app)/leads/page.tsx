@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { getLeadDetail, listLeadSummaries } from '@/domain/leads/repository';
+import { getLeadDetail, listAppliers, listLeadSummaries } from '@/domain/leads/repository';
 import { listActiveAccounts } from '@/domain/accounts/repository';
 import { env } from '@/lib/env';
 import { LeadWorkbench } from './lead-workbench';
@@ -18,6 +18,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
   const page = Math.max(1, parseInt(sp('page') ?? '1', 10) || 1);
   const accountId = sp('accountId');
   const status = sp('status');
+  const appliedBy = sp('appliedBy');
   const search = sp('search');
   const since = sp('since');
   const from = sp('from');
@@ -25,15 +26,16 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
   const view = sp('view') === 'kanban' ? ('kanban' as const) : ('list' as const);
   const selectedLeadId = sp('leadId') ?? null;
 
-  const [leadsData, selectedLead] = await Promise.all([
+  const [leadsData, selectedLead, appliers] = await Promise.all([
     // The board shows all stages at once, so it works off one big page (the list
     // paginates 20 at a time as before).
     listLeadSummaries(
       view === 'kanban'
-        ? { page: 1, limit: 100, accountId, status, search, since, from, to }
-        : { page, accountId, status, search, since, from, to },
+        ? { page: 1, limit: 100, accountId, status, appliedBy, search, since, from, to }
+        : { page, accountId, status, appliedBy, search, since, from, to },
     ),
     selectedLeadId ? getLeadDetail(selectedLeadId) : null,
+    listAppliers(),
   ]);
 
   const labels = accounts.map((a) => a.gmailLabel);
@@ -49,7 +51,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
         selectedLeadId={selectedLeadId}
         labels={labels}
         accounts={accounts.map((a) => ({ id: a.id, personName: a.personName, gmailLabel: a.gmailLabel }))}
-        currentFilters={{ accountId, status, search, since, from, to }}
+        appliers={appliers}
+        currentFilters={{ accountId, status, appliedBy, search, since, from, to }}
         view={view}
         enrichmentEnabled={env.LEAD_ENRICHMENT_ENABLED === 'true'}
       />

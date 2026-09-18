@@ -86,6 +86,8 @@ export type LeadListOptions = {
   limit?: number;
   accountId?: string;
   status?: string;
+  /** Comma-separated applier names — leads whose application was marked by one of them. */
+  appliedBy?: string;
   search?: string;
   since?: string;
   /** Custom range (yyyy-MM-dd). Takes precedence over `since` when set. */
@@ -110,6 +112,7 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   // accountId/status are comma-separated lists (multi-select filters).
   const accountIds = (opts.accountId ?? '').split(',').filter(Boolean);
   const statuses = (opts.status ?? '').split(',').filter(Boolean) as LeadStatus[];
+  const appliers = (opts.appliedBy ?? '').split(',').filter(Boolean);
 
   // Free-text search across title, subject, body, sender, the job URL and the
   // enriched description — not just the title. If the term carries an Upwork job
@@ -133,6 +136,7 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
   const where: Prisma.LeadWhereInput = {
     ...(accountIds.length ? { accountId: { in: accountIds } } : {}),
     ...(statuses.length ? { status: { in: statuses } } : {}),
+    ...(appliers.length ? { applications: { some: { appliedBy: { in: appliers } } } } : {}),
     ...searchClause,
     ...(createdAt ? { createdAt } : {}),
   };
@@ -157,7 +161,7 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
         applications: {
           orderBy: { updatedAt: 'desc' },
           take: 1,
-          select: { proposalViewed: true, appliedAt: true },
+          select: { proposalViewed: true, appliedAt: true, appliedBy: true },
         },
       },
     }),
@@ -187,6 +191,7 @@ export async function listLeadSummaries(opts: LeadListOptions = {}): Promise<Lea
       sourceUrl: lead.sourceUrl,
       // null = never applied; boolean = whether the CLIENT viewed the proposal on Upwork.
       proposalViewed: lead.applications[0]?.appliedAt ? lead.applications[0].proposalViewed : null,
+      appliedBy: lead.applications[0]?.appliedAt ? (lead.applications[0].appliedBy ?? null) : null,
     };
   });
 
@@ -226,10 +231,20 @@ export async function getLeadDetail(leadId: string) {
   const jobText = [lead.title, lead.rawEmailBody ?? lead.emailSnippet ?? '', enrichmentView?.description ?? '']
     .filter(Boolean)
     .join('\n');
-  const [siblings, relevantProjects] = await Promise.all([
+  const [siblings, relevantProjects, rejectionEvent] = await Promise.all([
     findDuplicateSiblings({ leadId, sourceUrl: lead.sourceUrl, accountId: lead.accountId }),
     relevantProjectsForJob(lead.accountId, jobText),
+    // Latest manual rejection with a typed reason — shown on the Overview.
+    prisma.leadEvent.findFirst({
+      where: { leadId, type: 'lead.status_updated', payload: { path: ['to'], equals: 'REJECTED' } },
+      orderBy: { createdAt: 'desc' },
+    }),
   ]);
+  const rejectionPayload = rejectionEvent?.payload as { note?: string; actor?: string } | null;
+  const rejectionNote =
+    lead.status === 'REJECTED' && rejectionPayload?.note
+      ? { note: rejectionPayload.note, actor: rejectionPayload.actor ?? 'system' }
+      : null;
 
   return {
     id: lead.id,
@@ -265,12 +280,14 @@ export async function getLeadDetail(leadId: string) {
       status: leadStatusLabelMap[s.status as LeadStatus] ?? 'New',
     })),
     relevantProjects: relevantProjects.map((p) => ({ id: p.id, title: p.title, url: p.url })),
+    rejectionNote,
     application: application
       ? {
           id: application.id,
           connectsSpent: application.connectsSpent,
           connectsRefunded: application.connectsRefunded,
           appliedAt: application.appliedAt?.toISOString() ?? null,
+          appliedBy: application.appliedBy ?? null,
           lastFollowUpAt: application.lastFollowUpAt?.toISOString() ?? null,
           notes: application.notes ?? '',
           sentProposal: application.sentProposal ?? '',
@@ -300,4 +317,15 @@ export async function getLeadDetail(leadId: string) {
           : null,
     })),
   } satisfies LeadDetail;
+}
+
+/** Distinct people who have marked leads applied — options for the "Applied by" filter. */
+export async function listAppliers(): Promise<string[]> {
+  const rows = await prisma.application.findMany({
+    where: { appliedBy: { not: null } },
+    distinct: ['appliedBy'],
+    select: { appliedBy: true },
+    orderBy: { appliedBy: 'asc' },
+  });
+  return rows.map((r) => r.appliedBy!).filter(Boolean);
 }

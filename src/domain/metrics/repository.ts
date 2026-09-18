@@ -13,12 +13,16 @@ import {
 
 // Shared lead filter: date window + the comma-separated `accountId` profile filter
 // (same multi-select convention the leads list uses).
-function leadWhere(window: DateWindow, accountId?: string): Prisma.LeadWhereInput {
+function leadWhere(window: DateWindow, accountId?: string, appliedBy?: string): Prisma.LeadWhereInput {
   const createdAt = buildCreatedAtRange(window);
   const accountIds = (accountId ?? '').split(',').filter(Boolean);
+  // "Applied by" filter: whole-page semantics — only leads whose application was
+  // marked applied by one of these people (comma-separated names).
+  const appliers = (appliedBy ?? '').split(',').filter(Boolean);
   return {
     ...(createdAt ? { createdAt } : {}),
     ...(accountIds.length ? { accountId: { in: accountIds } } : {}),
+    ...(appliers.length ? { applications: { some: { appliedBy: { in: appliers } } } } : {}),
   };
 }
 
@@ -69,8 +73,8 @@ const CALL_STATUSES: LeadStatus[] = [
 // Kept as a constant for now; move to a Settings value if the rate needs to vary.
 export const COST_PER_CONNECT = 0.15;
 
-export async function getPipelineFunnel(window: DateWindow = {}, accountId?: string) {
-  const base = leadWhere(window, accountId);
+export async function getPipelineFunnel(window: DateWindow = {}, accountId?: string, appliedBy?: string) {
+  const base = leadWhere(window, accountId, appliedBy);
   const [total, qualified, applied, replied, callBooked, won] = await Promise.all([
     prisma.lead.count({ where: base }),
     prisma.lead.count({ where: { ...base, status: { in: QUALIFIED_STATUSES } } }),
@@ -82,20 +86,19 @@ export async function getPipelineFunnel(window: DateWindow = {}, accountId?: str
   return { total, qualified, applied, replied, callBooked, won };
 }
 
-export async function getStatusBreakdown(window: DateWindow = {}, accountId?: string) {
+export async function getStatusBreakdown(window: DateWindow = {}, accountId?: string, appliedBy?: string) {
   const groups = await prisma.lead.groupBy({
     by: ['status'],
-    where: leadWhere(window, accountId),
+    where: leadWhere(window, accountId, appliedBy),
     _count: { _all: true },
     orderBy: { _count: { status: 'desc' } },
   });
   return groups.map((g) => ({ status: g.status as LeadStatus, count: g._count._all }));
 }
 
-export async function getRecentQualifiedLeads(window: DateWindow = {}) {
-  const createdAt = buildCreatedAtRange(window);
+export async function getRecentQualifiedLeads(window: DateWindow = {}, accountId?: string, appliedBy?: string) {
   const leads = await prisma.lead.findMany({
-    where: { status: { in: [LeadStatus.QUALIFIED, LeadStatus.NEW] }, ...(createdAt ? { createdAt } : {}) },
+    where: { status: { in: [LeadStatus.QUALIFIED, LeadStatus.NEW] }, ...leadWhere(window, accountId, appliedBy) },
     orderBy: { createdAt: 'desc' },
     take: 8,
     include: {
@@ -115,8 +118,8 @@ export async function getRecentQualifiedLeads(window: DateWindow = {}) {
   }));
 }
 
-export async function getDashboardMetrics(window: DateWindow = {}, accountId?: string) {
-  const base = leadWhere(window, accountId);
+export async function getDashboardMetrics(window: DateWindow = {}, accountId?: string, appliedBy?: string) {
+  const base = leadWhere(window, accountId, appliedBy);
   const [totalLeads, won, applied, qualified] = await Promise.all([
     prisma.lead.count({ where: base }),
     prisma.lead.count({ where: { ...base, status: LeadStatus.WON } }),
@@ -264,15 +267,25 @@ type ProfileVolumeCounts = {
 };
 
 /** Cohort counts by lead/application createdAt — same mapping the pipeline hero cards use. */
-async function profileVolumeCounts(window: DateWindow, accountId?: string): Promise<ProfileVolumeCounts[]> {
+async function profileVolumeCounts(window: DateWindow, accountId?: string, appliedBy?: string): Promise<ProfileVolumeCounts[]> {
   const createdAt = buildCreatedAtRange(window);
   const accountIds = (accountId ?? '').split(',').filter(Boolean);
+  const appliers = (appliedBy ?? '').split(',').filter(Boolean);
   const accounts = await prisma.account.findMany({
     where: { isActive: true, ...(accountIds.length ? { id: { in: accountIds } } : {}) },
     include: {
-      leads: { where: createdAt ? { createdAt } : undefined, select: { status: true } },
+      leads: {
+        where: {
+          ...(createdAt ? { createdAt } : {}),
+          ...(appliers.length ? { applications: { some: { appliedBy: { in: appliers } } } } : {}),
+        },
+        select: { status: true },
+      },
       applications: {
-        where: createdAt ? { createdAt } : undefined,
+        where: {
+          ...(createdAt ? { createdAt } : {}),
+          ...(appliers.length ? { appliedBy: { in: appliers } } : {}),
+        },
         select: { connectsSpent: true, proposalViewed: true, buReviewed: true },
       },
     },
@@ -306,8 +319,8 @@ async function profileVolumeCounts(window: DateWindow, accountId?: string): Prom
   });
 }
 
-export async function getProfilePerformanceRows(window: DateWindow = {}, accountId?: string) {
-  const rows = await profileVolumeCounts(window, accountId);
+export async function getProfilePerformanceRows(window: DateWindow = {}, accountId?: string, appliedBy?: string) {
+  const rows = await profileVolumeCounts(window, accountId, appliedBy);
   return rows.map((row) => ({
     ...row,
     qualRate: row.leads > 0 ? Math.round((row.qualified / row.leads) * 100) : 0,

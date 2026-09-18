@@ -64,6 +64,8 @@ export type LeadSummary = {
   sourceUrl: string | null;
   // null = never applied; else whether the CLIENT viewed the proposal on Upwork.
   proposalViewed: boolean | null;
+  // Who marked it applied (logged-in user at the time) — null when not applied.
+  appliedBy: string | null;
 };
 
 export type LeadEnrichment = {
@@ -122,11 +124,14 @@ export type LeadDetail = {
   // Other profiles the background judge thinks this job also fits — suggestions only;
   // a human copies via the multi-apply dialog.
   profileSuggestions: Array<{ accountId: string; profile: string; fitScore: number }>;
+  // Manual rejection reason (latest REJECTED transition with a note), if any.
+  rejectionNote: { note: string; actor: string } | null;
   application: {
     id: string;
     connectsSpent: number | null;
     connectsRefunded: number | null;
     appliedAt: string | null;
+    appliedBy: string | null;
     lastFollowUpAt: string | null;
     notes: string;
     sentProposal: string;

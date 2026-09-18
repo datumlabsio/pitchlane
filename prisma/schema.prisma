@@ -167,6 +167,10 @@ model Application {
   // Connects Upwork gave back (job closed without hire, etc.) — offsets spend.
   connectsRefunded     Int?
   appliedAt            DateTime?
+  // Who marked it applied (logged-in user's name, stamped on the null→set
+  // appliedAt transition; cleared when appliedAt is cleared). Drives the
+  // "Applied by" badge and filter.
+  appliedBy            String?
   lastFollowUpAt       DateTime?
   notes                String?      @db.Text
   // The proposal text actually submitted on Upwork (may differ from the AI drafts).

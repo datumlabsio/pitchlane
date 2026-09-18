@@ -90,11 +90,11 @@ function CombinedMetric({ label, value, delta, invert = false }: { label: string
   );
 }
 
-export async function PipelineTab({ dateWindow, accountId }: { dateWindow: DateWindow; accountId?: string }) {
+export async function PipelineTab({ dateWindow, accountId, appliedBy }: { dateWindow: DateWindow; accountId?: string; appliedBy?: string }) {
   const [metrics, funnel, statusBreakdown, latency, slaDaily, slaWeekly, slaMonthly, pipelineActivity] = await Promise.all([
     getPipelineHeroMetrics(dateWindow, accountId),
-    getPipelineFunnel(dateWindow, accountId),
-    getStatusBreakdown(dateWindow, accountId),
+    getPipelineFunnel(dateWindow, accountId, appliedBy),
+    getStatusBreakdown(dateWindow, accountId, appliedBy),
     getLatencyMetrics(dateWindow, accountId),
     getSlaSeries(dateWindow, accountId, 'daily'),
     getSlaSeries(dateWindow, accountId, 'weekly'),

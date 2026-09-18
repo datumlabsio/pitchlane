@@ -47,10 +47,10 @@ function lastThreeMonthsWindow(now = new Date()): DateWindow {
   return { from: start.toISOString().slice(0, 10) };
 }
 
-export async function ProfilesTab({ dateWindow, accountId }: { dateWindow: DateWindow; accountId?: string }) {
+export async function ProfilesTab({ dateWindow, accountId, appliedBy }: { dateWindow: DateWindow; accountId?: string; appliedBy?: string }) {
   const visibilityWindow = lastThreeMonthsWindow();
   const [profileRows, conversionTable, visibility, visibilityTable] = await Promise.all([
-    getProfilePerformanceRows(dateWindow, accountId),
+    getProfilePerformanceRows(dateWindow, accountId, appliedBy),
     getProfileConversionTable(dateWindow, accountId),
     getVisibilitySeries(visibilityWindow, accountId),
     getProfileVisibilityTable(dateWindow, accountId),

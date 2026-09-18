@@ -7,18 +7,23 @@ import { updateLeadStatus } from '@/domain/leads/update-lead-status';
 
 const settable = new Set<string>(leadLifecycleStatuses);
 
-const requestSchema = z.object({
-  status: z.nativeEnum(LeadStatus).refine((value) => settable.has(value), {
-    message: 'Unsupported lifecycle status',
-  }),
-});
+const requestSchema = z
+  .object({
+    status: z.nativeEnum(LeadStatus).refine((value) => settable.has(value), {
+      message: 'Unsupported lifecycle status',
+    }),
+    note: z.string().max(2000).optional(),
+  })
+  .refine((d) => d.status !== LeadStatus.REJECTED || Boolean(d.note?.trim()), {
+    message: 'A rejection reason is required.',
+  });
 
 export async function PATCH(request: Request, context: { params: Promise<{ leadId: string }> }) {
   try {
     const { leadId } = await context.params;
     const json = await request.json();
     const payload = requestSchema.parse(json);
-    const lead = await updateLeadStatus(leadId, payload.status);
+    const lead = await updateLeadStatus(leadId, payload.status, payload.note);
 
     return NextResponse.json({
       ok: true,

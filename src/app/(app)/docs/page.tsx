@@ -221,8 +221,10 @@ export default function DocsPage() {
           <p>
             The <strong>Board</strong> toggle on the Leads page shows the pipeline as columns.
             Drag a card to move it between stages — dropping on <strong>Applied</strong> asks for
-            the connects spent and stamps the applied time, exactly like the panel flow. Clicking
-            a card opens the usual lead panel. Filters apply to the board too.
+            the connects spent and stamps the applied time, and dropping on{' '}
+            <strong>Rejected</strong> requires a reason (it shows on the lead and in Activity with
+            your name — no silent rejections, panel or board). Clicking a card opens the usual
+            lead panel. Filters apply to the board too.
           </p>
           <H3>Daily Upwork metrics</H3>
           <p>
@@ -240,7 +242,11 @@ export default function DocsPage() {
           <H3>Filters and search</H3>
           <p>
             Filters on the Leads page (profile, status, date, search) persist while you open and
-            close leads. Search matches titles, email content, and pasted Upwork job URLs.
+            close leads. Search matches titles, email content, and pasted Upwork job URLs. The{' '}
+            <strong>Applied by</strong> filter (also on the Dashboard and Metrics) scopes everything
+            to leads a specific person marked applied — the applier is stamped automatically from
+            whoever is logged in when a lead is marked applied, and shows as a “by …” badge on
+            applied leads.
           </p>
         </Section>
 

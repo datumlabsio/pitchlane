@@ -3,7 +3,7 @@ import { LeadStatus } from '@prisma/client';
 import { getActorName } from '@/lib/auth/actor';
 import { prisma } from '@/lib/prisma';
 
-export async function updateLeadStatus(leadId: string, status: LeadStatus) {
+export async function updateLeadStatus(leadId: string, status: LeadStatus, note?: string) {
   const existingLead = await prisma.lead.findUnique({
     where: { id: leadId },
     select: { id: true, status: true },
@@ -33,6 +33,8 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus) {
           from: existingLead.status,
           to: status,
           actor,
+          // Free-text reason (required by the UI for manual rejections).
+          ...(note?.trim() ? { note: note.trim() } : {}),
         },
       },
     });

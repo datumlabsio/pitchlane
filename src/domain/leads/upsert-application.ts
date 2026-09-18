@@ -49,15 +49,28 @@ export async function upsertApplication(input: UpsertApplicationInput) {
       orderBy: { createdAt: 'desc' },
     });
 
+    // "Applied by" is stamped once, on the null→set transition of appliedAt (the
+    // person who actually marked it applied), and cleared when the date is cleared.
+    // Later form saves that merely carry appliedAt along never re-stamp it.
+    const appliedByPatch =
+      input.appliedAt === undefined
+        ? {}
+        : input.appliedAt === null
+          ? { appliedBy: null }
+          : existing?.appliedAt
+            ? {}
+            : { appliedBy: actor !== 'system' ? actor : null };
+
     const application = existing
       ? await tx.application.update({
           where: { id: existing.id },
-          data: changedFields,
+          data: { ...changedFields, ...appliedByPatch },
         })
       : await tx.application.create({
           data: {
             leadId: input.leadId,
             accountId: lead.accountId,
+            appliedBy: input.appliedAt && actor !== 'system' ? actor : null,
             connectsSpent: input.connectsSpent ?? null,
             appliedAt: input.appliedAt ?? null,
             lastFollowUpAt: input.lastFollowUpAt ?? null,

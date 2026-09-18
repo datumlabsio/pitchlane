@@ -4,6 +4,7 @@ import { Topbar } from '@/components/layout/topbar';
 import { DateRangeFilter } from '@/components/filters/date-range-filter';
 import { MultiSelectFilter } from '@/components/filters/multi-select';
 import { listActiveAccounts } from '@/domain/accounts/repository';
+import { listAppliers } from '@/domain/leads/repository';
 
 import { CostingTab } from './costing-tab';
 import { KeywordsTab } from './keywords-tab';
@@ -27,10 +28,11 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
   const since = str('since') ?? (from || to ? undefined : 'this_week');
   const dateWindow = { since, from, to };
   const accountId = str('accountId'); // comma-separated profile filter (multi-select)
+  const appliedBy = str('appliedBy'); // comma-separated applier names
   const tabParam = str('tab');
   const tab: Tab = (TABS as readonly string[]).includes(tabParam ?? '') ? (tabParam as Tab) : 'pipeline';
 
-  const accounts = await listActiveAccounts();
+  const [accounts, appliers] = await Promise.all([listActiveAccounts(), listAppliers()]);
 
   return (
     <div className="space-y-6">
@@ -44,6 +46,13 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
               label="Profiles"
               options={accounts.map((a) => ({ value: a.id, label: a.personName }))}
             />
+            {appliers.length > 0 && (
+              <MultiSelectFilter
+                param="appliedBy"
+                label="Applied by"
+                options={appliers.map((a) => ({ value: a, label: a }))}
+              />
+            )}
             <DateRangeFilter defaultToken="this_week" />
           </div>
         }
@@ -58,8 +67,8 @@ export default async function MetricsPage({ searchParams }: { searchParams: Sear
 
       <MetricsTabsNav />
 
-      {tab === 'pipeline' && <PipelineTab dateWindow={dateWindow} accountId={accountId} />}
-      {tab === 'profiles' && <ProfilesTab dateWindow={dateWindow} accountId={accountId} />}
+      {tab === 'pipeline' && <PipelineTab dateWindow={dateWindow} accountId={accountId} appliedBy={appliedBy} />}
+      {tab === 'profiles' && <ProfilesTab dateWindow={dateWindow} accountId={accountId} appliedBy={appliedBy} />}
       {tab === 'costing' && <CostingTab dateWindow={dateWindow} accountId={accountId} />}
       {tab === 'keywords' && <KeywordsTab dateWindow={dateWindow} accountId={accountId} />}
     </div>

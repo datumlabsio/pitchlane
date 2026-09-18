@@ -598,6 +598,7 @@ type FilterAccount = { id: string; personName: string; gmailLabel: string };
 type CurrentFilters = {
   accountId?: string;
   status?: string;
+  appliedBy?: string;
   search?: string;
   since?: string;
   from?: string;
@@ -606,9 +607,11 @@ type CurrentFilters = {
 
 function FilterBar({
   accounts,
+  appliers,
   currentFilters,
 }: {
   accounts: FilterAccount[];
+  appliers: string[];
   currentFilters: CurrentFilters;
 }) {
   const router = useRouter();
@@ -629,6 +632,7 @@ function FilterBar({
     if (currentFilters.accountId)
       params.set("accountId", currentFilters.accountId);
     if (currentFilters.status) params.set("status", currentFilters.status);
+    if (currentFilters.appliedBy) params.set("appliedBy", currentFilters.appliedBy);
     if (currentFilters.search) params.set("search", currentFilters.search);
     if (currentFilters.since) params.set("since", currentFilters.since);
     if (currentFilters.from) params.set("from", currentFilters.from);
@@ -664,6 +668,14 @@ function FilterBar({
           label: leadStatusLabelMap[value],
         }))}
       />
+
+      {appliers.length > 0 && (
+        <MultiSelectFilter
+          param="appliedBy"
+          label="Applied by"
+          options={appliers.map((a) => ({ value: a, label: a }))}
+        />
+      )}
 
       <DateRangeFilter />
 
@@ -723,6 +735,7 @@ function Pagination({
     if (currentFilters.accountId)
       params.set("accountId", currentFilters.accountId);
     if (currentFilters.status) params.set("status", currentFilters.status);
+    if (currentFilters.appliedBy) params.set("appliedBy", currentFilters.appliedBy);
     if (currentFilters.search) params.set("search", currentFilters.search);
     if (currentFilters.since) params.set("since", currentFilters.since);
     if (currentFilters.from) params.set("from", currentFilters.from);
@@ -1087,6 +1100,7 @@ export function LeadWorkbench({
   selectedLeadId,
   labels,
   accounts,
+  appliers = [],
   currentFilters,
   view = "list",
   enrichmentEnabled = false,
@@ -1099,6 +1113,7 @@ export function LeadWorkbench({
   selectedLeadId: string | null;
   labels: string[];
   accounts: FilterAccount[];
+  appliers?: string[];
   currentFilters: CurrentFilters;
   view?: "list" | "kanban";
   enrichmentEnabled?: boolean;
@@ -1116,6 +1131,8 @@ export function LeadWorkbench({
   const [pendingStatus, setPendingStatus] = useState<
     (typeof leadLifecycleStatuses)[number] | null
   >(null);
+  // Required free-text reason when the pending pill is REJECTED.
+  const [rejectNote, setRejectNote] = useState("");
   // Multi-profile apply: pick target profiles → a linked copy is created on each.
   const [copyOpen, setCopyOpen] = useState(false);
   const [copyTargets, setCopyTargets] = useState<string[]>([]);
@@ -1139,6 +1156,7 @@ export function LeadWorkbench({
     setProposalFeedback("");
     setCitedProjectIds(selectedLead?.relevantProjects.map((p) => p.id) ?? []);
     setPendingStatus(null);
+    setRejectNote("");
     setCopyOpen(false);
     setCopyTargets([]);
     setConnectsSpent(
@@ -1214,14 +1232,17 @@ export function LeadWorkbench({
     });
   }
 
-  function submitStatus(status: (typeof leadLifecycleStatuses)[number]) {
+  function submitStatus(
+    status: (typeof leadLifecycleStatuses)[number],
+    note?: string,
+  ) {
     if (!selectedLead) return;
     void runRequest(
       `/api/leads/${selectedLead.id}/status`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, ...(note?.trim() ? { note: note.trim() } : {}) }),
       },
       `Lead moved to ${leadStatusLabelMap[status]}.`,
     );
@@ -1436,6 +1457,7 @@ export function LeadWorkbench({
     if (currentFilters.accountId)
       params.set("accountId", currentFilters.accountId);
     if (currentFilters.status) params.set("status", currentFilters.status);
+    if (currentFilters.appliedBy) params.set("appliedBy", currentFilters.appliedBy);
     if (currentFilters.search) params.set("search", currentFilters.search);
     if (currentFilters.since) params.set("since", currentFilters.since);
     if (currentFilters.from) params.set("from", currentFilters.from);
@@ -1457,13 +1479,13 @@ export function LeadWorkbench({
 
   // Board actions work on any card, not just the open lead. Same endpoints as the
   // panel flows, so events/actors/metrics behave identically.
-  function moveLeadFromBoard(leadId: string, to: LeadStatusCode) {
+  function moveLeadFromBoard(leadId: string, to: LeadStatusCode, note?: string) {
     void runRequest(
       `/api/leads/${leadId}/status`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: to }),
+        body: JSON.stringify({ status: to, ...(note?.trim() ? { note: note.trim() } : {}) }),
       },
       `Lead moved to ${leadStatusLabelMap[to]}.`,
     );
@@ -1594,7 +1616,7 @@ export function LeadWorkbench({
       {/* Toolbar row: filters live on their own line so the page header stays
           just title + primary actions — no more everything crammed into one row. */}
       <div className="flex flex-wrap items-center gap-2">
-        <FilterBar accounts={accounts} currentFilters={currentFilters} />
+        <FilterBar accounts={accounts} appliers={appliers} currentFilters={currentFilters} />
         <div className="ml-auto flex shrink-0 overflow-hidden rounded-md border border-stone-200">
           <button
             type="button"
@@ -1764,6 +1786,14 @@ export function LeadWorkbench({
                                 : "Not viewed by the client yet"}
                             </title>
                           </CheckCheck>
+                        )}
+                        {lead.appliedBy && (
+                          <span
+                            className="rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500"
+                            title={`Applied by ${lead.appliedBy}`}
+                          >
+                            by {lead.appliedBy.split(" ")[0]}
+                          </span>
                         )}
                       </span>
                     </TableCell>
@@ -2068,9 +2098,21 @@ export function LeadWorkbench({
                             className="h-8 w-36 text-xs"
                           />
                         )}
+                        {pendingStatus === "REJECTED" && (
+                          <Input
+                            value={rejectNote}
+                            onChange={(e) => setRejectNote(e.target.value)}
+                            placeholder="Why is this being rejected? (required)"
+                            title="Shown on the lead and in Activity with your name"
+                            className="h-8 w-72 text-xs"
+                          />
+                        )}
                         <Button
                           size="sm"
-                          disabled={isPending}
+                          disabled={
+                            isPending ||
+                            (pendingStatus === "REJECTED" && !rejectNote.trim())
+                          }
                           onClick={() => {
                             if (pendingStatus === "APPLIED") {
                               // Stamps applied-at + saves connects; the application
@@ -2084,9 +2126,15 @@ export function LeadWorkbench({
                                 submitStatus("APPLIED");
                               }
                             } else {
-                              submitStatus(pendingStatus);
+                              submitStatus(
+                                pendingStatus,
+                                pendingStatus === "REJECTED"
+                                  ? rejectNote
+                                  : undefined,
+                              );
                             }
                             setPendingStatus(null);
+                            setRejectNote("");
                           }}
                         >
                           {isPending
@@ -2259,6 +2307,16 @@ export function LeadWorkbench({
                           <p className="text-sm text-stone-500">
                             No evaluation summary available.
                           </p>
+                        )}
+                        {selectedLead.rejectionNote && (
+                          <div className="mt-2 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2">
+                            <p className="text-xs font-medium text-rose-700">
+                              Rejected by {selectedLead.rejectionNote.actor}
+                            </p>
+                            <p className="mt-1 text-xs text-rose-600">
+                              “{selectedLead.rejectionNote.note}”
+                            </p>
+                          </div>
                         )}
                         {selectedLead.rejectionReasons.length > 0 && (
                           <div className="mt-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2">

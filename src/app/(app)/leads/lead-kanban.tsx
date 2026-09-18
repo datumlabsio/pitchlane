@@ -47,8 +47,8 @@ export function LeadKanban({
   leads: LeadSummary[];
   busy?: boolean;
   onOpenLead: (leadId: string) => void;
-  /** Plain status move (everything except drops onto Applied). */
-  onMoveLead: (leadId: string, to: LeadStatusCode) => void;
+  /** Plain status move; a drop on Rejected carries the required reason note. */
+  onMoveLead: (leadId: string, to: LeadStatusCode, note?: string) => void;
   /** Drop onto Applied: logs appliedAt=now (+ optional connects), promoting the lead. */
   onApplyLead: (leadId: string, connects: number | null, fromStatus: LeadStatusCode) => void;
 }) {
@@ -66,6 +66,9 @@ export function LeadKanban({
   // lifecycle Apply flow — connect costs shouldn't be lost to a quick drag).
   const [applyDrop, setApplyDrop] = useState<{ leadId: string; from: LeadStatusCode } | null>(null);
   const [applyConnects, setApplyConnects] = useState('');
+  // Drop-on-Rejected confirm: a reason is required before the move commits.
+  const [rejectDrop, setRejectDrop] = useState<{ leadId: string } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const statusOf = (lead: LeadSummary) => moves[lead.id] ?? lead.statusCode;
   const byColumn = new Map<LeadStatusCode, LeadSummary[]>(
@@ -88,8 +91,20 @@ export function LeadKanban({
       setApplyDrop({ leadId: lead.id, from });
       return; // committed from the dialog
     }
+    if (to === 'REJECTED') {
+      setRejectReason('');
+      setRejectDrop({ leadId: lead.id });
+      return; // committed from the dialog, reason required
+    }
     setMoves((m) => ({ ...m, [lead.id]: to }));
     onMoveLead(lead.id, to);
+  }
+
+  function commitRejectDrop() {
+    if (!rejectDrop || !rejectReason.trim()) return;
+    setMoves((m) => ({ ...m, [rejectDrop.leadId]: 'REJECTED' }));
+    onMoveLead(rejectDrop.leadId, 'REJECTED', rejectReason.trim());
+    setRejectDrop(null);
   }
 
   function commitApplyDrop() {
@@ -186,6 +201,14 @@ export function LeadKanban({
                           </title>
                         </CheckCheck>
                       )}
+                      {lead.appliedBy && (
+                        <span
+                          className="rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500"
+                          title={`Applied by ${lead.appliedBy}`}
+                        >
+                          {lead.appliedBy.split(' ')[0]}
+                        </span>
+                      )}
                       <span className="ml-auto truncate text-[10px] text-stone-400">
                         {lead.createdAt}
                       </span>
@@ -202,6 +225,35 @@ export function LeadKanban({
           );
         })}
       </div>
+
+      <Dialog open={rejectDrop !== null} onOpenChange={(open) => !open && setRejectDrop(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reject this lead</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs leading-5 text-stone-500">
+            A reason is required — it shows on the lead and in Activity with your name.
+          </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="kanban-reject-reason">Rejection reason</Label>
+            <Input
+              id="kanban-reject-reason"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. budget too low, wrong stack, client history"
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="ghost" size="sm" onClick={() => setRejectDrop(null)}>
+              Cancel
+            </Button>
+            <Button size="sm" disabled={busy || !rejectReason.trim()} onClick={commitRejectDrop}>
+              Reject lead
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={applyDrop !== null} onOpenChange={(open) => !open && setApplyDrop(null)}>
         <DialogContent className="sm:max-w-sm">

@@ -3,10 +3,13 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Topbar } from '@/components/layout/topbar';
 import { DateRangeFilter } from '@/components/filters/date-range-filter';
+import { MultiSelectFilter } from '@/components/filters/multi-select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getDashboardMetrics, getProfilePerformanceRows, getRecentQualifiedLeads } from '@/domain/metrics/repository';
+import { listAppliers } from '@/domain/leads/repository';
+import { listActiveAccounts } from '@/domain/accounts/repository';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -14,11 +17,15 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   const sp = await searchParams;
   const str = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
   const dateWindow = { since: str('since'), from: str('from'), to: str('to') };
+  const accountId = str('accountId');
+  const appliedBy = str('appliedBy');
 
-  const [metrics, profileRows, needsReview] = await Promise.all([
-    getDashboardMetrics(dateWindow),
-    getProfilePerformanceRows(dateWindow),
-    getRecentQualifiedLeads(dateWindow),
+  const [metrics, profileRows, needsReview, accounts, appliers] = await Promise.all([
+    getDashboardMetrics(dateWindow, accountId, appliedBy),
+    getProfilePerformanceRows(dateWindow, accountId, appliedBy),
+    getRecentQualifiedLeads(dateWindow, accountId, appliedBy),
+    listActiveAccounts(),
+    listAppliers(),
   ]);
 
   const totals = profileRows.reduce(
@@ -36,7 +43,23 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       <Topbar
         title="Dashboard"
         subtitle="Overview of lead activity across all profiles."
-        actions={<DateRangeFilter />}
+        actions={
+          <>
+            <MultiSelectFilter
+              param="accountId"
+              label="Profiles"
+              options={accounts.map((a) => ({ value: a.id, label: a.personName }))}
+            />
+            {appliers.length > 0 && (
+              <MultiSelectFilter
+                param="appliedBy"
+                label="Applied by"
+                options={appliers.map((a) => ({ value: a, label: a }))}
+              />
+            )}
+            <DateRangeFilter />
+          </>
+        }
       />
 
       {/* Metric cards */}

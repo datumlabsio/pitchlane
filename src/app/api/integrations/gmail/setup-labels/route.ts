@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 
 import { listActiveAccounts } from '@/domain/accounts/repository';
-import { createAuthenticatedGmailClient } from '@/lib/google/gmail';
+import { createAuthenticatedGmailClient, gmailWritesEnabled } from '@/lib/google/gmail';
 
 export async function POST() {
   try {
+    if (!gmailWritesEnabled) {
+      return NextResponse.json({
+        ok: false,
+        error:
+          'Label management is off: Gmail access runs read-only via the service account (it cannot create labels). Ingestion does not depend on labels.',
+      }, { status: 400 });
+    }
     const gmail = await createAuthenticatedGmailClient();
     const accounts = await listActiveAccounts();
 

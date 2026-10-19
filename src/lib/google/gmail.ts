@@ -16,6 +16,12 @@ export function createGoogleOAuthClient() {
   );
 }
 
+// Under the service account the app runs READ-ONLY against Gmail (the DWD grant is
+// gmail.readonly — deliberately: the app can never modify or delete mail anywhere in
+// the domain). Label housekeeping only happens on the legacy OAuth path, whose token
+// carries gmail.modify. Ingestion never needed writes; labels are a convenience.
+export const gmailWritesEnabled = !(process.env.GOOGLE_SA_KEY_B64 && process.env.GMAIL_IMPERSONATE);
+
 // Service-account path: impersonate the shared mailbox via domain-wide delegation.
 // Immune to password changes, logouts, and stray reconnects — it only breaks if a
 // Workspace admin removes the delegation. Preferred whenever configured.
@@ -25,7 +31,7 @@ function createServiceAccountGmailClient() {
   const auth = new google.auth.JWT({
     email: key.client_email,
     key: key.private_key,
-    scopes: ['https://www.googleapis.com/auth/gmail.modify'],
+    scopes: ['https://www.googleapis.com/auth/gmail.readonly'],
     subject: env.GMAIL_IMPERSONATE,
   });
   return google.gmail({ version: 'v1', auth });

@@ -3,7 +3,7 @@ import { IntegrationProvider, Prisma, SourceCompleteness } from '@prisma/client'
 import { listActiveAccounts } from '@/domain/accounts/repository';
 import { completeSyncRun, createSyncRun, getGoogleConnection } from '@/domain/integrations/repository';
 import { createLeadFromEmail } from '@/domain/leads/create-email-lead';
-import { createAuthenticatedGmailClient, decodeMessageBody, getHeaderValue } from '@/lib/google/gmail';
+import { createAuthenticatedGmailClient, decodeMessageBody, getHeaderValue, gmailWritesEnabled } from '@/lib/google/gmail';
 import { prisma } from '@/lib/prisma';
 
 // The old scan read only the N newest messages per label with no pagination or
@@ -87,20 +87,25 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
       const perLabel = { gmailLabel, scanned: 0, created: 0, duplicates: 0, errors: 0 };
 
       let resolvedLabelId = labelId;
-      if (!resolvedLabelId) {
+      if (!resolvedLabelId && gmailWritesEnabled) {
         try {
           const created = await gmail.users.labels.create({
             userId: 'me',
             requestBody: { name: gmailLabel },
           });
           resolvedLabelId = created.data.id ?? undefined;
-        } catch { /* will fall through to error below */ }
+        } catch { /* fall through — recipient listing still covers the account */ }
       }
 
-      if (!resolvedLabelId) {
+      // Read-only mode can't create a missing label. That's fine as long as the
+      // account's alert address routes mail to us — list by recipient only and say
+      // so. Error only when there is no usable path at all.
+      const inboxAddr = account.forwardingInbox?.trim().toLowerCase();
+      const recipientRoutable = Boolean(inboxAddr && accountsByInbox.get(inboxAddr) === 1);
+      if (!resolvedLabelId && !recipientRoutable) {
         perLabel.errors += 1;
         errorsCount += 1;
-        errorMessages.push(`Could not find or create Gmail label: ${gmailLabel}`);
+        errorMessages.push(`No Gmail label and no unique alert address for: ${gmailLabel}`);
         labelSummaries.push(perLabel);
         continue;
       }
@@ -131,10 +136,11 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
           pageToken = page.data.nextPageToken ?? undefined;
         } while (pageToken);
       };
-      await listInto({ labelIds: [resolvedLabelId], q: `after:${since}` });
-      const inbox = account.forwardingInbox?.trim().toLowerCase();
-      if (inbox && accountsByInbox.get(inbox) === 1) {
-        await listInto({ q: `from:donotreply@upwork.com to:${inbox} after:${since}` });
+      if (resolvedLabelId) {
+        await listInto({ labelIds: [resolvedLabelId], q: `after:${since}` });
+      }
+      if (recipientRoutable) {
+        await listInto({ q: `from:donotreply@upwork.com to:${inboxAddr} after:${since}` });
       }
       const messageIds = [...messageIdSet];
 
@@ -207,10 +213,10 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
             if (result.lead.sourceUrl) newLeadIds.push(result.lead.id);
           }
 
-          // Self-heal the label on recipient-routed mail so the mailbox stays
-          // organized and label listing keeps working. Best effort — the lead is
-          // already ingested either way.
-          if (!(fullMessage.data.labelIds ?? []).includes(resolvedLabelId)) {
+          // Self-heal the label on recipient-routed mail — only when we hold a
+          // write-capable token (legacy OAuth). Read-only service-account mode
+          // skips this; ingestion doesn't depend on labels.
+          if (gmailWritesEnabled && resolvedLabelId && !(fullMessage.data.labelIds ?? []).includes(resolvedLabelId)) {
             try {
               await gmail.users.messages.modify({
                 userId: 'me',

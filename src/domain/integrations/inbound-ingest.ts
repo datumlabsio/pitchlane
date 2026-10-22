@@ -57,7 +57,12 @@ const RECIPIENT_HEADERS = ['to', 'cc', 'delivered-to', 'x-forwarded-to', 'x-forw
 
 function detailRecipientCandidates(detail: ReceivedEmailDetail): string[] {
   const headerValues = RECIPIENT_HEADERS.map((name) => detail.headers?.[name]);
-  return extractAddresses([...(detail.to ?? []), ...(detail.cc ?? []), ...headerValues]);
+  return extractAddresses([
+    ...(detail.to ?? []),
+    ...(detail.cc ?? []),
+    ...(detail.received_for ?? []),
+    ...headerValues,
+  ]);
 }
 
 /**
@@ -123,7 +128,12 @@ export async function processInboundEmail(event: EmailReceivedEvent): Promise<In
     let detail: ReceivedEmailDetail | null = null;
     const fetchDetail = async () => (detail ??= await getReceivedEmail(event.email_id));
 
-    let account = uniqueOwner(extractAddresses([...(event.to ?? []), ...(event.cc ?? [])]));
+    // received_for carries the delivery chain (observed: our receiving address,
+    // sales@, and the profile's own alert address) — scan it too, so routing can
+    // succeed even before the detail fetch.
+    let account = uniqueOwner(
+      extractAddresses([...(event.to ?? []), ...(event.cc ?? []), ...(event.received_for ?? [])]),
+    );
     if (!account && env.RESEND_API_KEY) {
       try {
         account = uniqueOwner(detailRecipientCandidates(await fetchDetail()));

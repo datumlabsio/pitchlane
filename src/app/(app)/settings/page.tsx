@@ -5,8 +5,19 @@ import Link from 'next/link';
 import { Topbar } from '@/components/layout/topbar';
 import { GmailSyncForm } from '@/components/settings/gmail-sync-form';
 import { listActiveAccounts } from '@/domain/accounts/repository';
+import { getInboundChannelStatus } from '@/domain/integrations/inbound-status';
 import { getGoogleConnectionStatus, getUpworkConnectionStatus } from '@/domain/integrations/repository';
 import { env } from '@/lib/env';
+
+// Chip styling per inbound delivery outcome — mirrors the domain's outcome values.
+const INBOUND_OUTCOME_STYLE: Record<string, string> = {
+  stored: 'bg-sky-400/15 text-sky-300',
+  ingested: 'bg-emerald-400/15 text-emerald-300',
+  duplicate: 'bg-stone-400/15 text-stone-300',
+  skipped: 'bg-stone-400/10 text-stone-500',
+  unroutable: 'bg-amber-400/15 text-amber-300',
+  error: 'bg-rose-400/15 text-rose-300',
+};
 
 type SettingsPageProps = {
   searchParams?: Promise<{ gmail?: string; upwork?: string }>;
@@ -22,10 +33,11 @@ function formatTimestamp(date: Date) {
 }
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
-  const [accounts, google, upwork] = await Promise.all([
+  const [accounts, google, upwork, inbound] = await Promise.all([
     listActiveAccounts(),
     getGoogleConnectionStatus(),
     getUpworkConnectionStatus(),
+    getInboundChannelStatus(),
   ]);
   const params = searchParams ? await searchParams : undefined;
   const gmailStatus = params?.gmail;
@@ -129,6 +141,91 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </div>
       </div>
 
+      {/* ── Inbound email channel (Resend) ── */}
+      <div className="rounded-3xl bg-stone-950 p-6 text-stone-50">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Inbound email · Resend</p>
+            <h2 className="mt-2 text-xl font-semibold">
+              {!inbound.configured
+                ? 'Not configured'
+                : inbound.receivingAddress ?? 'Webhook configured'}
+            </h2>
+            <p className="mt-1 text-sm text-stone-400">
+              {!inbound.configured
+                ? 'Set the webhook signing secret to activate the forwarding channel.'
+                : inbound.mode === 'live'
+                  ? 'Live: leads ingest directly from forwarded mail — no Gmail credentials involved.'
+                  : 'Shadow mode: forwarded mail is stored and reconciled against the Gmail path; leads still come from Gmail until cutover.'}
+            </p>
+          </div>
+          <span
+            className={`mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+              !inbound.configured
+                ? 'bg-amber-400/15 text-amber-300'
+                : inbound.mode === 'live'
+                  ? 'bg-emerald-400/15 text-emerald-300'
+                  : 'bg-sky-400/15 text-sky-300'
+            }`}
+          >
+            {!inbound.configured ? 'Pending' : inbound.mode === 'live' ? 'Live' : 'Shadow mode'}
+          </span>
+        </div>
+
+        {inbound.configured && (
+          <div className="mt-5 rounded-2xl bg-white/6 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-stone-300">Last 24 hours</p>
+              <p className="text-xs text-stone-500">
+                {inbound.armedAt
+                  ? `Reconciler armed since ${formatTimestamp(inbound.armedAt)}`
+                  : 'Reconciler arms on the first Upwork delivery'}
+              </p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: 'Received', value: inbound.last24h.received },
+                { label: 'Routed', value: inbound.last24h.routed },
+                { label: 'Unroutable', value: inbound.last24h.unroutable },
+                { label: 'Errors', value: inbound.last24h.errors },
+              ].map((m) => (
+                <div key={m.label} className="rounded-xl bg-white/6 px-3 py-2 text-center">
+                  <p className="text-lg font-semibold text-white">{m.value}</p>
+                  <p className="text-xs text-stone-500">{m.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {inbound.recent.length > 0 && (
+          <div className="mt-5 space-y-2 border-t border-white/8 pt-5">
+            {inbound.recent.map((row) => (
+              <div key={row.id} className="flex items-center justify-between gap-3 text-sm">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${INBOUND_OUTCOME_STYLE[row.outcome] ?? 'bg-stone-400/15 text-stone-300'}`}
+                  >
+                    {row.outcome}
+                  </span>
+                  <span className="truncate text-stone-300">{row.subject ?? '(no subject)'}</span>
+                </div>
+                <div className="flex shrink-0 items-center gap-3 text-xs text-stone-500">
+                  {row.accountName && <span>{row.accountName}</span>}
+                  <span>{formatTimestamp(row.receivedAt)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="mt-5 border-t border-white/8 pt-4 text-xs text-stone-500">
+          Mail flow: Gmail filter on sales@ forwards Upwork alerts here. A reconcile cron compares every
+          Gmail lead against these deliveries and alerts Slack on gaps.
+          {!inbound.keyPresent && ' Routing by profile needs the Resend API key (not set).'}
+        </p>
+      </div>
+
       {/* ── Upwork integration ── */}
       <div className="rounded-3xl bg-stone-950 p-6 text-stone-50">
         <div className="flex items-start justify-between gap-4">
@@ -198,6 +295,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             { label: 'Google OAuth', ok: !!env.GOOGLE_CLIENT_ID },
             { label: 'Vercel Cron', ok: !!env.CRON_SECRET },
             { label: 'Slack', ok: !!env.SLACK_WEBHOOK_URL },
+            { label: 'Resend inbound', ok: !!env.RESEND_INBOUND_WEBHOOK_SECRET && !!env.RESEND_API_KEY },
             { label: 'Upwork', ok: !!env.UPWORK_CLIENT_ID },
           ].map(({ label, ok }) => (
             <span

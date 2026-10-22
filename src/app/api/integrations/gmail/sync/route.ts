@@ -3,6 +3,7 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { syncGmailInbox } from '@/domain/integrations/gmail-sync';
 import { ensureGmailWatch } from '@/domain/integrations/gmail-watch';
+import { alertGmailAuthFailure } from '@/domain/integrations/auth-failure-alert';
 import { enrichNewLeads } from '@/domain/integrations/enrich-new-leads';
 
 // Ingest returns fast; enrichment + Slack alerts run in after() (up to maxDuration).
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
   try {
     return await runSync();
   } catch (error) {
+    await alertGmailAuthFailure(error);
     const message = error instanceof Error ? error.message : 'Unknown Gmail sync failure';
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
   }
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
   try {
     return await runSync();
   } catch (error) {
+    await alertGmailAuthFailure(error);
     const message = error instanceof Error ? error.message : 'Unknown Gmail sync failure';
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
   }

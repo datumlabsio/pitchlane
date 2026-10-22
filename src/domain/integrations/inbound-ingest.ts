@@ -3,7 +3,7 @@ import { createLeadFromEmail } from '@/domain/leads/create-email-lead';
 import { extractLeadSignals } from '@/domain/leads/extract-signals';
 import { env } from '@/lib/env';
 import { prisma } from '@/lib/prisma';
-import { getReceivedEmail } from '@/lib/resend/client';
+import { getReceivedEmail, type ReceivedEmailDetail } from '@/lib/resend/client';
 import { stripHtml } from '@/lib/utils';
 
 /** Metadata-only payload of Resend's `email.received` webhook event. */
@@ -36,6 +36,29 @@ const UPWORK_SENDER = /upwork\.com/i;
 const TERMINAL_OUTCOMES: ReadonlySet<string> = new Set([
   'stored', 'ingested', 'duplicate', 'skipped', 'unroutable',
 ]);
+
+const EMAIL_ADDRESS = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+
+function extractAddresses(values: Array<string | null | undefined>): string[] {
+  const found = new Set<string>();
+  for (const value of values) {
+    for (const match of (value ?? '').match(EMAIL_ADDRESS) ?? []) {
+      found.add(match.toLowerCase());
+    }
+  }
+  return [...found];
+}
+
+// Headers that can carry the ORIGINAL recipient of a forwarded message. Gmail's
+// filter-forward rewrites the ENVELOPE recipient (that's what Resend reports in
+// `to`), but it cannot rewrite the DKIM-signed To header — the original alert
+// address survives in the parsed headers, alongside the X-Forwarded-* trail.
+const RECIPIENT_HEADERS = ['to', 'cc', 'delivered-to', 'x-forwarded-to', 'x-forwarded-for', 'x-original-to'];
+
+function detailRecipientCandidates(detail: ReceivedEmailDetail): string[] {
+  const headerValues = RECIPIENT_HEADERS.map((name) => detail.headers?.[name]);
+  return extractAddresses([...(detail.to ?? []), ...(detail.cc ?? []), ...headerValues]);
+}
 
 /**
  * Handles one inbound email event. Always records the delivery in the InboundEmail
@@ -80,11 +103,13 @@ export async function processInboundEmail(event: EmailReceivedEvent): Promise<In
       return { outcome: 'skipped' };
     }
 
-    // Route by the ORIGINAL recipient: Gmail's forwarding filter preserves the To
-    // header, and Upwork addresses every alert to the profile's own alert address —
-    // the same per-account address the Gmail path routes by (forwardingInbox). Only
-    // an address owned by exactly one active account is routable; shared addresses
-    // surface as `unroutable` rows in reconciliation instead of guessing.
+    // Route by the ORIGINAL recipient — Upwork addresses every alert to the
+    // profile's own alert address, the same per-account address the Gmail path
+    // routes by (forwardingInbox). Gmail's forward rewrites the envelope (so the
+    // webhook's `to` usually shows our own receiving address), but the original
+    // To survives in the message headers, which the retrieve API parses — fetch
+    // them when a key is configured. Only an address owned by exactly one active
+    // account is routable; anything else stays `unroutable` instead of guessing.
     const accounts = await listActiveAccounts();
     const owners = new Map<string, AccountRow[]>();
     for (const account of accounts) {
@@ -92,10 +117,20 @@ export async function processInboundEmail(event: EmailReceivedEvent): Promise<In
       if (!addr) continue;
       owners.set(addr, [...(owners.get(addr) ?? []), account]);
     }
-    const recipients = [...(event.to ?? []), ...(event.cc ?? [])].map((a) => a.trim().toLowerCase());
-    const account = recipients
-      .map((addr) => owners.get(addr))
-      .find((candidates) => candidates?.length === 1)?.[0];
+    const uniqueOwner = (addresses: string[]) =>
+      addresses.map((addr) => owners.get(addr)).find((candidates) => candidates?.length === 1)?.[0];
+
+    let detail: ReceivedEmailDetail | null = null;
+    const fetchDetail = async () => (detail ??= await getReceivedEmail(event.email_id));
+
+    let account = uniqueOwner(extractAddresses([...(event.to ?? []), ...(event.cc ?? [])]));
+    if (!account && env.RESEND_API_KEY) {
+      try {
+        account = uniqueOwner(detailRecipientCandidates(await fetchDetail()));
+      } catch {
+        // Header lookup is a routing nicety — fall through to unroutable.
+      }
+    }
     if (!account) {
       await finish('unroutable');
       return { outcome: 'unroutable' };
@@ -108,11 +143,12 @@ export async function processInboundEmail(event: EmailReceivedEvent): Promise<In
       return { outcome: 'stored' };
     }
 
-    // The webhook only carries metadata — fetch the parsed body, then ingest through
-    // the same domain path as the Gmail sync (same dedupe, triage, and guards).
-    const detail = await getReceivedEmail(event.email_id);
-    const subject = event.subject ?? detail.subject ?? 'Untitled forwarded lead';
-    const body = detail.text || stripHtml(detail.html ?? '') || subject;
+    // The webhook only carries metadata — fetch the parsed body (reusing the
+    // routing fetch when it already happened), then ingest through the same
+    // domain path as the Gmail sync (same dedupe, triage, and guards).
+    const fullDetail = await fetchDetail();
+    const subject = event.subject ?? fullDetail.subject ?? 'Untitled forwarded lead';
+    const body = fullDetail.text || stripHtml(fullDetail.html ?? '') || subject;
     const signals = extractLeadSignals(subject, body);
 
     const result = await createLeadFromEmail({

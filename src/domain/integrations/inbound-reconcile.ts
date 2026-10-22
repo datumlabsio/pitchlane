@@ -34,17 +34,16 @@ const normalize = (value: string) =>
  * everything stays quiet until the channel has received its first email.
  */
 export async function reconcileInbound(): Promise<InboundReconcileResult> {
-  const since = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000);
-
-  // Never alarm before the channel is wired up — the first ROUTABLE Upwork delivery
-  // arms it. Skipped rows don't count: the Gmail forward-address confirmation email
-  // and synthetic tests land (and are skipped) before the forwarding filter exists,
+  // Never alarm before the channel is wired up — the first Upwork delivery arms it.
+  // Skipped rows don't count: the Gmail forward-address confirmation email and
+  // synthetic tests land (and are skipped) before the forwarding filter exists,
   // and arming on those would gap-alert on every Gmail lead until the filter is live.
-  const everReceived = await prisma.inboundEmail.findFirst({
+  const armedBy = await prisma.inboundEmail.findFirst({
     where: { outcome: { not: 'skipped' } },
-    select: { id: true },
+    orderBy: { receivedAt: 'asc' },
+    select: { receivedAt: true },
   });
-  if (!everReceived) {
+  if (!armedBy) {
     return {
       windowHours: WINDOW_HOURS,
       armed: false,
@@ -60,9 +59,21 @@ export async function reconcileInbound(): Promise<InboundReconcileResult> {
     };
   }
 
+  // The comparison window starts when the channel went live, never earlier — Gmail
+  // leads from before the forwarding filter existed can't have inbound twins, and
+  // counting them would false-alarm on day one. A short grace excludes the newest
+  // leads whose forwarded copy may still be in flight.
+  const GRACE_MS = 5 * 60 * 1000;
+  const since = new Date(
+    Math.max(Date.now() - WINDOW_HOURS * 3600 * 1000, armedBy.receivedAt.getTime()),
+  );
+
   const [leads, inbound] = await Promise.all([
     prisma.lead.findMany({
-      where: { createdAt: { gte: since }, dedupeKey: { startsWith: 'gmail:' } },
+      where: {
+        createdAt: { gte: since, lte: new Date(Date.now() - GRACE_MS) },
+        dedupeKey: { startsWith: 'gmail:' },
+      },
       select: { emailSubject: true, title: true, account: { select: { name: true } } },
     }),
     prisma.inboundEmail.findMany({

@@ -32,9 +32,11 @@ type AccountRow = Awaited<ReturnType<typeof listActiveAccounts>>[number];
 
 const UPWORK_SENDER = /upwork\.com/i;
 
-// Outcomes a webhook retry can't improve on — re-delivery of these is a no-op.
+// Outcomes a re-delivery can't improve on — reprocessing is a no-op for these.
+// `unroutable` and `error` are deliberately NOT terminal: a redelivered (or
+// manually reprocessed) event retries routing, so config fixes self-heal rows.
 const TERMINAL_OUTCOMES: ReadonlySet<string> = new Set([
-  'stored', 'ingested', 'duplicate', 'skipped', 'unroutable',
+  'stored', 'ingested', 'duplicate', 'skipped',
 ]);
 
 const EMAIL_ADDRESS = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;

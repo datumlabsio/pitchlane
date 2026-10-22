@@ -36,8 +36,14 @@ const normalize = (value: string) =>
 export async function reconcileInbound(): Promise<InboundReconcileResult> {
   const since = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000);
 
-  // Never alarm before the channel is wired up — the first delivery arms it.
-  const everReceived = await prisma.inboundEmail.findFirst({ select: { id: true } });
+  // Never alarm before the channel is wired up — the first ROUTABLE Upwork delivery
+  // arms it. Skipped rows don't count: the Gmail forward-address confirmation email
+  // and synthetic tests land (and are skipped) before the forwarding filter exists,
+  // and arming on those would gap-alert on every Gmail lead until the filter is live.
+  const everReceived = await prisma.inboundEmail.findFirst({
+    where: { outcome: { not: 'skipped' } },
+    select: { id: true },
+  });
   if (!everReceived) {
     return {
       windowHours: WINDOW_HOURS,

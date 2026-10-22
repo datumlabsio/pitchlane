@@ -63,6 +63,7 @@ model Account {
   applications        Application[]
   projects            Project[]
   profileStats        ProfileStat[]
+  inboundEmails       InboundEmail[]
 }
 
 model ProfileConfig {
@@ -123,6 +124,7 @@ model Lead {
   proposals            ProposalVersion[]
   applications         Application[]
   events               LeadEvent[]
+  inboundEmails        InboundEmail[]
 
   @@index([accountId, status])
   @@index([externalThreadId])
@@ -247,6 +249,35 @@ model ProfileStat {
 
   @@unique([accountId, weekStart])
   @@index([accountId, weekStart])
+}
+
+// One row per email delivered through the inbound webhook channel (Resend). This is
+// the received-mail store: the reconciliation cron compares it against Gmail-path
+// leads to prove forwarding coverage before cutover, and it stays as the audit trail
+// of raw deliveries after it.
+model InboundEmail {
+  id              String    @id @default(cuid())
+  provider        String    @default("resend")
+  providerEmailId String    @unique
+  rfcMessageId    String?
+  fromAddr        String?
+  toAddrs         String[]
+  receivedFor     String[]
+  subject         String?
+  // Processing result: stored (shadow mode) | ingested | duplicate | skipped
+  // (non-Upwork mail) | unroutable (no unique account owns the recipient) | error.
+  outcome         String    @default("stored")
+  error           String?   @db.Text
+  accountId       String?
+  leadId          String?
+  receivedAt      DateTime  @default(now())
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  account         Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  lead            Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([receivedAt])
+  @@index([outcome, receivedAt])
 }
 
 // Portfolio project for one profile — real delivered work the proposal writer can

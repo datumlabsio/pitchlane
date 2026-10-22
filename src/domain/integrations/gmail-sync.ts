@@ -1,8 +1,9 @@
-import { IntegrationProvider, Prisma, SourceCompleteness } from '@prisma/client';
+import { IntegrationProvider, Prisma } from '@prisma/client';
 
 import { listActiveAccounts } from '@/domain/accounts/repository';
 import { completeSyncRun, createSyncRun, getGoogleConnection } from '@/domain/integrations/repository';
 import { createLeadFromEmail } from '@/domain/leads/create-email-lead';
+import { extractLeadSignals } from '@/domain/leads/extract-signals';
 import { createAuthenticatedGmailClient, decodeMessageBody, getHeaderValue, gmailWritesEnabled } from '@/lib/google/gmail';
 import { prisma } from '@/lib/prisma';
 
@@ -299,29 +300,4 @@ export async function syncGmailInbox(): Promise<SyncSummary> {
 
     throw error;
   }
-}
-
-function extractLeadSignals(subject: string, body: string) {
-  const combined = `${subject}\n${body}`;
-  const sourceUrlMatch = combined.match(/https?:\/\/www\.upwork\.com\/jobs\/[^\s)]+/i)
-    || combined.match(/https?:\/\/www\.upwork\.com\/[^\s)]+/i);
-
-  const budgetMatch = combined.match(/(?:\$\s?\d[\d,]*(?:\.\d+)?(?:\s?(?:fixed|hour|hr))?)/i)
-    || combined.match(/(?:budget|rate)[:\s]+([^\n.]+)/i);
-
-  const knownSkills = [
-    'power bi', 'sql', 'dashboard', 'analytics', 'aws', 'python', 'automation', 'terraform',
-    'snowflake', 'looker', 'etl', 'excel', 'reporting', 'bigquery', 'dbt', 'docker', 'ci/cd',
-  ];
-
-  const lower = combined.toLowerCase();
-  const skills = knownSkills.filter((skill) => lower.includes(skill)).slice(0, 8);
-  const sourceCompleteness = body.length > 900 ? SourceCompleteness.FULL : SourceCompleteness.PARTIAL;
-
-  return {
-    sourceUrl: sourceUrlMatch?.[0],
-    budget: budgetMatch?.[0]?.trim(),
-    skills,
-    sourceCompleteness,
-  };
 }

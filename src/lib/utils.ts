@@ -24,6 +24,19 @@ export function decodeHtmlEntities(s: string): string {
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
 }
 
+// Flatten an HTML email body to readable plain text (styles, scripts, tags dropped,
+// entities decoded). Shared by every ingestion path that may only have an HTML part.
+export function stripHtml(value: string): string {
+  return decodeHtmlEntities(
+    value
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<[^>]+>/g, " "),
+  )
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // Boilerplate lines to drop from a forwarded Upwork alert email.
 const EMAIL_BOILERPLATE = [
   /^new job alert$/i,

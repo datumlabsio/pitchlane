@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import type { gmail_v1 } from 'googleapis';
 
 import { env } from '@/lib/env';
+import { stripHtml } from '@/lib/utils';
 import { getGoogleConnection } from '@/domain/integrations/repository';
 
 export function createGoogleOAuthClient() {
@@ -94,15 +95,4 @@ export function decodeMessageBody(part?: gmail_v1.Schema$MessagePart | null): st
 
 function decodeBase64Url(value: string) {
   return Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
-}
-
-function stripHtml(value: string) {
-  return value
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/\s+/g, ' ')
-    .trim();
 }

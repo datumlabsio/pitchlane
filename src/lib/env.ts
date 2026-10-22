@@ -36,6 +36,12 @@ const envSchema = z.object({
   GOOGLE_SA_KEY_B64: z.string().optional(),
   GMAIL_IMPERSONATE: z.string().optional(),
   GMAIL_CONNECT_ALLOWED: z.string().optional(),
+  // Inbound email channel (Resend): API key for fetching received bodies, the svix
+  // signing secret guarding /api/ingest/inbound, and the ingest mode — "shadow"
+  // stores + reconciles without creating leads; "live" ingests leads from inbound.
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_INBOUND_WEBHOOK_SECRET: z.string().optional(),
+  INBOUND_INGEST_MODE: z.enum(["shadow", "live"]).default("shadow"),
   ZENROWS_API_KEY: z.string().optional(),
   BRIGHTDATA_API_TOKEN: z.string().optional(),
   BRIGHTDATA_ZONE: z.string().optional(),
@@ -70,6 +76,9 @@ export const env = envSchema.parse({
   GOOGLE_SA_KEY_B64: process.env.GOOGLE_SA_KEY_B64,
   GMAIL_IMPERSONATE: process.env.GMAIL_IMPERSONATE,
   GMAIL_CONNECT_ALLOWED: process.env.GMAIL_CONNECT_ALLOWED,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  RESEND_INBOUND_WEBHOOK_SECRET: process.env.RESEND_INBOUND_WEBHOOK_SECRET,
+  INBOUND_INGEST_MODE: process.env.INBOUND_INGEST_MODE,
   ZENROWS_API_KEY: process.env.ZENROWS_API_KEY,
   BRIGHTDATA_API_TOKEN: process.env.BRIGHTDATA_API_TOKEN,
   BRIGHTDATA_ZONE: process.env.BRIGHTDATA_ZONE,

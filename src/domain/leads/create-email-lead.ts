@@ -14,6 +14,8 @@ export type IngestEmailInput = {
   body: string;
   source?: LeadSource;
   externalMessageId?: string;
+  /** Namespace for externalMessageId in the dedupe key — which system issued the id. */
+  externalIdProvider?: 'gmail' | 'resend';
   externalThreadId?: string;
   sourceUrl?: string;
   extractedBudget?: string;
@@ -31,7 +33,7 @@ const REPOST_WINDOW_DAYS = 45;
 
 function buildDedupeKey(input: IngestEmailInput) {
   if (input.externalMessageId) {
-    return `gmail:${input.externalMessageId}`.toLowerCase();
+    return `${input.externalIdProvider ?? 'gmail'}:${input.externalMessageId}`.toLowerCase();
   }
 
   return `${input.gmailLabel}:${input.subject}:${input.sourceUrl ?? ''}`.toLowerCase();

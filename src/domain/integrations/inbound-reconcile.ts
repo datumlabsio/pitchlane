@@ -34,6 +34,20 @@ const normalize = (value: string) =>
  * everything stays quiet until the channel has received its first email.
  */
 export async function reconcileInbound(): Promise<InboundReconcileResult> {
+  // Run receipt: proves the external cron is actually hitting this endpoint
+  // (otherwise "no alert" is indistinguishable from "never ran").
+  const receiptConn = await getGoogleConnection();
+  if (receiptConn) {
+    const receiptMeta =
+      receiptConn.metadata && typeof receiptConn.metadata === 'object' && !Array.isArray(receiptConn.metadata)
+        ? (receiptConn.metadata as Record<string, unknown>)
+        : {};
+    await prisma.integrationConnection.update({
+      where: { id: receiptConn.id },
+      data: { metadata: { ...receiptMeta, lastInboundReconcileRunAt: Date.now() } },
+    });
+  }
+
   // Never alarm before the channel is wired up — the first Upwork delivery arms it.
   // Skipped rows don't count: the Gmail forward-address confirmation email and
   // synthetic tests land (and are skipped) before the forwarding filter exists,

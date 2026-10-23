@@ -12,6 +12,8 @@ export type InboundChannelStatus = {
   last24h: { received: number; routed: number; unroutable: number; errors: number };
   /** When the reconciler armed (first routable delivery), if ever. */
   armedAt: Date | null;
+  /** Last time the reconcile cron actually ran (its run receipt), if ever. */
+  reconcileLastRunAt: Date | null;
   recent: Array<{
     id: string;
     subject: string | null;
@@ -24,7 +26,7 @@ export type InboundChannelStatus = {
 export async function getInboundChannelStatus(): Promise<InboundChannelStatus> {
   const since = new Date(Date.now() - 24 * 3600 * 1000);
 
-  const [recentRows, windowRows, armedBy] = await Promise.all([
+  const [recentRows, windowRows, armedBy, connection] = await Promise.all([
     prisma.inboundEmail.findMany({
       orderBy: { receivedAt: 'desc' },
       take: 6,
@@ -47,7 +49,18 @@ export async function getInboundChannelStatus(): Promise<InboundChannelStatus> {
       orderBy: { receivedAt: 'asc' },
       select: { receivedAt: true },
     }),
+    prisma.integrationConnection.findUnique({
+      where: { provider: 'GOOGLE_GMAIL' },
+      select: { metadata: true },
+    }),
   ]);
+
+  const meta =
+    connection?.metadata && typeof connection.metadata === 'object' && !Array.isArray(connection.metadata)
+      ? (connection.metadata as Record<string, unknown>)
+      : {};
+  const reconcileLastRunAt =
+    typeof meta.lastInboundReconcileRunAt === 'number' ? new Date(meta.lastInboundReconcileRunAt) : null;
 
   const receivingAddress =
     recentRows
@@ -66,6 +79,7 @@ export async function getInboundChannelStatus(): Promise<InboundChannelStatus> {
       errors: windowRows.filter((row) => row.outcome === 'error').length,
     },
     armedAt: armedBy?.receivedAt ?? null,
+    reconcileLastRunAt,
     recent: recentRows.map((row) => ({
       id: row.id,
       subject: row.subject,

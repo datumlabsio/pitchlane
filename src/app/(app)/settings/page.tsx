@@ -80,13 +80,25 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 : 'Not connected'}
             </h2>
             <p className="mt-1 text-sm text-stone-400">
-              {google.connected
-                ? 'Synced automatically every minute by a scheduled cron; new leads are enriched in the background.'
-                : 'Connect the shared forwarding inbox to enable Gmail sync.'}
+              {inbound.mode === 'live'
+                ? google.connected
+                  ? 'Standby rollback path. Ingestion now comes from the inbound email channel below; scheduled syncs are off and "Run sync now" is a one-shot manual pull.'
+                  : 'Retired. Ingestion comes from the inbound email channel; no Google credentials in use.'
+                : google.connected
+                  ? 'Synced automatically every minute by a scheduled cron; new leads are enriched in the background.'
+                  : 'Connect the shared forwarding inbox to enable Gmail sync.'}
             </p>
           </div>
-          <span className={`mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-medium ${google.connected ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'}`}>
-            {google.connected ? 'Connected' : 'Pending'}
+          <span
+            className={`mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+              inbound.mode === 'live'
+                ? 'bg-stone-400/15 text-stone-300'
+                : google.connected
+                  ? 'bg-emerald-400/15 text-emerald-300'
+                  : 'bg-amber-400/15 text-amber-300'
+            }`}
+          >
+            {inbound.mode === 'live' ? (google.connected ? 'Standby' : 'Retired') : google.connected ? 'Connected' : 'Pending'}
           </span>
         </div>
 
@@ -219,9 +231,25 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
         )}
 
+        {inbound.configured && inbound.armedAt && (
+          <p className="mt-3 text-xs">
+            {inbound.reconcileLastRunAt ? (
+              Date.now() - inbound.reconcileLastRunAt.getTime() < 45 * 60 * 1000 ? (
+                <span className="text-stone-500">Watchdog last ran {formatTimestamp(inbound.reconcileLastRunAt)}.</span>
+              ) : (
+                <span className="text-amber-300">
+                  Watchdog has not reported since {formatTimestamp(inbound.reconcileLastRunAt)} — check the reconcile cron.
+                </span>
+              )
+            ) : (
+              <span className="text-amber-300">Watchdog has never reported — check the reconcile cron on cron-job.org.</span>
+            )}
+          </p>
+        )}
+
         <p className="mt-5 border-t border-white/8 pt-4 text-xs text-stone-500">
-          Mail flow: Gmail filter on sales@ forwards Upwork alerts here. A reconcile cron compares every
-          Gmail lead against these deliveries and alerts Slack on gaps.
+          Mail flow: Gmail filter on sales@ forwards Upwork alerts here. The reconcile cron compares
+          Gmail-path leads against these deliveries while both run, and alarms Slack if the channel goes silent.
           {!inbound.keyPresent && ' Routing by profile needs the Resend API key (not set).'}
         </p>
       </div>

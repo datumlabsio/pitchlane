@@ -39,7 +39,11 @@ async function runSync() {
 
   after(async () => {
     // Keep the Gmail push watch alive (7-day expiry) — cheap no-op when current.
-    await ensureGmailWatch();
+    // Not in live inbound mode: the webhook channel owns ingestion there, and a
+    // manual "Run sync now" must stay a one-shot pull, not quietly re-arm push.
+    if (process.env.INBOUND_INGEST_MODE !== 'live') {
+      await ensureGmailWatch();
+    }
     // Enrich + alert each freshly-created lead right after responding, a few at a
     // time so one lead's judge call doesn't hold up the next lead's Slack alert.
     // Anything that spills is swept up by the enrich-pending safety-net cron.

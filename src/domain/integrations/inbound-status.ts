@@ -9,7 +9,11 @@ export type InboundChannelStatus = {
   mode: 'shadow' | 'live';
   /** Our receiving address, derived from the latest delivery. */
   receivingAddress: string | null;
-  last24h: { received: number; routed: number; unroutable: number; errors: number };
+  last24h: { received: number; routed: number; leadsCreated: number; unroutable: number; errors: number };
+  /** Most recent routable delivery — the pipeline's freshness signal. */
+  lastDeliveryAt: Date | null;
+  /** Deliveries routed per account in the last 24h, for the profile list. */
+  routedPerAccount: Array<{ accountId: string; count: number }>;
   /** When the reconciler armed (first routable delivery), if ever. */
   armedAt: Date | null;
   /** Last time the reconcile cron actually ran (its run receipt), if ever. */
@@ -26,7 +30,7 @@ export type InboundChannelStatus = {
 export async function getInboundChannelStatus(): Promise<InboundChannelStatus> {
   const since = new Date(Date.now() - 24 * 3600 * 1000);
 
-  const [recentRows, windowRows, armedBy, connection] = await Promise.all([
+  const [recentRows, windowRows, armedBy, connection, webhookLeads24h, lastDelivery, routedGroups] = await Promise.all([
     prisma.inboundEmail.findMany({
       orderBy: { receivedAt: 'desc' },
       take: 6,
@@ -53,6 +57,19 @@ export async function getInboundChannelStatus(): Promise<InboundChannelStatus> {
       where: { provider: 'GOOGLE_GMAIL' },
       select: { metadata: true },
     }),
+    prisma.lead.count({
+      where: { dedupeKey: { startsWith: 'resend:' }, createdAt: { gte: since } },
+    }),
+    prisma.inboundEmail.findFirst({
+      where: { outcome: { not: 'skipped' } },
+      orderBy: { receivedAt: 'desc' },
+      select: { receivedAt: true },
+    }),
+    prisma.inboundEmail.groupBy({
+      by: ['accountId'],
+      where: { receivedAt: { gte: since }, accountId: { not: null } },
+      _count: true,
+    }),
   ]);
 
   const meta =
@@ -75,9 +92,14 @@ export async function getInboundChannelStatus(): Promise<InboundChannelStatus> {
     last24h: {
       received: windowRows.length,
       routed: windowRows.filter((row) => row.accountId).length,
+      leadsCreated: webhookLeads24h,
       unroutable: windowRows.filter((row) => row.outcome === 'unroutable').length,
       errors: windowRows.filter((row) => row.outcome === 'error').length,
     },
+    lastDeliveryAt: lastDelivery?.receivedAt ?? null,
+    routedPerAccount: routedGroups
+      .filter((g) => g.accountId)
+      .map((g) => ({ accountId: g.accountId as string, count: g._count })),
     armedAt: armedBy?.receivedAt ?? null,
     reconcileLastRunAt,
     recent: recentRows.map((row) => ({

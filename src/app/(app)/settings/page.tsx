@@ -142,8 +142,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         {/* Stage strip */}
         <div className="mt-5 grid gap-3 rounded-2xl bg-white/6 px-4 py-4 sm:flex sm:items-center sm:gap-0">
           {stages.map((stage, i) => (
-            <div key={stage.name} className="flex min-w-0 items-center sm:flex-1">
-              <div className="flex items-center gap-2.5">
+            // Comb layout: every stage except the last stretches so its trailing
+            // connector fills the slack — the last hugs the right edge, keeping the
+            // strip visually balanced edge to edge.
+            <div key={stage.name} className={`flex min-w-0 items-center ${i < stages.length - 1 ? 'sm:flex-1' : ''}`}>
+              <div className="flex shrink-0 items-center gap-2.5">
                 <span className={`size-2 shrink-0 rounded-full ${STAGE_DOT[stage.tone]} ${stage.pulse ? 'animate-pulse' : ''}`} />
                 <div className="min-w-0">
                   <p className="text-[13px] font-semibold leading-tight text-stone-100">{stage.name}</p>

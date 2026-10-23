@@ -123,9 +123,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </h2>
             <p className="mt-1 text-sm text-stone-400">
               {live
-                ? 'Upwork alerts forward from sales@ into the signed webhook — leads ingest with zero Gmail API reads.'
+                ? 'Upwork alerts forwarded from sales@ are verified, routed to their profile, judged, and alerted to Slack.'
                 : inbound.configured
-                  ? 'Shadow mode: deliveries are stored and reconciled; Gmail remains the lead source until cutover.'
+                  ? 'Shadow mode: deliveries are stored and reconciled; leads still come from Gmail.'
                   : 'Set the webhook signing secret to activate the forwarding channel.'}
             </p>
           </div>
@@ -283,8 +283,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <p className="text-xs text-stone-400">
                 {live
                   ? google.connected
-                    ? 'Standby rollback path — scheduled syncs off, push watch stopped.'
-                    : 'Retired. No Google credentials in use.'
+                    ? 'Fallback inbox access. Not used for ingestion — One-shot pull fetches alert mail manually.'
+                    : 'Not connected. Optional fallback for pulling alert mail directly from the inbox.'
                   : google.connected
                     ? 'Primary ingestion path, synced by the scheduled cron.'
                     : 'Connect the shared forwarding inbox to enable Gmail sync.'}
@@ -301,7 +301,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                     : 'bg-amber-50 text-amber-700'
               }`}
             >
-              {live ? (google.connected ? 'Standby' : 'Retired') : google.connected ? 'Connected' : 'Pending'}
+              {live ? (google.connected ? 'Fallback' : 'Not connected') : google.connected ? 'Connected' : 'Pending'}
             </span>
             {google.connected && <GmailStandbyControls connected={google.connected} />}
             <Link
